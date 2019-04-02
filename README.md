@@ -1,4 +1,4 @@
-# Expo CLI for GitHub Actions
+# Expo for GitHub Actions
 
 > Both GitHub Actions and this library are highly unstable, do not use in production (yet).
 
