@@ -1,4 +1,4 @@
-# Expo CLI for Docker
+# Expo for Docker
 
 A prebuilt docker image to use the [Expo CLI](https://docs.expo.io/versions/latest/workflow/expo-cli) on Docker-based environments.
 This image contains all necessary libraries to perform all commands of the CLI.
