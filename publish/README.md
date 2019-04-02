@@ -3,7 +3,7 @@
 Publish a brand new release straight from your GitHub workflow.
 Optionally, you can configure the release channel or manifest file.
 
-> Make sure to authenticate before this step, else your workflow won't have the permission to build a new version
+> Make sure to [login](../login) before this step, else your workflow won't have the permission to build a new version
 
 ## Usage
 
