@@ -10,7 +10,7 @@ RUN npm install --global expo-cli@2 \
 	&& npm cache rm --force \
 	&& rm -rf ~/.npm
 
-COPY LICENSE.md README.md THIRD_PARTY_NOTICE.md /
+COPY LICENSE.md README.md /
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

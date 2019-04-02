@@ -3,16 +3,16 @@
 A prebuilt docker image to use the [Expo CLI](https://docs.expo.io/versions/latest/workflow/expo-cli) on Docker-based environments.
 This image contains all necessary libraries to perform all commands of the CLI.
 
-- Based on `node:10-alpine` image
+- Based on `node:10` image
 - Contains globally installed `expo-cli@2`
-- Contains `bash` for [Metro bundler](https://facebook.github.io/metro/)
-- Contains `git` for NPM repository references
 
 ## Usage
 
 The entry point of this image forwards to the Expo CLI itself.
-With this entry point you can provide any command directly to Docker.
+With this entry point, you can provide any command directly to Docker.
 When nothing is provided, it will output the help information provided by the CLI.
+
+> The entry point uses `sh -c` to invoke Expo, making environment variable available to that command.
 
 ```bash
 $ docker run --rm bycedric/ci-expo
@@ -26,8 +26,6 @@ $ docker run --rm -ti --entrypoint sh bycedric/ci-expo
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-> This image is built on top of awesome open source libraries, see [third party licenses](THIRD_PARTY_NOTICE.md) for more information.
 
 --- ---
 
