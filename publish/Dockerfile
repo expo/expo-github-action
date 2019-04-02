@@ -6,6 +6,5 @@ LABEL com.github.actions.icon="box"
 LABEL com.github.actions.color="gray-dark"
 
 COPY LICENSE.md README.md /
-COPY entrypoint.sh /entrypoint-publish.sh
 
-ENTRYPOINT ["/entrypoint-publish.sh"]
+ENTRYPOINT ["/entrypoint.sh", "publish"]
