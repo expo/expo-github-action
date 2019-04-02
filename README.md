@@ -8,8 +8,6 @@ You can also use [the base image](base) in other Docker-based environments.
 
 ## Usage
 
-By default, you have full access to the actual [Expo CLI](https://docs.expo.io/versions/latest/workflow/expo-cli).
-That means that you should be able to use every function from the CLI in your actions.
 Below you can see an example workflow to get you started right away!
 
 > Check out both [login](./login) and [publish](./publish) actions for more info.
@@ -34,6 +32,19 @@ action "Authenticate" {
 action "Publish" {
   needs = "Authenticate"
   uses = "bycedric/ci-expo/publish@master"
+}
+```
+
+### Custom command
+
+By default, you have full access to the actual [Expo CLI](https://docs.expo.io/versions/latest/workflow/expo-cli).
+That means that you should be able to use every function from the CLI in your actions.
+Below you can see how a custom command can be defined.
+
+```hcl
+action "Doctor" {
+  uses = "bycedric/ci-expo@master"
+  args = "doctor"
 }
 ```
 
