@@ -1,12 +1,12 @@
-FROM node:10-alpine
+FROM node:10
 
-LABEL name="Expo CLI for Docker"
+LABEL name="Expo for Docker"
+LABEL version="2.0.0"
 LABEL repository="https://github.com/bycedric/ci-expo"
 LABEL homepage="https://github.com/bycedric/ci-expo/tree/master/base"
 LABEL maintainer="Cedric van Putten <me+ci-expo@bycedric.com>"
 
-RUN apk add --no-cache bash git \
-	&& npm install --global expo-cli@2 \
+RUN npm install --global expo-cli@2 \
 	&& npm cache rm --force \
 	&& rm -rf ~/.npm
 
