@@ -1,5 +1,8 @@
 # Expo Build iOS for GitHub Actions
 
+> **This sub-action is no longer required and will be removed in the next release.**
+> _See the [example workflows](../README.md#example-workflows) for more info._
+
 Create a new standalone iOS build from your GitHub workflow.
 Optionally, you can configure the properties of this standalone app.
 

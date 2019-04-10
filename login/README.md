@@ -1,7 +1,10 @@
 # Expo Login for GitHub Actions
 
+> **This sub-action is no longer required and will be removed in the next release.**
+> _See the [example workflows](../README.md#example-workflows) for more info._
+
 Authenticate the current workflow to publish new versions or create new builds.
-It works relatively simple, you define the Expo credentials and this action will do the rest.
+It works relatively simple, you define the Expo credentials, and this action will do the rest.
 
 ## Usage
 

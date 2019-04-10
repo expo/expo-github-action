@@ -1,7 +1,10 @@
 # Expo Build Web for GitHub Actions
 
+> **This sub-action is no longer required and will be removed in the next release.**
+> _See the [example workflows](../README.md#example-workflows) for more info._
+
 Create a new app web bundle from your GitHub workflow.
-Optionally, you can configure the properties of this bunle.
+Optionally, you can configure the properties of this bundle.
 
 > Authentication is not required for this step.
 
