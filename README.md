@@ -58,7 +58,7 @@ workflow "Install and Publish" {
 }
 
 action "Install" {
-  uses = "actions/npm@1.0.0"
+  uses = "actions/npm@master"
   args = "install"
 }
 
@@ -83,13 +83,13 @@ workflow "Install and Publish" {
 }
 
 action "Install" {
-  uses = "actions/npm@1.0.0"
+  uses = "actions/npm@master"
   args = "install"
 }
 
 action "Test" {
   needs = "Install"
-  uses = "actions/npm@1.0.0"
+  uses = "actions/npm@master"
   args = "test"
 }
 
@@ -122,13 +122,13 @@ workflow "Install, Test and Build Web" {
 }
 
 action "Install" {
-  uses = "actions/npm@1.0.0"
+  uses = "actions/npm@master"
   args = "install"
 }
 
 action "Test" {
   needs = "Install"
-  uses = "actions/npm@1.0.0"
+  uses = "actions/npm@master"
   args = "test"
 }
 
