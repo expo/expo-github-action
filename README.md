@@ -10,7 +10,7 @@ You can also use [the base image](base) in other Docker-based environments.
 
 Within this Expo CLI action, you have full access to the original [Expo CLI][link-expo-cli].
 That means you are able to perform any command like login, publish and build.
-Also, this action will authenticate automatically when both `EXPO_USERNAME` and `EXPO_PASSWORD` variables are defined.
+Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` and `EXPO_CLI_PASSWORD` variables are defined.
 
 > You don't necessarily need this action to use Expo.
 > You can also add `expo-cli` as a dependency to your project and use the official [NPM action][link-actions-npm] for example.
@@ -26,12 +26,12 @@ This makes the Expo actions overall faster.
 ### Used secrets
 
 To authenticate with your Expo account, use the variables listed below.
-In the Expo action you can define `secrets = ["EXPO_USERNAME", "EXPO_PASSWORD"]` to have them available.
+In the Expo action you can define `secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]` to have them available.
 
-variable        | description
----             | ---
-`EXPO_USERNAME` | The email address or username of your Expo account.
-`EXPO_PASSWORD` | The password of your Expo account.
+variable            | description
+---                 | ---
+`EXPO_CLI_USERNAME` | The email address or username of your Expo account.
+`EXPO_CLI_PASSWORD` | The password of your Expo account, [automatically picked up by the cli][link-expo-cli-password].
 
 > Some Expo commands don't require authentication.
 > Simply omit the `secrets = [...]` if you don't need it.
@@ -66,7 +66,7 @@ action "Publish" {
   needs = "Install"
   uses = "byCedric/ci-expo@2.1.0"
   args = "publish"
-  secrets = ["EXPO_USERNAME", "EXPO_PASSWORD"]
+  secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
 }
 ```
 
@@ -103,7 +103,7 @@ action "Publish" {
   needs = "Filter branch"
   uses = "byCedric/ci-expo@2.1.0"
   args = "publish"
-  secrets = ["EXPO_USERNAME", "EXPO_PASSWORD"]
+  secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
 }
 ```
 
@@ -153,3 +153,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 [link-actions-npm]: https://github.com/actions/npm
 [link-expo]: https://expo.io
 [link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
+[link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
