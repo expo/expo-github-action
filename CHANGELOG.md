@@ -1,3 +1,22 @@
+## [2.1.0](https://github.com/bycedric/ci-expo/compare/2.0.0...2.1.0) (2019-04-10)
+
+### Code refactors
+
+* authenticate in main action if possible ([a401e30](https://github.com/bycedric/ci-expo/commit/a401e30))
+* remove extraneous commands from base image ([a90ce59](https://github.com/bycedric/ci-expo/commit/a90ce59))
+
+### Documentation changes
+
+* add deprecation notice on all sub-actions ([b5a0311](https://github.com/bycedric/ci-expo/commit/b5a0311))
+* add examples and more contextual info ([9625bb1](https://github.com/bycedric/ci-expo/commit/9625bb1))
+* fix typo in documentation and use link references ([48bbaf3](https://github.com/bycedric/ci-expo/commit/48bbaf3))
+* update license to 2019 ([7596f6b](https://github.com/bycedric/ci-expo/commit/7596f6b))
+
+### Other chores
+
+* add some issue templates to github ([9aec1f5](https://github.com/bycedric/ci-expo/commit/9aec1f5))
+
+
 ## [2.0.0](https://github.com/bycedric/ci-expo/compare/906c910...2.0.0) (2019-04-02)
 
 ### New features
