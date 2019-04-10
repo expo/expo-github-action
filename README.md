@@ -58,13 +58,13 @@ workflow "Install and Publish" {
 }
 
 action "Install" {
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   args = "install"
 }
 
 action "Publish" {
   needs = "Install"
-  uses = "bycedric/ci-expo@master"
+  uses = "byCedric/ci-expo@2.1.0"
   args = "publish"
   secrets = ["EXPO_USERNAME", "EXPO_PASSWORD"]
 }
@@ -83,13 +83,13 @@ workflow "Install and Publish" {
 }
 
 action "Install" {
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   args = "install"
 }
 
 action "Test" {
   needs = "Install"
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   args = "test"
 }
 
@@ -101,7 +101,7 @@ action "Filter branch" {
 
 action "Publish" {
   needs = "Filter branch"
-  uses = "bycedric/ci-expo@master"
+  uses = "byCedric/ci-expo@2.1.0"
   args = "publish"
   secrets = ["EXPO_USERNAME", "EXPO_PASSWORD"]
 }
@@ -109,10 +109,8 @@ action "Publish" {
 
 ### Test and build web every day at 08:00
 
-You can add as many extra steps in a workflow as you want.
-Here we've added a test step, that basically invokes `npm test` using the [NPM action][link-actions-npm].
-It also doesn't listen to push events.
-Instead, it's scheduled to run every day at 08:00.
+The most significant change here is that we've changed the workflow trigger.
+Instead of listening to push events, it's scheduled to run every day at 08:00.
 
 > For web builds, you don't need to be authenticated.
 > That's why `secrets = [...]` is omitted here.
@@ -124,19 +122,19 @@ workflow "Install, Test and Build Web" {
 }
 
 action "Install" {
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   args = "install"
 }
 
 action "Test" {
   needs = "Install"
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   args = "test"
 }
 
 action "Publish" {
   needs = "Test"
-  uses = "bycedric/ci-expo@master"
+  uses = "byCedric/ci-expo@2.1.0"
   args = "build:web"
 }
 ```
