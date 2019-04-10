@@ -1,3 +1,14 @@
+## [2.2.0](https://github.com/bycedric/ci-expo/compare/2.1.0...2.2.0) (2019-04-10)
+
+### Code refactors
+
+* use better expo cli variables prefix ([cd75584](https://github.com/bycedric/ci-expo/commit/cd75584))
+
+### Documentation changes
+
+* pin actions to versions for future releases ([3c76843](https://github.com/bycedric/ci-expo/commit/3c76843))
+
+
 ## [2.1.0](https://github.com/bycedric/ci-expo/compare/2.0.0...2.1.0) (2019-04-10)
 
 ### Code refactors
