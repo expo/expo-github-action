@@ -1,5 +1,8 @@
 # Expo Publish for GitHub Actions
 
+> **This sub-action is no longer required and will be removed in the next release.**
+> _See the [example workflows](../README.md#example-workflows) for more info._
+
 Publish a brand new release straight from your GitHub workflow.
 Optionally, you can configure the release channel or manifest file.
 
