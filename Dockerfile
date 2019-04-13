@@ -1,4 +1,4 @@
-FROM bycedric/ci-expo:2
+FROM bycedric/expo-cli:2
 
 LABEL com.github.actions.name="Expo CLI"
 LABEL com.github.actions.description="Use any Expo CLI command in your GitHub Actions workflow."
