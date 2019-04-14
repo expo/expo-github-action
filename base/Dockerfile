@@ -1,9 +1,9 @@
 FROM node:10
 
 LABEL name="Expo for Docker"
-LABEL repository="https://github.com/bycedric/ci-expo"
-LABEL homepage="https://github.com/bycedric/ci-expo/tree/master/base"
-LABEL maintainer="Cedric van Putten <me+ci-expo@bycedric.com>"
+LABEL repository="https://github.com/expo/expo-github-action"
+LABEL homepage="https://github.com/expo/expo-github-action/blob/master/base"
+LABEL maintainer="Cedric van Putten <me+expo-action@bycedric.com>"
 
 RUN npm install --global expo-cli@2 \
 	&& npm cache rm --force \
