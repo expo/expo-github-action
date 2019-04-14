@@ -116,9 +116,9 @@ Instead of listening to push events, it's scheduled to run every day at 08:00.
 > That's why `secrets = [...]` is omitted here.
 
 ```hcl
-workflow "Install, Test and Build Web" {
+workflow "Install, Test and Build for Web" {
   on = "schedule(0 8 * * *)"
-  resolves = ["Publish"]
+  resolves = ["Build"]
 }
 
 action "Install" {
@@ -132,7 +132,7 @@ action "Test" {
   args = "test"
 }
 
-action "Publish" {
+action "Build" {
   needs = "Test"
   uses = "expo/expo-github-action@2.3.0"
   args = "build:web"
