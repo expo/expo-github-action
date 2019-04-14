@@ -9,7 +9,7 @@ You can also use [the base image](base) in other Docker-based environments.
 ## What's inside?
 
 Within this Expo CLI action, you have full access to the original [Expo CLI][link-expo-cli].
-That means you are able to perform any command like login, publish and build.
+That means you can perform any command like login, publish and build.
 Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` and `EXPO_CLI_PASSWORD` variables are defined.
 
 > You don't necessarily need this action to use Expo.
@@ -18,9 +18,9 @@ Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` 
 
 ### Why use a base-image?
 
-Every GitHub action will start from scratch, using the dockerfile as the starting point.
+Every GitHub action will start from scratch using the dockerfile as the starting point.
 If you define `expo-cli` in this dockerfile, it will install it every time you run an action.
-By using a prebuilt image, it basically "skips" the process of downloading the full CLI over and over again.
+By using [a prebuilt image](base), it basically "skips" the process of downloading the full CLI over and over again.
 This makes the Expo actions overall faster.
 
 ### Used secrets
