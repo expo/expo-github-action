@@ -1,5 +1,7 @@
 # Expo for Docker
 
+[![Build Status](https://travis-ci.com/expo/expo-github-action.svg?branch=master)](https://travis-ci.com/expo/expo-github-action)
+
 A prebuilt docker image to use the [Expo CLI][link-expo-cli] on Docker-based environments.
 This image contains all necessary libraries to perform all commands of the CLI.
 
