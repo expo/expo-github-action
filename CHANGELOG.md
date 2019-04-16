@@ -1,3 +1,20 @@
+## [2.3.1](https://github.com/expo/expo-github-action/compare/2.3.0...2.3.1) (2019-04-17)
+
+### Bug fixes
+
+* increase node memory limit to 4gb ([4c25ef9](https://github.com/expo/expo-github-action/commit/4c25ef9))
+
+### Documentation changes
+
+* add note about overwriting node options ([aa752f2](https://github.com/expo/expo-github-action/commit/aa752f2))
+* add extra link to base image in description ([fa42241](https://github.com/expo/expo-github-action/commit/fa42241))
+* rename build action to remove ambiguity with other examples ([92beb0f](https://github.com/expo/expo-github-action/commit/92beb0f))
+
+### Other chores
+
+* make travis build the action to double check the docker file ([698a1c6](https://github.com/expo/expo-github-action/commit/698a1c6))
+
+
 ## [2.3.0](https://github.com/expo/expo-github-action/compare/2.2.0...2.3.0) (2019-04-14)
 
 ### New features
