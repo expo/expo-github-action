@@ -36,6 +36,15 @@ variable            | description
 > Some Expo commands don't require authentication.
 > Simply omit the `secrets = [...]` if you don't need it.
 
+### Some caveats
+
+#### Overwriting `NODE_OPTIONS`
+
+By default, Node has a "limited" memory limit.
+To fully use the available memory in GitHub Actions, the `NODE_OPTIONS` variable is set to `--max_old_space_size=4096`.
+If you need to overwrite this variable, make sure you add this value too or risk Node running out of memory.
+See [issue #12][link-issue-memory] for more info.
+
 ## Example workflows
 
 Before you dive into the workflow examples, you should know the basics of GitHub Actions.
@@ -154,3 +163,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 [link-expo]: https://expo.io
 [link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
+[link-issue-memory]: https://github.com/expo/expo-github-action/issues/12
