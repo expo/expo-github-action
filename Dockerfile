@@ -7,4 +7,8 @@ LABEL com.github.actions.color="gray-dark"
 
 COPY entrypoint.sh LICENSE.md README.md /
 
+# increase node's default memory limit to 4gb
+# see: https://github.com/expo/expo-github-action/#overwriting-node_options
+ENV NODE_OPTIONS="--max_old_space_size=4096"
+
 entrypoint ["/entrypoint.sh"]
