@@ -1,3 +1,10 @@
+## [2.3.2](https://github.com/expo/expo-github-action/compare/2.3.1...2.3.2) (2019-05-09)
+
+### Bug fixes
+
+* use yarn to install expo cli globally ([9fd3635](https://github.com/expo/expo-github-action/commit/9fd3635))
+
+
 ## [2.3.1](https://github.com/expo/expo-github-action/compare/2.3.0...2.3.1) (2019-04-17)
 
 ### Bug fixes

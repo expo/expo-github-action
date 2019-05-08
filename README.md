@@ -73,7 +73,7 @@ action "Install" {
 
 action "Publish" {
   needs = "Install"
-  uses = "expo/expo-github-action@2.3.1"
+  uses = "expo/expo-github-action@2.3.2"
   args = "publish"
   secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
 }
@@ -110,7 +110,7 @@ action "Filter branch" {
 
 action "Publish" {
   needs = "Filter branch"
-  uses = "expo/expo-github-action@2.3.1"
+  uses = "expo/expo-github-action@2.3.2"
   args = "publish"
   secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
 }
@@ -143,7 +143,7 @@ action "Test" {
 
 action "Build" {
   needs = "Test"
-  uses = "expo/expo-github-action@2.3.1"
+  uses = "expo/expo-github-action@2.3.2"
   args = "build:web"
 }
 ```
