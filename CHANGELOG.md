@@ -1,3 +1,11 @@
+## [3.0.0](https://github.com/expo/expo-github-action/compare/2.3.2...3.0.0) (2019-07-23)
+
+## Code refactors
+
+* run travis in parallel for expo cli v2 and v3 ([882d5f9](https://github.com/expo/expo-github-action/commit/882d5f9))
+* add latest expo-cli v3 but keep v2 images updated ([cd33736](https://github.com/expo/expo-github-action/commit/cd33736))
+
+
 ## [2.3.2](https://github.com/expo/expo-github-action/compare/2.3.1...2.3.2) (2019-05-09)
 
 ### Bug fixes

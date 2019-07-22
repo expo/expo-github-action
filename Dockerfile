@@ -1,4 +1,4 @@
-FROM bycedric/expo-cli:2
+FROM bycedric/expo-cli:3
 
 LABEL com.github.actions.name="Expo CLI"
 LABEL com.github.actions.description="Use any Expo CLI command in your GitHub Actions workflow."
@@ -11,4 +11,4 @@ COPY entrypoint.sh LICENSE.md README.md /
 # see: https://github.com/expo/expo-github-action/#overwriting-node_options
 ENV NODE_OPTIONS="--max_old_space_size=4096"
 
-entrypoint ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
