@@ -4,7 +4,7 @@
 
 Publish, build or manage your [Expo][link-expo] Project with GitHub Actions!
 This repository contains a prebuilt base image with GitHub Actions implementations.
-You can also use [the base image](base) in other Docker-based environments.
+You can also use [the base image][link-base] in other Docker-based environments.
 
 ## What's inside?
 
@@ -20,7 +20,7 @@ Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` 
 
 Every GitHub action will start from scratch using the dockerfile as the starting point.
 If you define `expo-cli` in this dockerfile, it will install it every time you run an action.
-By using [a prebuilt image](base), it basically "skips" the process of downloading the full CLI over and over again.
+By using [a prebuilt image][link-base], it basically "skips" the process of downloading the full CLI over and over again.
 This makes the Expo actions overall faster.
 
 ### Used secrets
@@ -160,6 +160,7 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 [link-actions]: https://developer.github.com/actions/
 [link-actions-npm]: https://github.com/actions/npm
+[link-base]: base/3
 [link-expo]: https://expo.io
 [link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
