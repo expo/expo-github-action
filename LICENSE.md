@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-Copyright (c) 2019 Cedric van Putten <me@bycedric.com>
+Copyright (c) 2019-present Cedric van Putten <me@bycedric.com>
 Copyright (c) 2019-present 650 Industries, Inc. (aka Expo)
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
