@@ -1,0 +1,10 @@
+---
+name: Expo GitHub Action
+author: Cedric van Putten <me+expo-action@bycedric.com>
+description: Use Expo CLI in your GitHub Actions workflow.
+branding:
+  icon: terminal
+  color: gray-dark
+runs:
+  using: docker
+  image: Dockerfile
