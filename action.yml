@@ -1,6 +1,6 @@
 ---
 name: Expo GitHub Action
-author: Cedric van Putten <me+expo-action@bycedric.com>
+author: Cedric van Putten <me@bycedric.com>
 description: Use Expo CLI in your GitHub Actions workflow.
 branding:
   icon: terminal
