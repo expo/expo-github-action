@@ -6,6 +6,11 @@ Publish, build or manage your [Expo][link-expo] Project with GitHub Actions!
 This repository contains a prebuilt base image with GitHub Actions implementations.
 You can also use [the base image][link-base] in other Docker-based environments.
 
+1. [What's inside?](#whats-inside)
+2. [Used secrets](#used-secrets)
+3. [Example workflows](#example-workflows)
+4. [Things to know](#things-to-know)
+
 ## What's inside?
 
 Within this Expo CLI action, you have full access to the original [Expo CLI][link-expo-cli].
@@ -16,14 +21,7 @@ Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` 
 > You can also add `expo-cli` as a dependency to your project and use the official [NPM action][link-actions-npm] for example.
 > However, when you do that you need to manage authentication yourself.
 
-### Why use a base-image?
-
-Every GitHub action will start from scratch using the dockerfile as the starting point.
-If you define `expo-cli` in this dockerfile, it will install it every time you run an action.
-By using [a prebuilt image][link-base], it basically "skips" the process of downloading the full CLI over and over again.
-This makes the Expo actions overall faster.
-
-### Used secrets
+## Used secrets
 
 To authenticate with your Expo account, use the variables listed below.
 In the Expo action you can define `secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]` to have them available.
@@ -35,15 +33,6 @@ variable            | description
 
 > Some Expo commands don't require authentication.
 > Simply omit the `secrets = [...]` if you don't need it.
-
-### Some caveats
-
-#### Overwriting `NODE_OPTIONS`
-
-By default, Node has a "limited" memory limit.
-To fully use the available memory in GitHub Actions, the `NODE_OPTIONS` variable is set to `--max_old_space_size=4096`.
-If you need to overwrite this variable, make sure you add this value too or risk Node running out of memory.
-See [issue #12][link-issue-memory] for more info.
 
 ## Example workflows
 
@@ -148,6 +137,29 @@ action "Build" {
 }
 ```
 
+### Things to know
+
+#### Automatic Expo login
+
+You need to authenticate for some Expo commands, like `expo publish` and `expo build:*`.
+This project has an additional feature to make this easy and secure.
+The [`entrypoint.sh`][link-expo-cli-proxy] is a simple bash script which is [set as a proxy for the original `expo` command][link-docker-expo-proxy].
+If you don't want to use this, you can call the original Expo command directly using `expo-cli publish`.
+
+#### Why use a base-image?
+
+Every GitHub action will start from scratch using the dockerfile as the starting point.
+If you define `expo-cli` in this dockerfile, it will install it every time you run an action.
+By using [a prebuilt image][link-base], it basically "skips" the process of downloading the full CLI over and over again.
+This makes the Expo actions overall faster.
+
+#### Overwriting `NODE_OPTIONS`
+
+By default, Node has a "limited" memory limit.
+To fully use the available memory in GitHub Actions, [the `NODE_OPTIONS` variable is set to `--max_old_space_size=4096`][link-docker-node-options].
+If you need to overwrite this variable, make sure you add this value too or risk Node running out of memory.
+See [issue #12][link-issue-memory] for more info.
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
@@ -161,7 +173,10 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 [link-actions]: https://developer.github.com/actions/
 [link-actions-npm]: https://github.com/actions/npm
 [link-base]: base/3
+[link-docker-expo-proxy]: Dockerfile#L7
+[link-docker-node-options]: Dockerfile#L11
 [link-expo]: https://expo.io
 [link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
+[link-expo-cli-proxy]: entrypoint.sh
 [link-issue-memory]: https://github.com/expo/expo-github-action/issues/12
