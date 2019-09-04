@@ -23,16 +23,12 @@ Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` 
 
 ## Used secrets
 
-To authenticate with your Expo account, use the variables listed below.
-In the Expo action you can define `secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]` to have them available.
+To authenticate with your Expo account, use the variables listed below. For more info, see [Automatic Expo login](#automatic-expo-login).
 
 variable            | description
 ---                 | ---
 `EXPO_CLI_USERNAME` | The email address or username of your Expo account.
 `EXPO_CLI_PASSWORD` | The password of your Expo account, [automatically picked up by the cli][link-expo-cli-password].
-
-> Some Expo commands don't require authentication.
-> Simply omit the `secrets = [...]` if you don't need it.
 
 ## Example workflows
 
