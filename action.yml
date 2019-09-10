@@ -1,10 +1,21 @@
 ---
 name: Expo GitHub Action
 author: Cedric van Putten <me@bycedric.com>
-description: Use Expo CLI in your GitHub Actions workflow.
+description: Expo CLI in your GitHub Actions workflow.
 branding:
   icon: terminal
   color: gray-dark
 runs:
-  using: docker
-  image: Dockerfile
+  using: node12
+  main: build/index.js
+input:
+  expo-version:
+    description: The Expo CLI version to install. (use any semver/dist-tag available)
+    default: latest
+  expo-username:
+    description: Your Expo username, for authentication.
+  expo-password:
+    description: Your Expo password, for authentication. (use with secrets)
+  expo-packager:
+    description: The package manager used to install the Expo CLI. (can be yarn or npm)
+    default: npm

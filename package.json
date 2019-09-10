@@ -1,0 +1,31 @@
+{
+	"private": true,
+	"name": "expo-github-action",
+	"version": "0.0.0",
+	"description": "Expo CLI in your GitHub Actions workflow",
+	"main": "build/index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/expo/expo-github-action.git"
+	},
+	"author": "Cedric van Putten <me@bycedric.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/expo/expo-github-action/issues"
+	},
+	"homepage": "https://github.com/expo/expo-github-action#readme",
+	"scripts": {
+		"build": "tsc"
+	},
+	"dependencies": {
+		"@actions/core": "^1.1.0",
+		"@actions/exec": "^1.0.1",
+		"@actions/io": "^1.0.1",
+		"@actions/tool-cache": "^1.1.1",
+		"libnpm": "^3.0.1"
+	},
+	"devDependencies": {
+		"@types/node": "^12.7.4",
+		"typescript": "^3.6.2"
+	}
+}
