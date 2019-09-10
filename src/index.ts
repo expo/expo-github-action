@@ -3,17 +3,17 @@ import { authenticate } from './expo';
 import { install } from './install';
 
 export async function run() {
-    const path = await install(
-        getInput('expo-version') || 'latest',
-        getInput('expo-packager') || 'npm',
-    );
+	const path = await install(
+		getInput('expo-version') || 'latest',
+		getInput('expo-packager') || 'npm',
+	);
 
-    addPath(path);
+	addPath(path);
 
-    await authenticate(
-        getInput('expo-username'),
-        getInput('expo-password'),
-    );
+	await authenticate(
+		getInput('expo-username'),
+		getInput('expo-password'),
+	);
 }
 
 run();

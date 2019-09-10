@@ -3,6 +3,7 @@ import * as cli from '@actions/exec';
 import * as io from '@actions/io';
 import * as path from 'path';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
 
 /**
@@ -11,7 +12,7 @@ const registry = require('libnpm');
  * It's used to determine the cached version of `expo-cli`.
  */
 export async function resolve(version: string) {
-    return (await registry.manifest(`expo-cli@${version}`)).version;
+	return (await registry.manifest(`expo-cli@${version}`)).version;
 }
 
 /**
@@ -20,15 +21,15 @@ export async function resolve(version: string) {
  * It returns the path where Expo is installed.
  */
 export async function install(version: string, packager: string) {
-    const exact = await resolve(version);
-    let root = await fromCache(exact);
+	const exact = await resolve(version);
+	let root = await fromCache(exact);
 
-    if (!root) {
-        root = await fromPackager(exact, packager)
-        root = await toCache(exact, root);
-    }
+	if (!root) {
+		root = await fromPackager(exact, packager)
+		root = await toCache(exact, root);
+	}
 
-    return path.join(root, 'node_modules', '.bin');
+	return path.join(root, 'node_modules', '.bin');
 }
 
 /**
@@ -36,13 +37,13 @@ export async function install(version: string, packager: string) {
  * It creates a temporary directory to store all required files.
  */
 export async function fromPackager(version: string, packager: string) {
-    const root = process.env['RUNNER_TEMP'] || '';
-    const tool = await io.which(packager);
+	const root = process.env['RUNNER_TEMP'] || '';
+	const tool = await io.which(packager);
 
-    await io.mkdirP(root);
-    await cli.exec(tool, ['add', `expo-cli@${version}`], { cwd: root });
+	await io.mkdirP(root);
+	await cli.exec(tool, ['add', `expo-cli@${version}`], { cwd: root });
 
-    return root;
+	return root;
 }
 
 /**
@@ -52,7 +53,7 @@ export async function fromPackager(version: string, packager: string) {
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function fromCache(version: string) {
-    return cache.find('expo-cli', version);
+	return cache.find('expo-cli', version);
 }
 
 /**
@@ -62,5 +63,5 @@ export async function fromCache(version: string) {
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function toCache(version: string, root: string) {
-    return cache.cacheDir(root, 'expo-cli', version);
+	return cache.cacheDir(root, 'expo-cli', version);
 }

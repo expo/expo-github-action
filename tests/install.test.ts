@@ -61,7 +61,7 @@ describe('fromPackager', () => {
 });
 
 describe('fromCache', () => {
-    test('uses cache for exact version', async () => {
+	test('uses cache for exact version', async () => {
 		cache.find.mockResolvedValue('/cache/expo/path');
 		const cachePath = await install.fromCache('3.0.10');
 		expect(cache.find).toBeCalledWith('expo-cli', '3.0.10');
@@ -70,7 +70,7 @@ describe('fromCache', () => {
 });
 
 describe('toCache', () => {
-    test('uses cache for installed folder', async () => {
+	test('uses cache for installed folder', async () => {
 		cache.cacheDir.mockResolvedValue('/cache/expo/path');
 		const cachePath = await install.toCache('3.0.10', '/expo/install/path');
 		expect(cache.cacheDir).toBeCalledWith('/expo/install/path', 'expo-cli', '3.0.10');
