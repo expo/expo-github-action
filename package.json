@@ -41,7 +41,7 @@
 	"husky": {
 		"hooks": {
 			"pre-commit": "npm test && npm run lint -- --fix && npm run build && npm prune --production && git add build node_modules",
-			"post-commit": "npm install"
+			"post-commit": "npm ci"
 		}
 	}
 }
