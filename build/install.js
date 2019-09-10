@@ -1,25 +1,26 @@
 "use strict";
-const __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-	function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-	return new (P || (P = Promise))(function (resolve, reject) {
-		function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-		function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-		function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-		step((generator = generator.apply(thisArg, _arguments || [])).next());
-	});
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-const __importStar = (this && this.__importStar) || function (mod) {
-	if (mod && mod.__esModule) return mod;
-	const result = {};
-	if (mod != null) for (const k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-	result["default"] = mod;
-	return result;
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const cache = __importStar(require("@actions/tool-cache"));
 const cli = __importStar(require("@actions/exec"));
 const io = __importStar(require("@actions/io"));
 const path = __importStar(require("path"));
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
 /**
  * Resolve the provided semver to exact version of `expo-cli`.
@@ -27,9 +28,9 @@ const registry = require('libnpm');
  * It's used to determine the cached version of `expo-cli`.
  */
 function resolve(version) {
-	return __awaiter(this, void 0, void 0, function* () {
-		return (yield registry.manifest(`expo-cli@${version}`)).version;
-	});
+    return __awaiter(this, void 0, void 0, function* () {
+        return (yield registry.manifest(`expo-cli@${version}`)).version;
+    });
 }
 exports.resolve = resolve;
 /**
@@ -38,15 +39,15 @@ exports.resolve = resolve;
  * It returns the path where Expo is installed.
  */
 function install(version, packager) {
-	return __awaiter(this, void 0, void 0, function* () {
-		const exact = yield resolve(version);
-		let root = yield fromCache(exact);
-		if (!root) {
-			root = yield fromPackager(exact, packager);
-			root = yield toCache(exact, root);
-		}
-		return path.join(root, 'node_modules', '.bin');
-	});
+    return __awaiter(this, void 0, void 0, function* () {
+        const exact = yield resolve(version);
+        let root = yield fromCache(exact);
+        if (!root) {
+            root = yield fromPackager(exact, packager);
+            root = yield toCache(exact, root);
+        }
+        return path.join(root, 'node_modules', '.bin');
+    });
 }
 exports.install = install;
 /**
@@ -54,13 +55,13 @@ exports.install = install;
  * It creates a temporary directory to store all required files.
  */
 function fromPackager(version, packager) {
-	return __awaiter(this, void 0, void 0, function* () {
-		const root = process.env['RUNNER_TEMP'] || '';
-		const tool = yield io.which(packager);
-		yield io.mkdirP(root);
-		yield cli.exec(tool, ['add', `expo-cli@${version}`], { cwd: root });
-		return root;
-	});
+    return __awaiter(this, void 0, void 0, function* () {
+        const root = process.env['RUNNER_TEMP'] || '';
+        const tool = yield io.which(packager);
+        yield io.mkdirP(root);
+        yield cli.exec(tool, ['add', `expo-cli@${version}`], { cwd: root });
+        return root;
+    });
 }
 exports.fromPackager = fromPackager;
 /**
@@ -70,9 +71,9 @@ exports.fromPackager = fromPackager;
  * @see https://github.com/actions/toolkit/issues/47
  */
 function fromCache(version) {
-	return __awaiter(this, void 0, void 0, function* () {
-		return cache.find('expo-cli', version);
-	});
+    return __awaiter(this, void 0, void 0, function* () {
+        return cache.find('expo-cli', version);
+    });
 }
 exports.fromCache = fromCache;
 /**
@@ -82,8 +83,8 @@ exports.fromCache = fromCache;
  * @see https://github.com/actions/toolkit/issues/47
  */
 function toCache(version, root) {
-	return __awaiter(this, void 0, void 0, function* () {
-		return cache.cacheDir(root, 'expo-cli', version);
-	});
+    return __awaiter(this, void 0, void 0, function* () {
+        return cache.cacheDir(root, 'expo-cli', version);
+    });
 }
 exports.toCache = toCache;
