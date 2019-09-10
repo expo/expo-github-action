@@ -41,7 +41,7 @@
 	"husky": {
 		"hooks": {
 			"pre-commit": "npm test && npm run lint -- --fix && npm run build",
-			"post-commit": "npm prune --production && git add node_modules/* && git commit -m \"chore: fix node_modules with husky\""
+			"post-commit": "npm prune --production && git add build node_modules && git commit -m \"chore: fix node_modules with husky\""
 		}
 	}
 }
