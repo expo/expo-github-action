@@ -16,6 +16,7 @@
 	"homepage": "https://github.com/expo/expo-github-action#readme",
 	"scripts": {
 		"test": "jest",
+		"lint": "eslint src/** tests/**",
 		"build": "tsc"
 	},
 	"dependencies": {
@@ -28,6 +29,10 @@
 	"devDependencies": {
 		"@types/jest": "^24.0.18",
 		"@types/node": "^12.7.4",
+		"@typescript-eslint/eslint-plugin": "^2.2.0",
+		"@typescript-eslint/parser": "^2.2.0",
+		"eslint": "^6.3.0",
+		"eslint-plugin-jest": "^22.17.0",
 		"husky": "^3.0.5",
 		"jest": "^24.9.0",
 		"ts-jest": "^24.0.2",
@@ -35,7 +40,7 @@
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "npm test && npm run build",
+			"pre-commit": "npm test && npm run lint -- --fix && npm run build",
 			"post-commit": "npm prune --production && git add node_modules/* && git commit -m \"chore: fix node_modules with husky\""
 		}
 	}
