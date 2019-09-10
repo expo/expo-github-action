@@ -1,18 +1,18 @@
-import * as core from '@actions/core';
+import { addPath, getInput } from '@actions/core';
 import { authenticate } from './expo';
 import { install } from './install';
 
-async function run() {
+export async function run() {
     const path = await install(
-        core.getInput('expo-version') || 'latest',
-        core.getInput('expo-packager') || 'npm',
+        getInput('expo-version') || 'latest',
+        getInput('expo-packager') || 'npm',
     );
 
-    core.addPath(path);
+    addPath(path);
 
     await authenticate(
-        core.getInput('expo-username'),
-        core.getInput('expo-password'),
+        getInput('expo-username'),
+        getInput('expo-password'),
     );
 }
 

@@ -1,6 +1,6 @@
+import * as cache from '@actions/tool-cache';
 import * as cli from '@actions/exec';
 import * as io from '@actions/io';
-import * as cache from '@actions/tool-cache';
 import * as path from 'path';
 
 const registry = require('libnpm');
@@ -25,7 +25,7 @@ export async function install(version: string, packager: string) {
 
     if (!root) {
         root = await fromPackager(exact, packager)
-        await toCache(exact, root);
+        root = await toCache(exact, root);
     }
 
     return path.join(root, 'node_modules', '.bin');
