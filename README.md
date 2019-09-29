@@ -1,160 +1,231 @@
-# Expo for GitHub Actions
+# Expo GitHub Action
 
-> GitHub Actions is still in beta, use it at your own risk.
+> GitHub Actions [is still in beta][link-actions-beta], use it at your own risk.
 
-Publish, build or manage your [Expo][link-expo] Project with GitHub Actions!
-This repository contains a prebuilt base image with GitHub Actions implementations.
-You can also use [the base image][link-base] in other Docker-based environments.
+Publish, build, or manage your [Expo][link-expo] project with GitHub Actions!
+This action installs the [Expo CLI][link-expo-cli] on your preferred os and authenticates your project.
+You can also use [the Docker image][link-docker-expo] in other Docker-based environments.
 
 1. [What's inside?](#whats-inside)
-2. [Used secrets](#used-secrets)
+2. [Used variables](#used-variables)
 3. [Example workflows](#example-workflows)
 4. [Things to know](#things-to-know)
 
+
 ## What's inside?
 
-Within this Expo CLI action, you have full access to the original [Expo CLI][link-expo-cli].
-That means you can perform any command like login, publish and build.
-Also, this action will authenticate automatically when both `EXPO_CLI_USERNAME` and `EXPO_CLI_PASSWORD` variables are defined.
+Within this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
+That means you can perform any command like login, publish, and build.
+Also, this action takes care of authentication when both `expo-username` and `expo-password` variables are defined.
 
 > You don't necessarily need this action to use Expo.
-> You can also add `expo-cli` as a dependency to your project and use the official [NPM action][link-actions-npm] for example.
-> However, when you do that you need to manage authentication yourself.
+> You can also add `expo-cli` as a dependency to your project and use `npx expo ...` for example.
+> However, when you do that you need to perform authentication yourself.
 
-## Used secrets
 
-To authenticate with your Expo account, use the variables listed below. For more info, see [Automatic Expo login](#automatic-expo-login).
+## Used variables
 
-variable            | description
----                 | ---
-`EXPO_CLI_USERNAME` | The email address or username of your Expo account.
-`EXPO_CLI_PASSWORD` | The password of your Expo account, [automatically picked up by the cli][link-expo-cli-password].
+This action is customizable through variables; they are defined in the [`action.yml`][link-expo-cli-action].
+Here is a summary of all the variables that you can use and their purpose.
+
+variable        | description
+---             | ---
+`expo-username` | The username of your Expo account. _(you can hardcode this or use secrets)_
+`expo-password` | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
+`expo-version`  | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
+`expo-packager` | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `npm`)_
+
+> It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
+> For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
+
 
 ## Example workflows
 
 Before you dive into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
-1. [Publish on any push](#publish-on-any-push)
-2. [Publish on a specific branch](#publish-on-a-specific-branch)
-3. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
+1. [Publish on any push to master](#publish-on-any-push-to-master)
+2. [Test PRs on Linux, MacOS and Windows](#test-prs-on-linux-macos-and-windows)
+3. [Test PRs on Node 10 and 12](#test-prs-on-node-10-and-12)
+4. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
+5. [Use Docker for improved performance](#use-docker-for-improved-performance)
 
-### Publish on any push
 
-Below you can see the example configuration to publish whenever the repository is updated.
-The workflow listens to the `push` event and resolves directly to the `publish` action.
-Before publishing your app, it installs your project's dependencies using the [NPM action][link-actions-npm].
+### Publish on any push to master
 
-```hcl
-workflow "Install and Publish" {
-  on = "push"
-  resolves = ["Publish"]
-}
+Below you can see the example configuration to publish whenever the master branch is updated.
+The workflow listens to the `push` event and sets up Node 12 using the [Setup Node Action][link-actions-node].
+It also authenticates the Expo project by defining both `expo-username` and `expo-password`.
 
-action "Install" {
-  uses = "actions/npm@master"
-  args = "install"
-}
-
-action "Publish" {
-  needs = "Install"
-  uses = "expo/expo-github-action@3.0.0"
-  args = "publish"
-  secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
-}
+```yml
+name: Expo Publish
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@refactor/update-action
+        with:
+          expo-version: 3.x
+          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
+          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+      - run: npm ci
+      - run: expo publish
 ```
 
-### Publish on a specific branch
 
-This workflow is similar to the [publish on any push](#publish-on-any-push) configuration.
-It will install and test the code using the [NPM action][link-actions-npm] on every push.
-But instead of publishing on any push too, it will publish on the `master` branch only.
+### Test PRs on Linux, MacOS, and Windows
 
-```hcl
-workflow "Install and Publish" {
-  on = "push"
-  resolves = ["Publish"]
-}
+With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on various operating systems.
+These matrixes can help to make sure your app runs smoothly on a broad set of different development machines.
+The action below is only running on pull requests to avoid unnecessary builds.
 
-action "Install" {
-  uses = "actions/npm@master"
-  args = "install"
-}
+> If you don't need automatic authentication, you can omit the `expo-username` and `expo-password` variables.
 
-action "Test" {
-  needs = "Install"
-  uses = "actions/npm@master"
-  args = "test"
-}
-
-action "Filter branch" {
-  needs = "Test"
-  uses = "actions/bin/filter@master"
-  args = "branch master"
-}
-
-action "Publish" {
-  needs = "Filter branch"
-  uses = "expo/expo-github-action@3.0.0"
-  args = "publish"
-  secrets = ["EXPO_CLI_USERNAME", "EXPO_CLI_PASSWORD"]
-}
+```yml
+name: Expo CI
+on: [pull_request]
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@refactor/update-action
+        with:
+          expo-version: 3.x
+      - run: npm ci
+      - run: npm test
+      - run: expo doctor
 ```
+
+
+### Test PRs on Node 10 and 12
+
+Sometimes you want to double-check if your app builds on multiple node versions.
+Setting this up is just as easy as defining a matrix build for multiple systems.
+
+```yml
+name: Expo CI
+on: [pull_request]
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: expo/expo-github-action@refactor/update-action
+        with:
+          expo-version: 3.x
+      - run: npm ci
+      - run: npm test
+      - run: expo doctor
+```
+
 
 ### Test and build web every day at 08:00
 
-The most significant change here is that we've changed the workflow trigger.
-Instead of listening to push events, it's scheduled to run every day at 08:00.
+You can also schedule jobs by using the cron syntax.
+It helps you update or check your app now and then.
+For example, the [Expo CLI Docker images uses this][link-docker-expo-cron] to make sure the images are up to date.
 
-> For web builds, you don't need to be authenticated.
-> That's why `secrets = [...]` is omitted here.
-
-```hcl
-workflow "Install, Test and Build for Web" {
-  on = "schedule(0 8 * * *)"
-  resolves = ["Build"]
-}
-
-action "Install" {
-  uses = "actions/npm@master"
-  args = "install"
-}
-
-action "Test" {
-  needs = "Install"
-  uses = "actions/npm@master"
-  args = "test"
-}
-
-action "Build" {
-  needs = "Test"
-  uses = "expo/expo-github-action@3.0.0"
-  args = "build:web"
-}
+```yml
+name: Expo Daily CI
+on:
+  schedule:
+    - cron: 0 8 * * *
+jobs:
+  ci:
+    name: Daily Continuous Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@refactor/update-action
+        with:
+          expo-version: 3.x
+      - run: npm ci
+      - run: npm test
+      - run: expo build:web
 ```
+
+
+### Use Docker for improved performance
+
+Unfortunately, GitHub Actions lack a feature to cache files and directories across multiple jobs.
+Because of this, the action has to pull and install the [Expo CLI][link-expo-cli] _on every run_.
+If you want faster runs and don't care about customizing your workflows in detail, you can use [the Expo Docker image][link-docker-expo] to speed things up.
+
+> Because Docker uses a predefined environment, you lose the ability to customize the Node versions and system types.
+> For most projects this won't be an issue, but please make sure you understand the tradeoffs.
+> This approach is also a robust way and won't break once we implement the caching feature.
+
+```yml
+name: Expo Publish
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm ci
+      - uses: docker://bycedric/expo-cli:3
+        with:
+          args: publish
+        env:
+          EXPO_CLI_USERNAME: ${{ secrets.EXPO_CLI_USERNAME }}
+          EXPO_CLI_PASSWORD: ${{ secrets.EXPO_CLI_PASSWORD }}
+```
+
 
 ### Things to know
 
+
 #### Automatic Expo login
 
-You need to authenticate for some Expo commands, like `expo publish` and `expo build:*`.
+You need to authenticate for some Expo commands as `expo publish` and `expo build:*`.
 This project has an additional feature to make this easy and secure.
-The [`entrypoint.sh`][link-expo-cli-proxy] is a simple bash script which is [set as a proxy for the original `expo` command][link-docker-expo-proxy].
-If you don't want to use this, you can call the original Expo command directly using `expo-cli publish`.
+The action uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] variable internally to make this happen.
 
-#### Why use a base-image?
 
-Every GitHub action will start from scratch using the dockerfile as the starting point.
-If you define `expo-cli` in this dockerfile, it will install it every time you run an action.
-By using [a prebuilt image][link-base], it basically "skips" the process of downloading the full CLI over and over again.
-This makes the Expo actions overall faster.
+#### Why is the action slow?
 
-#### Overwriting `NODE_OPTIONS`
+As of writing, GitHub Actions lacks a feature to "cache" files and directories across multiple jobs.
+Because of this, the action has to pull and install the [Expo CLI][link-expo-cli] _on every run_.
+Fortunately, GitHub is working on a feature that should make this happen, but it's not available yet.
+If this is a show-stopper for you, read about how to set the [Expo CLI up with Docker](#use-docker-for-improved-performance).
+Please note that this approach has its limitations and make sure you understand these before trying this out.
+When GitHub releases this caching feature, we will implement this feature and it and make it significantly faster.
 
-By default, Node has a "limited" memory limit.
-To fully use the available memory in GitHub Actions, [the `NODE_OPTIONS` variable is set to `--max_old_space_size=4096`][link-docker-node-options].
-If you need to overwrite this variable, make sure you add this value too or risk Node running out of memory.
-See [issue #12][link-issue-memory] for more info.
 
 ## License
 
@@ -166,13 +237,14 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
     with :heart: <a href="https://bycedric.com" target="_blank">byCedric</a>
 </p>
 
-[link-actions]: https://developer.github.com/actions/
-[link-actions-npm]: https://github.com/actions/npm
-[link-base]: base/3
-[link-docker-expo-proxy]: Dockerfile#L7
-[link-docker-node-options]: Dockerfile#L11
+[link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+[link-actions-beta]: https://help.github.com/en/articles/about-github-actions
+[link-actions-node]: https://github.com/actions/setup-node
+[link-actions-secrets]: https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables
+[link-actions-syntax-with]: https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepswith
+[link-docker-expo]: https://github.com/bycedric/expo-cli-images
+[link-docker-expo-cron]: https://github.com/byCedric/expo-cli-images/blob/d93389e52135d6a599853aed7893adc6a8b57c84/.github/workflows/daily-builds.yml#L5
 [link-expo]: https://expo.io
 [link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
+[link-expo-cli-action]: action.yml
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
-[link-expo-cli-proxy]: entrypoint.sh
-[link-issue-memory]: https://github.com/expo/expo-github-action/issues/12
