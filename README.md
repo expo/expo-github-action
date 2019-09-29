@@ -72,7 +72,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@refactor/update-action
+      - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
           expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@refactor/update-action
+      - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
       - run: npm ci
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - uses: expo/expo-github-action@refactor/update-action
+      - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
       - run: npm ci
@@ -163,7 +163,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@refactor/update-action
+      - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
       - run: npm ci

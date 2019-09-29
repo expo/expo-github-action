@@ -1,3 +1,37 @@
+## [4.0.0](https://github.com/expo/expo-github-action/compare/3.0.0...4.0.0) (2019-09-29)
+
+### New features
+
+* add github workflow for ci ([929a76c](https://github.com/expo/expo-github-action/commit/929a76c))
+* add new expo action cli install concept ([98b1bea](https://github.com/expo/expo-github-action/commit/98b1bea))
+* use new action metadata format ([81344e4](https://github.com/expo/expo-github-action/commit/81344e4))
+
+### Bug fixes
+
+* add build and node node modules before commit ([00692c4](https://github.com/expo/expo-github-action/commit/00692c4))
+* add build and node node modules in husky hook ([b2929e3](https://github.com/expo/expo-github-action/commit/b2929e3))
+
+### Code refactors
+
+* remove travis config and base images ([e72ddd8](https://github.com/expo/expo-github-action/commit/e72ddd8))
+* move entry point to expo as proxy ([caf499b](https://github.com/expo/expo-github-action/commit/caf499b))
+* update proxy for non-interactive mode and help links ([5cfaee2](https://github.com/expo/expo-github-action/commit/5cfaee2))
+
+### Documentation changes
+
+* update documentation for the new action ([38e963b](https://github.com/expo/expo-github-action/commit/38e963b))
+* simplify and link the environment variables info ([26c734a](https://github.com/expo/expo-github-action/commit/26c734a))
+* replace aliased email with normal email ([f3bc71a](https://github.com/expo/expo-github-action/commit/f3bc71a))
+* write about entry point proxy and restructure for easy access ([4766fa8](https://github.com/expo/expo-github-action/commit/4766fa8))
+* update license dates ([89005bc](https://github.com/expo/expo-github-action/commit/89005bc))
+
+### Other chores
+
+* add linter and fix all files ([04cd479](https://github.com/expo/expo-github-action/commit/04cd479))
+* add husky for repository deployments ([cec6e50](https://github.com/expo/expo-github-action/commit/cec6e50))
+* add all missing tests ([22df52e](https://github.com/expo/expo-github-action/commit/22df52e))
+
+
 ## [3.0.0](https://github.com/expo/expo-github-action/compare/2.3.2...3.0.0) (2019-07-23)
 
 ## Code refactors
