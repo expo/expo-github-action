@@ -28,12 +28,13 @@ Also, this action takes care of authentication when both `expo-username` and `ex
 This action is customizable through variables; they are defined in the [`action.yml`][link-expo-cli-action].
 Here is a summary of all the variables that you can use and their purpose.
 
-variable        | description
----             | ---
-`expo-username` | The username of your Expo account. _(you can hardcode this or use secrets)_
-`expo-password` | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
-`expo-version`  | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
-`expo-packager` | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `npm`)_
+variable              | description
+---                   | ---
+`expo-username`       | The username of your Expo account. _(you can hardcode this or use secrets)_
+`expo-password`       | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
+`expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
+`expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `npm`)_
+`expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
 
 > It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 > For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
@@ -225,6 +226,16 @@ Fortunately, GitHub is working on a feature that should make this happen, but it
 If this is a show-stopper for you, read about how to set the [Expo CLI up with Docker](#use-docker-for-improved-performance).
 Please note that this approach has its limitations and make sure you understand these before trying this out.
 When GitHub releases this caching feature, we will implement this feature and it and make it significantly faster.
+
+
+#### ENOSPC errors on Linux
+
+React Native bundles are created by the Metro bundler, even when using Expo.
+Unfortunately, this Metro bundler requires quite some resources.
+As of writing, GitHub Actions has some small default values for the `fs.inotify` settings.
+Inside we included a patch that increases these limits for the "active workflow" run.
+It increases the `max_user_instances`, `max_user_watches` and `max_queued_events` to `524288`.
+You can disable this patch by setting the `expo-patch-watchers` to `false`.
 
 
 ## License
