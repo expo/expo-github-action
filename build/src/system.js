@@ -19,22 +19,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const cli = __importStar(require("@actions/exec"));
 /**
- * Authenticate at Expo using `expo login`.
- * This step is required for publishing and building new apps.
- * It uses the `EXPO_CLI_PASSWORD` environment variable for improved security.
+ * Try to patch the default watcher/inotify limit.
+ * This is a limitation from GitHub Actions and might be an issue in some Expo projects.
+ * It sets the system's `fs.inotify` limits to a more sensible setting.
+ *
+ * @see https://github.com/expo/expo-github-action/issues/20
  */
-function authenticate(username, password) {
+function patchWatchers() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!username || !password) {
-            return core.debug('Skipping authentication, `expo-username` and/or `expo-password` not set...');
+        if (process.platform !== 'linux') {
+            return core.debug('Skipping patch for watchers, not running on Linux...');
         }
-        // github actions toolkit will handle commands with `.cmd` on windows, we need that
-        const bin = process.platform === 'win32'
-            ? 'expo.cmd'
-            : 'expo';
-        yield cli.exec(bin, ['login', `--username=${username}`], {
-            env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
-        });
+        core.debug('Patching system watchers for the `ENOSPC` error...');
+        try {
+            // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
+            yield cli.exec('sudo sysctl fs.inotify.max_user_instances=524288');
+            yield cli.exec('sudo sysctl fs.inotify.max_user_watches=524288');
+            yield cli.exec('sudo sysctl fs.inotify.max_queued_events=524288');
+            yield cli.exec('sudo sysctl -p');
+        }
+        catch (_a) {
+            core.warning('Looks like we can\'t patch watchers/inotify limits, you might encouter the `ENOSPC` error.');
+            core.warning('For more info, https://github.com/expo/expo-github-action/issues/20');
+        }
     });
 }
-exports.authenticate = authenticate;
+exports.patchWatchers = patchWatchers;

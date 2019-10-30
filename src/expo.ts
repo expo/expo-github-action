@@ -11,7 +11,12 @@ export async function authenticate(username: string, password: string) {
 		return core.debug('Skipping authentication, `expo-username` and/or `expo-password` not set...');
 	}
 
-	await cli.exec('expo', ['login', `--username=${username}`], {
+	// github actions toolkit will handle commands with `.cmd` on windows, we need that
+	const bin = process.platform === 'win32'
+		? 'expo.cmd'
+		: 'expo';
+
+	await cli.exec(bin, ['login', `--username=${username}`], {
 		env: {
 			...process.env,
 			EXPO_CLI_PASSWORD: password,
