@@ -1,6 +1,6 @@
 ---
 name: ci
-on: [push]
+on: [push, pull_request]
 jobs:
   build:
     name: Test, lint and build
