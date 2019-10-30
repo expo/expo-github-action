@@ -1,7 +1,5 @@
 # Expo GitHub Action
 
-> GitHub Actions [is still in beta][link-actions-beta], use it at your own risk.
-
 Publish, build, or manage your [Expo][link-expo] project with GitHub Actions!
 This action installs the [Expo CLI][link-expo-cli] on your preferred os and authenticates your project.
 You can also use [the Docker image][link-docker-expo] in other Docker-based environments.
@@ -249,7 +247,6 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 </p>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
-[link-actions-beta]: https://help.github.com/en/articles/about-github-actions
 [link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables
 [link-actions-syntax-with]: https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepswith
