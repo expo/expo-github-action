@@ -28,9 +28,9 @@ const cli = __importStar(require("@actions/exec"));
 function patchWatchers() {
     return __awaiter(this, void 0, void 0, function* () {
         if (process.platform !== 'linux') {
-            return core.debug('Skipping patch for watchers, not running on Linux...');
+            return core.info('Skipping patch for watchers, not running on Linux...');
         }
-        core.debug('Patching system watchers for the `ENOSPC` error...');
+        core.info('Patching system watchers for the `ENOSPC` error...');
         try {
             // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
             yield cli.exec('sudo sysctl fs.inotify.max_user_instances=524288');
