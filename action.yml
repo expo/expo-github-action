@@ -18,7 +18,7 @@ input:
     description: Your Expo password, for authentication. (use with secrets)
   expo-packager:
     description: The package manager used to install the Expo CLI. (can be yarn or npm)
-    default: npm
+    default: yarn
   expo-patch-watchers:
     description: If Expo should fix the default watchers limit, helps with ENOSPC errors. (can be true or false)
     default: true
