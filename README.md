@@ -33,6 +33,8 @@ variable              | description
 `expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
 `expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `yarn`)_
 `expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
+`expo-cache`          | If it should use the remote cache from [`actions/cache`][link-actions-cache] _(can be `true` or `false`, defaults to `false`)_
+`expo-cache-key`      | An optional custom remote cache key _(**warning**, only use this when you know what you are doing)_
 
 > It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 > For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
@@ -247,6 +249,7 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 </p>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+[link-actions-cache]: https://github.com/actions/cache
 [link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables
 [link-actions-syntax-with]: https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepswith
