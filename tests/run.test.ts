@@ -38,42 +38,42 @@ const mockInput = (props: MockInputProps = {}) => {
 };
 
 describe('run', () => {
-	test('installs latest expo-cli with yarn by default', async () => {
+	it('installs latest expo-cli with yarn by default', async () => {
 		await run();
 		expect(install.install).toBeCalledWith('latest', 'yarn');
 	});
 
-	test('installs provided version expo-cli with npm', async () => {
+	it('installs provided version expo-cli with npm', async () => {
 		mockInput({ version: '3.0.10', packager: 'npm' });
 		await run();
 		expect(install.install).toBeCalledWith('3.0.10', 'npm');
 	});
 
-	test('installs path to global path', async () => {
+	it('installs path to global path', async () => {
 		install.install.mockResolvedValue('/expo/install/path');
 		await run();
 		expect(core.addPath).toBeCalledWith('/expo/install/path');
 	});
 
-	test('patches the system when set to true', async () => {
+	it('patches the system when set to true', async () => {
 		mockInput({ patchWatchers: 'true' });
 		await run();
 		expect(system.patchWatchers).toHaveBeenCalled();
 	});
 
-	test('patches the system when not set', async () => {
+	it('patches the system when not set', async () => {
 		mockInput({ patchWatchers: '' });
 		await run();
 		expect(system.patchWatchers).toHaveBeenCalled();
 	});
 
-	test('skips the system patch when set to false', async () => {
+	it('skips the system patch when set to false', async () => {
 		mockInput({ patchWatchers: 'false' });
 		await run();
 		expect(system.patchWatchers).not.toHaveBeenCalled();
 	});
 
-	test('authenticates with provided credentials', async () => {
+	it('authenticates with provided credentials', async () => {
 		mockInput({ username: 'bycedric', password: 'mypassword', patchWatchers: 'false' });
 		await run();
 		expect(expo.authenticate).toBeCalledWith('bycedric', 'mypassword');

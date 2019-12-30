@@ -9,19 +9,19 @@ describe('authenticate', () => {
 		info: jest.spyOn(core, 'info').mockImplementation(),
 	};
 
-	test('skips authentication without credentials', async () => {
+	it('skips authentication without credentials', async () => {
 		await expo.authenticate('', '');
 		expect(spy.exec).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
-	test('skips authentication without password', async () => {
+	it('skips authentication without password', async () => {
 		await expo.authenticate('bycedric', '');
 		expect(spy.exec).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
-	test('executes login command with password through environment', async () => {
+	it('executes login command with password through environment', async () => {
 		process.env['TEST_INCLUDED'] = 'hellyeah';
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
@@ -35,7 +35,7 @@ describe('authenticate', () => {
 		});
 	});
 
-	test('executes login command with `.cmd` suffix on windows', async () => {
+	it('executes login command with `.cmd` suffix on windows', async () => {
 		setPlatform('win32');
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
