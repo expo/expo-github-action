@@ -38,15 +38,15 @@ const mockInput = (props: MockInputProps = {}) => {
 };
 
 describe('run', () => {
-	test('installs latest expo-cli with npm by default', async () => {
+	test('installs latest expo-cli with yarn by default', async () => {
 		await run();
-		expect(install.install).toBeCalledWith('latest', 'npm');
+		expect(install.install).toBeCalledWith('latest', 'yarn');
 	});
 
-	test('installs provided version expo-cli with yarn', async () => {
-		mockInput({ version: '3.0.10', packager: 'yarn' });
+	test('installs provided version expo-cli with npm', async () => {
+		mockInput({ version: '3.0.10', packager: 'npm' });
 		await run();
-		expect(install.install).toBeCalledWith('3.0.10', 'yarn');
+		expect(install.install).toBeCalledWith('3.0.10', 'npm');
 	});
 
 	test('installs path to global path', async () => {

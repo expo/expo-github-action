@@ -29589,7 +29589,7 @@ const install_1 = __webpack_require__(655);
 const system_1 = __webpack_require__(913);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const path = yield install_1.install(core_1.getInput('expo-version') || 'latest', core_1.getInput('expo-packager') || 'npm');
+        const path = yield install_1.install(core_1.getInput('expo-version') || 'latest', core_1.getInput('expo-packager') || 'yarn');
         core_1.addPath(path);
         yield expo_1.authenticate(core_1.getInput('expo-username'), core_1.getInput('expo-password'));
         const shouldPatchWatchers = core_1.getInput('expo-patch-watchers') || 'true';
