@@ -6,7 +6,7 @@ import { patchWatchers } from './system';
 export async function run() {
 	const path = await install(
 		getInput('expo-version') || 'latest',
-		getInput('expo-packager') || 'npm',
+		getInput('expo-packager') || 'yarn',
 	);
 
 	addPath(path);

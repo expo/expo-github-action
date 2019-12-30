@@ -31,7 +31,7 @@ variable              | description
 `expo-username`       | The username of your Expo account. _(you can hardcode this or use secrets)_
 `expo-password`       | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
 `expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
-`expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `npm`)_
+`expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `yarn`)_
 `expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
 
 > It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
