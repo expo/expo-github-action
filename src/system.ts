@@ -10,10 +10,10 @@ import * as cli from '@actions/exec';
  */
 export async function patchWatchers() {
 	if (process.platform !== 'linux') {
-		return core.debug('Skipping patch for watchers, not running on Linux...');
+		return core.info('Skipping patch for watchers, not running on Linux...');
 	}
 
-	core.debug('Patching system watchers for the `ENOSPC` error...');
+	core.info('Patching system watchers for the `ENOSPC` error...');
 
 	try {
 		// see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177

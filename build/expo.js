@@ -26,7 +26,7 @@ const cli = __importStar(require("@actions/exec"));
 function authenticate(username, password) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!username || !password) {
-            return core.debug('Skipping authentication, `expo-username` and/or `expo-password` not set...');
+            return core.info('Skipping authentication, `expo-username` and/or `expo-password` not set...');
         }
         // github actions toolkit will handle commands with `.cmd` on windows, we need that
         const bin = process.platform === 'win32'

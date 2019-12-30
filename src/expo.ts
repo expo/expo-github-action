@@ -8,7 +8,7 @@ import * as cli from '@actions/exec';
  */
 export async function authenticate(username: string, password: string) {
 	if (!username || !password) {
-		return core.debug('Skipping authentication, `expo-username` and/or `expo-password` not set...');
+		return core.info('Skipping authentication, `expo-username` and/or `expo-password` not set...');
 	}
 
 	// github actions toolkit will handle commands with `.cmd` on windows, we need that

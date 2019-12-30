@@ -1,13 +1,15 @@
-const core = { debug: jest.fn(), warning: jest.fn() };
-const cli = { exec: jest.fn() };
-
-jest.mock('@actions/core', () => core);
-jest.mock('@actions/exec', () => cli);
-
+import * as core from '@actions/core';
+import * as cli from '@actions/exec';
 import * as system from '../src/system';
 import { setPlatform, resetPlatform } from './utils';
 
 describe('patchWatchers', () => {
+	const spy = {
+		info: jest.spyOn(core, 'info').mockImplementation(),
+		warning: jest.spyOn(core, 'warning').mockImplementation(),
+		exec: jest.spyOn(cli, 'exec').mockImplementation(),
+	};
+
 	afterEach(() => {
 		resetPlatform();
 	});
@@ -15,15 +17,15 @@ describe('patchWatchers', () => {
 	it('increses fs inotify settings with sysctl', async () => {
 		setPlatform('linux');
 		await system.patchWatchers();
-		expect(cli.exec).toHaveBeenCalledWith('sudo sysctl fs.inotify.max_user_instances=524288');
-		expect(cli.exec).toHaveBeenCalledWith('sudo sysctl fs.inotify.max_user_watches=524288');
-		expect(cli.exec).toHaveBeenCalledWith('sudo sysctl fs.inotify.max_queued_events=524288');
-		expect(cli.exec).toHaveBeenCalledWith('sudo sysctl -p');
+		expect(spy.exec).toBeCalledWith('sudo sysctl fs.inotify.max_user_instances=524288');
+		expect(spy.exec).toBeCalledWith('sudo sysctl fs.inotify.max_user_watches=524288');
+		expect(spy.exec).toBeCalledWith('sudo sysctl fs.inotify.max_queued_events=524288');
+		expect(spy.exec).toBeCalledWith('sudo sysctl -p');
 	});
 
 	it('warns for unsuccessful patches', async () => {
 		const error = new Error('Something went wrong');
-		cli.exec.mockRejectedValue(error);
+		spy.exec.mockRejectedValueOnce(error);
 		setPlatform('linux');
 		await system.patchWatchers();
 		expect(core.warning).toBeCalledWith(expect.stringContaining('can\'t patch watchers'));
@@ -35,18 +37,21 @@ describe('patchWatchers', () => {
 	it('skips on windows platform', async () => {
 		setPlatform('win32');
 		await system.patchWatchers();
-		expect(cli.exec).not.toHaveBeenCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping'));
+		expect(spy.exec).not.toHaveBeenCalled();
 	});
 
 	it('skips on macos platform', async () => {
 		setPlatform('darwin');
 		await system.patchWatchers();
-		expect(cli.exec).not.toHaveBeenCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping'));
+		expect(spy.exec).not.toHaveBeenCalled();
 	});
 
 	it('runs on linux platform', async () => {
 		setPlatform('linux');
 		await system.patchWatchers();
-		expect(cli.exec).toHaveBeenCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Patching'));
+		expect(spy.exec).toHaveBeenCalled();
 	});
 });
