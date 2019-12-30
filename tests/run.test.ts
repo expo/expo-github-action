@@ -10,7 +10,7 @@ jest.mock('../src/expo', () => expo);
 jest.mock('../src/install', () => install);
 jest.mock('../src/system', () => system);
 
-import { run } from '../src/index';
+import { run } from '../src/run';
 
 interface MockInputProps {
 	version?: string;
