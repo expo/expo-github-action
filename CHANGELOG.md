@@ -1,3 +1,48 @@
+## [5.0.0](https://github.com/expo/expo-github-action/compare/4.1.0...5.0.0) (2019-12-31)
+
+### BREAKING CHANGES
+
+* use yarn by default instead of npm ([#32](https://github.com/expo/expo-github-action/pull/32)) ([2de5b8c3](https://github.com/expo/expo-github-action/commit/2de5b8c))
+* use ncc to compile scripts ([#31](https://github.com/expo/expo-github-action/pull/31)) ([48288d58](https://github.com/expo/expo-github-action/commit/48288d5))
+
+### New features
+
+* implement caching using github actions cache ([#35](https://github.com/expo/expo-github-action/pull/35)) ([69801f0a](https://github.com/expo/expo-github-action/commit/69801f0))
+
+### Code refactors
+
+* move index code to run ([#33](https://github.com/expo/expo-github-action/pull/33)) ([f80ef1f6](https://github.com/expo/expo-github-action/commit/f80ef1f))
+* use yarn by default instead of npm ([#32](https://github.com/expo/expo-github-action/pull/32)) ([2de5b8c3](https://github.com/expo/expo-github-action/commit/2de5b8c))
+* use ncc to compile scripts ([#31](https://github.com/expo/expo-github-action/pull/31)) ([48288d58](https://github.com/expo/expo-github-action/commit/48288d5))
+* make logs more visible ([#30](https://github.com/expo/expo-github-action/pull/30)) ([12f58a21](https://github.com/expo/expo-github-action/commit/12f58a2))
+* update all dependencies to latest versions ([#29](https://github.com/expo/expo-github-action/pull/29)) ([7776e33f](https://github.com/expo/expo-github-action/commit/7776e33))
+* use circleci instead of github actions ([#28](https://github.com/expo/expo-github-action/pull/28)) ([e5677e1f](https://github.com/expo/expo-github-action/commit/e5677e1))
+
+### Documentation changes
+
+* update the default packager value in action ([#34](https://github.com/expo/expo-github-action/pull/34)) ([3ac4a96c](https://github.com/expo/expo-github-action/commit/3ac4a96))
+
+### Other chores
+
+* **deps**: bump handlebars from 4.2.0 to 4.5.3 ([#27](https://github.com/expo/expo-github-action/pull/27)) ([4aa2c230](https://github.com/expo/expo-github-action/commit/4aa2c23))
+
+
+## [4.1.0](https://github.com/expo/expo-github-action/compare/4.0.1...4.1.0) (2019-10-30)
+
+### Bug fixes
+
+* use cmd suffix when authenticating on windows ([831bcb1](https://github.com/expo/expo-github-action/commit/831bcb1))
+
+### Documentation changes
+
+* remove beta warning just before general availability ([68a2de0](https://github.com/expo/expo-github-action/commit/68a2de0))
+
+### Other chores
+
+* update all dependencies to latest version ([16d4b15](https://github.com/expo/expo-github-action/commit/16d4b15))
+* enable workflow for pull requests ([8ff07e0](https://github.com/expo/expo-github-action/commit/8ff07e0))
+
+
 ## [4.0.0](https://github.com/expo/expo-github-action/compare/3.0.0...4.0.0) (2019-09-29)
 
 ### New features

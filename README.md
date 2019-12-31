@@ -26,9 +26,9 @@ variable              | description
 `expo-password`       | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
 `expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
 `expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `yarn`)_
-`expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
 `expo-cache`          | If it should the actions cache, [read more about it here](#using-the-built-in-cache) _(can be `true` or `false`, defaults to `false`)_
 `expo-cache-key`      | An optional custom remote cache key _(**warning**, only use this when you know what you are doing)_
+`expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
 
 > It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 > For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@v4
+      - uses: expo/expo-github-action@v5
         with:
           expo-version: 3.x
           expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@v4
+      - uses: expo/expo-github-action@v5
         with:
           expo-version: 3.x
           expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@v4
+      - uses: expo/expo-github-action@v5
         with:
           expo-version: 3.x
           expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
@@ -163,7 +163,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - uses: expo/expo-github-action@v4
+      - uses: expo/expo-github-action@v5
         with:
           expo-version: 3.x
       - run: yarn install
@@ -191,7 +191,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - uses: expo/expo-github-action@v4
+      - uses: expo/expo-github-action@v5
         with:
           expo-version: 3.x
       - run: yarn install
