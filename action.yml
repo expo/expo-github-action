@@ -22,3 +22,8 @@ input:
   expo-patch-watchers:
     description: If Expo should fix the default watchers limit, helps with ENOSPC errors. (can be true or false)
     default: true
+  expo-cache:
+    description: If Expo should be stored in the GitHub Actions cache (can be true or false)
+    default: false
+  expo-cache-key:
+    description: A custom remote cache key to use (best to let GitHub Actions handle it)

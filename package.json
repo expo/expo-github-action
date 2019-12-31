@@ -20,6 +20,7 @@
 		"build": "ncc build src/index.ts --out build"
 	},
 	"dependencies": {
+		"@actions/cache": "github:cypress-io/github-actions-cache#8bec6cc",
 		"@actions/core": "^1.2.0",
 		"@actions/exec": "^1.0.2",
 		"@actions/io": "^1.0.1",

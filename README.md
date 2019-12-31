@@ -9,17 +9,11 @@ You can also use [the Docker image][link-docker-expo] in other Docker-based envi
 3. [Example workflows](#example-workflows)
 4. [Things to know](#things-to-know)
 
-
 ## What's inside?
 
 Within this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
 That means you can perform any command like login, publish, and build.
 Also, this action takes care of authentication when both `expo-username` and `expo-password` variables are defined.
-
-> You don't necessarily need this action to use Expo.
-> You can also add `expo-cli` as a dependency to your project and use `npx expo ...` for example.
-> However, when you do that you need to perform authentication yourself.
-
 
 ## Used variables
 
@@ -33,10 +27,11 @@ variable              | description
 `expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
 `expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `yarn`)_
 `expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
+`expo-cache`          | If it should the actions cache, [read more about it here](#using-the-built-in-cache) _(can be `true` or `false`, defaults to `false`)_
+`expo-cache-key`      | An optional custom remote cache key _(**warning**, only use this when you know what you are doing)_
 
 > It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 > For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
-
 
 ## Example workflows
 
@@ -44,11 +39,10 @@ Before you dive into the workflow examples, you should know the basics of GitHub
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
 1. [Publish on any push to master](#publish-on-any-push-to-master)
-2. [Test PRs on Linux, MacOS and Windows](#test-prs-on-linux-macos-and-windows)
-3. [Test PRs on Node 10 and 12](#test-prs-on-node-10-and-12)
-4. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
-5. [Use Docker for improved performance](#use-docker-for-improved-performance)
-
+2. [Cache Expo CLI for other jobs](#cache-expo-cli-for-other-jobs)
+3. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
+4. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
+5. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
 
 ### Publish on any push to master
 
@@ -76,14 +70,78 @@ jobs:
           expo-version: 3.x
           expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
           expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
-      - run: npm ci
+      - run: yarn install
       - run: expo publish
 ```
 
+### Cache Expo CLI for other jobs
 
-### Test PRs on Linux, MacOS, and Windows
+Below you can see a slightly modified version of the example above.
+In this one, we enabled the built-in cache that will reuse a previous installed Expo CLI.
+This skips the installation part and extracts the files directly, boosting the performance of your workflow.
 
-With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on various operating systems.
+> You can [read more about the cache here](#using-the-built-in-cache)
+
+```yml
+name: Expo Publish
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@v4
+        with:
+          expo-version: 3.x
+          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
+          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+          expo-cache: true
+      - run: yarn install
+      - run: expo publish
+```
+
+### Test PRs and publish a review version
+
+Reviewing pull requests can take some time if you have to read every line of code.
+To make this easier, you can publish the edited version of the PR using a dedicated release channel.
+Below you can see an example of a workflow that publishes and comments when the app is ready for review.
+
+```yml
+name: Expo Review
+on: [pull_request]
+jobs:
+  publish:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@v4
+        with:
+          expo-version: 3.x
+          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
+          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+      - run: yarn install
+      - run: expo publish --release-channel=pr-${{ github.event.number }}
+      - uses: unsplash/comment-on-pr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: App is ready for review, you can [see it here](https://expo.io/@bycedric/use-expo?release-channel=pr-${{ github.event.number }}).
+```
+
+### Test PRs on multiple nodes and systems
+
+With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on multiple environments.
 These matrixes can help to make sure your app runs smoothly on a broad set of different development machines.
 The action below is only running on pull requests to avoid unnecessary builds.
 
@@ -99,35 +157,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - uses: expo/expo-github-action@v4
-        with:
-          expo-version: 3.x
-      - run: npm ci
-      - run: npm test
-      - run: expo doctor
-```
-
-
-### Test PRs on Node 10 and 12
-
-Sometimes you want to double-check if your app builds on multiple node versions.
-Setting this up is just as easy as defining a matrix build for multiple systems.
-
-```yml
-name: Expo CI
-on: [pull_request]
-jobs:
-  ci:
-    name: Continuous Integration
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [10, 12]
+        node: [10, 12, 13]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -136,11 +166,10 @@ jobs:
       - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
-      - run: npm ci
-      - run: npm test
+      - run: yarn install
+      - run: yarn test
       - run: expo doctor
 ```
-
 
 ### Test and build web every day at 08:00
 
@@ -165,68 +194,29 @@ jobs:
       - uses: expo/expo-github-action@v4
         with:
           expo-version: 3.x
-      - run: npm ci
-      - run: npm test
+      - run: yarn install
+      - run: yarn test
       - run: expo build:web
 ```
 
+## Things to know
 
-### Use Docker for improved performance
-
-Unfortunately, GitHub Actions lack a feature to cache files and directories across multiple jobs.
-Because of this, the action has to pull and install the [Expo CLI][link-expo-cli] _on every run_.
-If you want faster runs and don't care about customizing your workflows in detail, you can use [the Expo Docker image][link-docker-expo] to speed things up.
-
-> Because Docker uses a predefined environment, you lose the ability to customize the Node versions and system types.
-> For most projects this won't be an issue, but please make sure you understand the tradeoffs.
-> This approach is also a robust way and won't break once we implement the caching feature.
-
-```yml
-name: Expo Publish
-on:
-  push:
-    branches:
-      - master
-jobs:
-  publish:
-    name: Install and publish
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - run: npm ci
-      - uses: docker://bycedric/expo-cli:3
-        with:
-          args: publish
-        env:
-          EXPO_CLI_USERNAME: ${{ secrets.EXPO_CLI_USERNAME }}
-          EXPO_CLI_PASSWORD: ${{ secrets.EXPO_CLI_PASSWORD }}
-```
-
-
-### Things to know
-
-
-#### Automatic Expo login
+### Automatic Expo login
 
 You need to authenticate for some Expo commands as `expo publish` and `expo build:*`.
 This project has an additional feature to make this easy and secure.
 The action uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] variable internally to make this happen.
 
+### Using the built-in cache
 
-#### Why is the action slow?
+As of writing, GitHub Actions lacks a feature to "cache" files and directories in 3rd party actions.
+That's why we implemented the [Cypress fork of the `actions/cache`][link-actions-cache-cypress] to enable some sort of caching.
+You can opt-in to this by setting the `expo-cache` variable to `true`.
+If you know what you are doing and need more control, you can also define a custom cache key with `expo-cache-key`.
 
-As of writing, GitHub Actions lacks a feature to "cache" files and directories across multiple jobs.
-Because of this, the action has to pull and install the [Expo CLI][link-expo-cli] _on every run_.
-Fortunately, GitHub is working on a feature that should make this happen, but it's not available yet.
-If this is a show-stopper for you, read about how to set the [Expo CLI up with Docker](#use-docker-for-improved-performance).
-Please note that this approach has its limitations and make sure you understand these before trying this out.
-When GitHub releases this caching feature, we will implement this feature and it and make it significantly faster.
+> Note, this cache will count towards your [repo cache limit][link-actions-cache-limit].
 
-
-#### ENOSPC errors on Linux
+### ENOSPC errors on Linux
 
 React Native bundles are created by the Metro bundler, even when using Expo.
 Unfortunately, this Metro bundler requires quite some resources.
@@ -235,7 +225,6 @@ Inside we included a patch that increases these limits for the "active workflow"
 It increases the `max_user_instances`, `max_user_watches` and `max_queued_events` to `524288`.
 You can disable this patch by setting the `expo-patch-watchers` to `false`.
 
-
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
@@ -243,10 +232,13 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 --- ---
 
 <p align="center">
-    with :heart: <a href="https://bycedric.com" target="_blank">byCedric</a>
+ with :heart: <a href="https://bycedric.com" target="_blank">byCedric</a>
 </p>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+[link-actions-cache]: https://github.com/actions/cache
+[link-actions-cache-cypress]: https://github.com/cypress-io/github-actions-cache
+[link-actions-cache-limit]: https://github.com/actions/cache#cache-limits
 [link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables
 [link-actions-syntax-with]: https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepswith

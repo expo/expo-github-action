@@ -4,10 +4,12 @@ import { install } from './install';
 import { patchWatchers } from './system';
 
 export async function run() {
-	const path = await install(
-		getInput('expo-version') || 'latest',
-		getInput('expo-packager') || 'yarn',
-	);
+	const path = await install({
+		version: getInput('expo-version') || 'latest',
+		packager: getInput('expo-packager') || 'yarn',
+		cache: (getInput('expo-cache') || 'false') === 'true',
+		cacheKey: getInput('expo-cache-key') || undefined,
+	});
 
 	addPath(path);
 

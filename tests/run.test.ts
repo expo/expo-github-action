@@ -18,6 +18,8 @@ interface MockInputProps {
 	username?: string;
 	password?: string;
 	patchWatchers?: string;
+	cache?: string;
+	cacheKey?: string;
 }
 
 const mockInput = (props: MockInputProps = {}) => {
@@ -29,6 +31,8 @@ const mockInput = (props: MockInputProps = {}) => {
 			case 'expo-username': return props.username || '';
 			case 'expo-password': return props.password || '';
 			case 'expo-patch-watchers': return props.patchWatchers || '';
+			case 'expo-cache': return props.cache || '';
+			case 'expo-cache-key': return props.cacheKey || '';
 			default: return '';
 		}
 	};
@@ -40,13 +44,13 @@ const mockInput = (props: MockInputProps = {}) => {
 describe('run', () => {
 	it('installs latest expo-cli with yarn by default', async () => {
 		await run();
-		expect(install.install).toBeCalledWith('latest', 'yarn');
+		expect(install.install).toBeCalledWith({ version: 'latest', packager: 'yarn', cache: false });
 	});
 
 	it('installs provided version expo-cli with npm', async () => {
 		mockInput({ version: '3.0.10', packager: 'npm' });
 		await run();
-		expect(install.install).toBeCalledWith('3.0.10', 'npm');
+		expect(install.install).toBeCalledWith({ version: '3.0.10', packager: 'npm', cache: false });
 	});
 
 	it('installs path to global path', async () => {

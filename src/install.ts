@@ -1,10 +1,23 @@
-import * as cache from '@actions/tool-cache';
+import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as io from '@actions/io';
 import * as path from 'path';
+import {
+	fromLocalCache,
+	fromRemoteCache,
+	toLocalCache,
+	toRemoteCache,
+} from './cache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
+
+interface InstallConfig {
+	version: string;
+	packager: string;
+	cache?: boolean;
+	cacheKey?: string;
+}
 
 /**
  * Resolve the provided semver to exact version of `expo-cli`.
@@ -20,13 +33,23 @@ export async function resolve(version: string) {
  * Here you can provide any semver range or dist tag used in the registry.
  * It returns the path where Expo is installed.
  */
-export async function install(version: string, packager: string) {
-	const exact = await resolve(version);
-	let root = await fromCache(exact);
+export async function install(config: InstallConfig) {
+	const exact = await resolve(config.version);
+	let root: string | undefined = await fromLocalCache(exact);
+
+	if (!root && config.cache) {
+		root = await fromRemoteCache(exact, config.packager, config.cacheKey);
+	} else {
+		core.info('Skipping remote cache, not enabled...');
+	}
 
 	if (!root) {
-		root = await fromPackager(exact, packager)
-		root = await toCache(exact, root);
+		root = await fromPackager(exact, config.packager)
+		root = await toLocalCache(root, exact);
+
+		if (config.cache) {
+			await toRemoteCache(root, exact, config.packager, config.cacheKey);
+		}
 	}
 
 	return path.join(root, 'node_modules', '.bin');
@@ -44,24 +67,4 @@ export async function fromPackager(version: string, packager: string) {
 	await cli.exec(tool, ['add', `expo-cli@${version}`], { cwd: root });
 
 	return root;
-}
-
-/**
- * Get the path to the `expo-cli` from cache, if any.
- * Note, this cache is **NOT** shared between jobs.
- *
- * @see https://github.com/actions/toolkit/issues/47
- */
-export async function fromCache(version: string) {
-	return cache.find('expo-cli', version);
-}
-
-/**
- * Store the root of `expo-cli` in the cache, for future reuse.
- * Note, this cache is **NOT** shared between jobs.
- *
- * @see https://github.com/actions/toolkit/issues/47
- */
-export async function toCache(version: string, root: string) {
-	return cache.cacheDir(root, 'expo-cli', version);
 }
