@@ -25,27 +25,45 @@ describe('resolve', () => {
 });
 
 describe('install', () => {
-	it('installs path from cache', async () => {
+	it('installs path from local cache', async () => {
 		cache.fromLocalCache.mockResolvedValue('/cache/path');
 		const expoPath = await install.install({ version: '3.0.10', packager: 'npm' });
 		expect(expoPath).toBe('/cache/path/node_modules/.bin');
 	});
 
-	it('installs path from packager and cache it', async () => {
-		process.env['RUNNER_TEMP'] = '/temp/path';
+	it('installs path from packager and cache it locally', async () => {
+		setEnv('RUNNER_TEMP', '/temp/path');
 		cache.fromLocalCache.mockResolvedValue(undefined);
 		cache.toLocalCache.mockResolvedValue('/cache/path');
 		const expoPath = await install.install({ version: '3.0.10', packager: 'npm' });
 		expect(expoPath).toBe('/cache/path/node_modules/.bin');
 		expect(cache.toLocalCache).toBeCalledWith('/temp/path', '3.0.10');
+		restoreEnv();
+	});
+
+	it('installs path from remote cache', async () => {
+		cache.fromLocalCache.mockResolvedValue(undefined);
+		cache.fromRemoteCache.mockResolvedValue('/cache/path');
+		registry.manifest.mockResolvedValue({ version: '3.20.0' });
+		const expoPath = await install.install({ version: '3.20.1', packager: 'npm', cache: true });
+		expect(expoPath).toBe('/cache/path/node_modules/.bin');
+		expect(cache.fromRemoteCache).toBeCalledWith('3.20.0', 'npm', undefined);
+	});
+
+	it('installs path from packager and cache it remotely', async () => {
+		setEnv('RUNNER_TEMP', '/temp/path');
+		cache.fromLocalCache.mockResolvedValue(undefined);
+		cache.fromRemoteCache.mockResolvedValue(undefined);
+		cache.toLocalCache.mockResolvedValue('/cache/path');
+		registry.manifest.mockResolvedValue({ version: '3.20.1' });
+		const expoPath = await install.install({ version: '3.20.1', packager: 'npm', cache: true });
+		expect(expoPath).toBe('/cache/path/node_modules/.bin');
+		expect(cache.toRemoteCache).toBeCalledWith('/cache/path', '3.20.1', 'npm', undefined);
+		restoreEnv();
 	});
 });
 
 describe('fromPackager', () => {
-	afterEach(() => {
-		restoreEnv();
-	});
-
 	it('resolves tool path', async () => {
 		await install.fromPackager('3.0.10', 'npm');
 		expect(io.which).toBeCalledWith('npm');
@@ -55,6 +73,7 @@ describe('fromPackager', () => {
 		setEnv('RUNNER_TEMP', '/temp/path');
 		await install.fromPackager('latest', 'yarn');
 		expect(io.mkdirP).toBeCalledWith('/temp/path');
+		restoreEnv();
 	});
 
 	it('installs expo with tool', async () => {
@@ -66,25 +85,6 @@ describe('fromPackager', () => {
 		expect(cli.exec.mock.calls[0][0]).toBe('npm');
 		expect(cli.exec.mock.calls[0][1]).toStrictEqual(['add', 'expo-cli@beta']);
 		expect(cli.exec.mock.calls[0][2]).toMatchObject({ cwd: '/temp/path' });
+		restoreEnv();
 	});
 });
-
-// todo: move this to cache tests
-
-// describe('fromCache', () => {
-// 	it('uses cache for exact version', async () => {
-// 		toolCache.find.mockResolvedValue('/cache/expo/path');
-// 		const cachePath = await install.fromCache('3.0.10');
-// 		expect(toolCache.find).toBeCalledWith('expo-cli', '3.0.10');
-// 		expect(cachePath).toBe('/cache/expo/path');
-// 	});
-// });
-
-// describe('toCache', () => {
-// 	it('uses cache for installed folder', async () => {
-// 		toolCache.cacheDir.mockResolvedValue('/cache/expo/path');
-// 		const cachePath = await install.toCache('3.0.10', '/expo/install/path');
-// 		expect(toolCache.cacheDir).toBeCalledWith('/expo/install/path', 'expo-cli', '3.0.10');
-// 		expect(cachePath).toBe('/cache/expo/path');
-// 	});
-// });
