@@ -20413,15 +20413,9 @@ function authenticate(username, password) {
         const bin = process.platform === 'win32'
             ? 'expo.cmd'
             : 'expo';
-        try {
-            yield cli.exec(bin, ['login', `--username=${username}`], {
-                env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
-            });
-        }
-        catch (error) {
-            core.setFailed(error);
-            throw error;
-        }
+        yield cli.exec(bin, ['login', `--username=${username}`], {
+            env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
+        });
     });
 }
 exports.authenticate = authenticate;
@@ -25945,9 +25939,17 @@ Promise._SomePromiseArray = SomePromiseArray;
 
 "use strict";
 
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const core = __importStar(__webpack_require__(470));
 const run_1 = __webpack_require__(180);
-run_1.run();
+run_1.run().catch(core.setFailed);
 
 
 /***/ }),
@@ -54205,7 +54207,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const lib_1 = __webpack_require__(484);
-const core = __importStar(__webpack_require__(470));
 const toolCache = __importStar(__webpack_require__(533));
 const path_1 = __importDefault(__webpack_require__(622));
 const os_1 = __importDefault(__webpack_require__(87));
@@ -54242,15 +54243,9 @@ function fromRemoteCache(version, packager, customCacheKey) {
         // see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
         const target = path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '', 'expo-cli', version, os_1.default.arch());
         const cacheKey = customCacheKey || getRemoteKey(version, packager);
-        try {
-            const hit = yield lib_1.restoreCache(target, cacheKey, cacheKey);
-            if (hit) {
-                return target;
-            }
-        }
-        catch (error) {
-            core.setFailed(error);
-            throw error;
+        const hit = yield lib_1.restoreCache(target, cacheKey, cacheKey);
+        if (hit) {
+            return target;
         }
     });
 }
@@ -54262,13 +54257,7 @@ exports.fromRemoteCache = fromRemoteCache;
 function toRemoteCache(source, version, packager, customCacheKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheKey = customCacheKey || getRemoteKey(version, packager);
-        try {
-            yield lib_1.saveCache(source, cacheKey);
-        }
-        catch (error) {
-            core.setFailed(error);
-            throw error;
-        }
+        yield lib_1.saveCache(source, cacheKey);
     });
 }
 exports.toRemoteCache = toRemoteCache;
