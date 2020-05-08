@@ -9,6 +9,13 @@ scripts: &scripts
     - run: yarn lint
     - run: yarn build
 
+uptodate: &uptodate
+  steps:
+    - checkout
+    - run: yarn
+    - run: yarn build
+    - run: git diff --exit-code build
+
 jobs:
   node-10:
     <<: *scripts
@@ -26,6 +33,12 @@ jobs:
     <<: *scripts
     docker:
       - image: circleci/node:14
+  uptodate:
+    <<: *uptodate
+    requires:
+      - node-12
+    docker:
+      - image: circleci/node:12
 
 workflows:
   version: 2
@@ -35,3 +48,4 @@ workflows:
       - node-12
       - node-13
       - node-14
+      - uptodate
