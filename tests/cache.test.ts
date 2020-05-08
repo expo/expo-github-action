@@ -1,5 +1,4 @@
 import * as remoteCache from '@actions/cache/lib';
-import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
 import os from 'os';
 import * as cache from '../src/cache';
@@ -29,7 +28,6 @@ describe('toLocalCache', () => {
 
 describe('fromRemoteCache', () => {
 	const spy = {
-		fail: jest.spyOn(core, 'setFailed').mockImplementation(),
 		restore: jest.spyOn(remoteCache, 'restoreCache').mockImplementation(),
 	};
 
@@ -70,13 +68,11 @@ describe('fromRemoteCache', () => {
 		const error = new Error('Remote cache restore failed');
 		spy.restore.mockRejectedValueOnce(error);
 		await expect(cache.fromRemoteCache('3.20.1', 'yarn')).rejects.toBe(error);
-		expect(spy.fail).toBeCalledWith(error);
 	});
 });
 
 describe('toRemoteCache', () => {
 	const spy = {
-		fail: jest.spyOn(core, 'setFailed').mockImplementation(),
 		save: jest.spyOn(remoteCache, 'saveCache').mockImplementation(),
 	};
 
@@ -97,6 +93,5 @@ describe('toRemoteCache', () => {
 		const error = new Error('Remote cache save failed');
 		spy.save.mockRejectedValueOnce(error);
 		await expect(cache.toRemoteCache('/local/path', '3.20.1', 'yarn')).rejects.toBe(error);
-		expect(spy.fail).toBeCalledWith(error);
 	});
 });

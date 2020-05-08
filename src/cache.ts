@@ -1,5 +1,4 @@
 import { restoreCache, saveCache } from '@actions/cache/lib';
-import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
 import path from 'path';
 import os from 'os';
@@ -32,16 +31,10 @@ export async function fromRemoteCache(version: string, packager: string, customC
 	// see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
 	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', 'expo-cli', version, os.arch());
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
+	const hit = await restoreCache(target, cacheKey, cacheKey);
 
-	try {
-		const hit = await restoreCache(target, cacheKey, cacheKey);
-
-		if (hit) {
-			return target;
-		}
-	} catch (error) {
-		core.setFailed(error);
-		throw error;
+	if (hit) {
+		return target;
 	}
 }
 
@@ -52,12 +45,7 @@ export async function fromRemoteCache(version: string, packager: string, customC
 export async function toRemoteCache(source: string, version: string, packager: string, customCacheKey?: string) {
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
 
-	try {
-		await saveCache(source, cacheKey);
-	} catch (error) {
-		core.setFailed(error);
-		throw error;
-	}
+	await saveCache(source, cacheKey);
 }
 
 /**
