@@ -11,7 +11,7 @@ import os from 'os';
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function fromLocalCache(version: string) {
-	return toolCache.find('expo-cli', version, os.arch());
+	return toolCache.find('expo-cli', version);
 }
 
 /**
@@ -21,7 +21,7 @@ export async function fromLocalCache(version: string) {
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function toLocalCache(root: string, version: string) {
-	return toolCache.cacheDir(root, 'expo-cli', version, os.arch());
+	return toolCache.cacheDir(root, 'expo-cli', version);
 }
 
 /**
@@ -40,7 +40,8 @@ export async function fromRemoteCache(version: string, packager: string, customC
 			return target;
 		}
 	} catch (error) {
-		core.setFailed(error.message);
+		core.setFailed(error);
+		throw error;
 	}
 }
 
@@ -54,7 +55,8 @@ export async function toRemoteCache(source: string, version: string, packager: s
 	try {
 		await saveCache(source, cacheKey);
 	} catch (error) {
-		core.setFailed(error.message);
+		core.setFailed(error);
+		throw error;
 	}
 }
 

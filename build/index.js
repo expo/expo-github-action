@@ -54217,7 +54217,7 @@ const os_1 = __importDefault(__webpack_require__(87));
  */
 function fromLocalCache(version) {
     return __awaiter(this, void 0, void 0, function* () {
-        return toolCache.find('expo-cli', version, os_1.default.arch());
+        return toolCache.find('expo-cli', version);
     });
 }
 exports.fromLocalCache = fromLocalCache;
@@ -54229,7 +54229,7 @@ exports.fromLocalCache = fromLocalCache;
  */
 function toLocalCache(root, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        return toolCache.cacheDir(root, 'expo-cli', version, os_1.default.arch());
+        return toolCache.cacheDir(root, 'expo-cli', version);
     });
 }
 exports.toLocalCache = toLocalCache;
@@ -54249,7 +54249,8 @@ function fromRemoteCache(version, packager, customCacheKey) {
             }
         }
         catch (error) {
-            core.setFailed(error.message);
+            core.setFailed(error);
+            throw error;
         }
     });
 }
@@ -54265,7 +54266,8 @@ function toRemoteCache(source, version, packager, customCacheKey) {
             yield lib_1.saveCache(source, cacheKey);
         }
         catch (error) {
-            core.setFailed(error.message);
+            core.setFailed(error);
+            throw error;
         }
     });
 }
