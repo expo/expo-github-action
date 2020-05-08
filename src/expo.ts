@@ -25,5 +25,6 @@ export async function authenticate(username: string, password: string) {
 		});
 	} catch (error) {
 		core.setFailed(error);
+		throw error;
 	}
 }

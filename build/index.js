@@ -20420,6 +20420,7 @@ function authenticate(username, password) {
         }
         catch (error) {
             core.setFailed(error);
+            throw error;
         }
     });
 }

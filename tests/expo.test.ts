@@ -7,17 +7,20 @@ describe('authenticate', () => {
 	const spy = {
 		exec: jest.spyOn(cli, 'exec').mockImplementation(),
 		info: jest.spyOn(core, 'info').mockImplementation(),
+		fail: jest.spyOn(core, 'setFailed').mockImplementation(),
 	};
 
 	it('skips authentication without credentials', async () => {
 		await expo.authenticate('', '');
 		expect(spy.exec).not.toBeCalled();
+		expect(spy.fail).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
 	it('skips authentication without password', async () => {
 		await expo.authenticate('bycedric', '');
 		expect(spy.exec).not.toBeCalled();
+		expect(spy.fail).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
@@ -42,5 +45,12 @@ describe('authenticate', () => {
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
 		restorePlatform();
+	});
+
+	it('fails when credentials are incorrect', async () => {
+		const error = new Error('Invalid username/password. Please try again.');
+		spy.exec.mockRejectedValue(error);
+		await expect(expo.authenticate('bycedric', 'incorrect')).rejects.toBe(error);
+		expect(spy.fail).toBeCalledWith(error);
 	});
 });
