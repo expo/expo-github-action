@@ -14,7 +14,7 @@ jest.mock('libnpm', () => registry);
 jest.mock('../src/cache', () => cache);
 
 import * as install from '../src/install';
-import { setEnv, restoreEnv } from './utils';
+import * as utils from './utils';
 
 describe('resolve', () => {
 	it('fetches exact version of expo-cli', async () => {
@@ -32,13 +32,13 @@ describe('install', () => {
 	});
 
 	it('installs path from packager and cache it locally', async () => {
-		setEnv('RUNNER_TEMP', '/temp/path');
+		utils.setEnv('RUNNER_TEMP', '/temp/path');
 		cache.fromLocalCache.mockResolvedValue(undefined);
 		cache.toLocalCache.mockResolvedValue('/cache/path');
 		const expoPath = await install.install({ version: '3.0.10', packager: 'npm' });
 		expect(expoPath).toBe('/cache/path/node_modules/.bin');
 		expect(cache.toLocalCache).toBeCalledWith('/temp/path', '3.0.10');
-		restoreEnv();
+		utils.restoreEnv();
 	});
 
 	it('installs path from remote cache', async () => {
@@ -51,7 +51,7 @@ describe('install', () => {
 	});
 
 	it('installs path from packager and cache it remotely', async () => {
-		setEnv('RUNNER_TEMP', '/temp/path');
+		utils.setEnv('RUNNER_TEMP', '/temp/path');
 		cache.fromLocalCache.mockResolvedValue(undefined);
 		cache.fromRemoteCache.mockResolvedValue(undefined);
 		cache.toLocalCache.mockResolvedValue('/cache/path');
@@ -59,7 +59,7 @@ describe('install', () => {
 		const expoPath = await install.install({ version: '3.20.1', packager: 'npm', cache: true });
 		expect(expoPath).toBe('/cache/path/node_modules/.bin');
 		expect(cache.toRemoteCache).toBeCalledWith('/cache/path', '3.20.1', 'npm', undefined);
-		restoreEnv();
+		utils.restoreEnv();
 	});
 });
 
@@ -70,14 +70,14 @@ describe('fromPackager', () => {
 	});
 
 	it('creates temporary folder', async () => {
-		setEnv('RUNNER_TEMP', '/temp/path');
+		utils.setEnv('RUNNER_TEMP', '/temp/path');
 		await install.fromPackager('latest', 'yarn');
 		expect(io.mkdirP).toBeCalledWith('/temp/path');
-		restoreEnv();
+		utils.restoreEnv();
 	});
 
 	it('installs expo with tool', async () => {
-		setEnv('RUNNER_TEMP', '/temp/path');
+		utils.setEnv('RUNNER_TEMP', '/temp/path');
 		io.which.mockResolvedValue('npm');
 		const expoPath = await install.fromPackager('beta', 'npm');
 		expect(expoPath).toBe('/temp/path');
@@ -85,6 +85,6 @@ describe('fromPackager', () => {
 		expect(cli.exec.mock.calls[0][0]).toBe('npm');
 		expect(cli.exec.mock.calls[0][1]).toStrictEqual(['add', 'expo-cli@beta']);
 		expect(cli.exec.mock.calls[0][2]).toMatchObject({ cwd: '/temp/path' });
-		restoreEnv();
+		utils.restoreEnv();
 	});
 });

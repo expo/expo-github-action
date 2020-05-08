@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as system from '../src/system';
-import { setPlatform, restorePlatform } from './utils';
+import * as utils from './utils';
 
 describe('patchWatchers', () => {
 	const spy = {
@@ -11,11 +11,11 @@ describe('patchWatchers', () => {
 	};
 
 	afterEach(() => {
-		restorePlatform();
+		utils.restorePlatform();
 	});
 
 	it('increses fs inotify settings with sysctl', async () => {
-		setPlatform('linux');
+		utils.setPlatform('linux');
 		await system.patchWatchers();
 		expect(spy.exec).toBeCalledWith('sudo sysctl fs.inotify.max_user_instances=524288');
 		expect(spy.exec).toBeCalledWith('sudo sysctl fs.inotify.max_user_watches=524288');
@@ -26,7 +26,7 @@ describe('patchWatchers', () => {
 	it('warns for unsuccessful patches', async () => {
 		const error = new Error('Something went wrong');
 		spy.exec.mockRejectedValueOnce(error);
-		setPlatform('linux');
+		utils.setPlatform('linux');
 		await system.patchWatchers();
 		expect(core.warning).toBeCalledWith(expect.stringContaining('can\'t patch watchers'));
 		expect(core.warning).toBeCalledWith(
@@ -35,21 +35,21 @@ describe('patchWatchers', () => {
 	});
 
 	it('skips on windows platform', async () => {
-		setPlatform('win32');
+		utils.setPlatform('win32');
 		await system.patchWatchers();
 		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping'));
 		expect(spy.exec).not.toHaveBeenCalled();
 	});
 
 	it('skips on macos platform', async () => {
-		setPlatform('darwin');
+		utils.setPlatform('darwin');
 		await system.patchWatchers();
 		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping'));
 		expect(spy.exec).not.toHaveBeenCalled();
 	});
 
 	it('runs on linux platform', async () => {
-		setPlatform('linux');
+		utils.setPlatform('linux');
 		await system.patchWatchers();
 		expect(spy.info).toBeCalledWith(expect.stringContaining('Patching'));
 		expect(spy.exec).toHaveBeenCalled();
