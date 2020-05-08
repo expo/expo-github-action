@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as expo from '../src/expo';
-import { setPlatform, resetPlatform } from './utils';
+import { setPlatform, restorePlatform, setEnv, restoreEnv } from './utils';
 
 describe('authenticate', () => {
 	const spy = {
@@ -22,7 +22,7 @@ describe('authenticate', () => {
 	});
 
 	it('executes login command with password through environment', async () => {
-		process.env['TEST_INCLUDED'] = 'hellyeah';
+		setEnv('TEST_INCLUDED', 'hellyeah');
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo');
@@ -33,6 +33,7 @@ describe('authenticate', () => {
 				EXPO_CLI_PASSWORD: 'mypassword',
 			},
 		});
+		restoreEnv();
 	});
 
 	it('executes login command with `.cmd` suffix on windows', async () => {
@@ -40,6 +41,6 @@ describe('authenticate', () => {
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
-		resetPlatform();
+		restorePlatform();
 	});
 });

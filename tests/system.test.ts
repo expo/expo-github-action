@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as system from '../src/system';
-import { setPlatform, resetPlatform } from './utils';
+import { setPlatform, restorePlatform } from './utils';
 
 describe('patchWatchers', () => {
 	const spy = {
@@ -11,7 +11,7 @@ describe('patchWatchers', () => {
 	};
 
 	afterEach(() => {
-		resetPlatform();
+		restorePlatform();
 	});
 
 	it('increses fs inotify settings with sysctl', async () => {

@@ -20413,9 +20413,14 @@ function authenticate(username, password) {
         const bin = process.platform === 'win32'
             ? 'expo.cmd'
             : 'expo';
-        yield cli.exec(bin, ['login', `--username=${username}`], {
-            env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
-        });
+        try {
+            yield cli.exec(bin, ['login', `--username=${username}`], {
+                env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
+            });
+        }
+        catch (error) {
+            core.setFailed(error);
+        }
     });
 }
 exports.authenticate = authenticate;
