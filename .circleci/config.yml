@@ -4,10 +4,10 @@ version: 2
 scripts: &scripts
   steps:
     - checkout
-    - run: npm ci
-    - run: npm test
-    - run: npm run lint
-    - run: npm run build
+    - run: yarn
+    - run: yarn test
+    - run: yarn lint
+    - run: yarn build
 
 jobs:
   node-10:
@@ -22,6 +22,10 @@ jobs:
     <<: *scripts
     docker:
       - image: circleci/node:13
+  node-14:
+    <<: *scripts
+    docker:
+      - image: circleci/node:14
 
 workflows:
   version: 2
@@ -30,3 +34,4 @@ workflows:
       - node-10
       - node-12
       - node-13
+      - node-14
