@@ -22,6 +22,10 @@ jobs:
     <<: *scripts
     docker:
       - image: circleci/node:13
+  node-14:
+    <<: *scripts
+    docker:
+      - image: circleci/node:14
 
 workflows:
   version: 2
@@ -30,3 +34,4 @@ workflows:
       - node-10
       - node-12
       - node-13
+      - node-14
