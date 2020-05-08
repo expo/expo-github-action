@@ -4,10 +4,10 @@ version: 2
 scripts: &scripts
   steps:
     - checkout
-    - run: npm ci
-    - run: npm test
-    - run: npm run lint
-    - run: npm run build
+    - run: yarn
+    - run: yarn test
+    - run: yarn lint
+    - run: yarn build
 
 jobs:
   node-10:
