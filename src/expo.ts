@@ -16,10 +16,15 @@ export async function authenticate(username: string, password: string) {
 		? 'expo.cmd'
 		: 'expo';
 
-	await cli.exec(bin, ['login', `--username=${username}`], {
-		env: {
-			...process.env,
-			EXPO_CLI_PASSWORD: password,
-		},
-	});
+	try {
+		await cli.exec(bin, ['login', `--username=${username}`], {
+			env: {
+				...process.env,
+				EXPO_CLI_PASSWORD: password,
+			},
+		});
+	} catch (error) {
+		core.setFailed(error);
+		throw error;
+	}
 }

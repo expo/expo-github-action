@@ -1,28 +1,31 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as expo from '../src/expo';
-import { setPlatform, resetPlatform } from './utils';
+import { setPlatform, restorePlatform, setEnv, restoreEnv } from './utils';
 
 describe('authenticate', () => {
 	const spy = {
 		exec: jest.spyOn(cli, 'exec').mockImplementation(),
 		info: jest.spyOn(core, 'info').mockImplementation(),
+		fail: jest.spyOn(core, 'setFailed').mockImplementation(),
 	};
 
 	it('skips authentication without credentials', async () => {
 		await expo.authenticate('', '');
 		expect(spy.exec).not.toBeCalled();
+		expect(spy.fail).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
 	it('skips authentication without password', async () => {
 		await expo.authenticate('bycedric', '');
 		expect(spy.exec).not.toBeCalled();
+		expect(spy.fail).not.toBeCalled();
 		expect(spy.info).toBeCalled();
 	});
 
 	it('executes login command with password through environment', async () => {
-		process.env['TEST_INCLUDED'] = 'hellyeah';
+		setEnv('TEST_INCLUDED', 'hellyeah');
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo');
@@ -33,6 +36,7 @@ describe('authenticate', () => {
 				EXPO_CLI_PASSWORD: 'mypassword',
 			},
 		});
+		restoreEnv();
 	});
 
 	it('executes login command with `.cmd` suffix on windows', async () => {
@@ -40,6 +44,13 @@ describe('authenticate', () => {
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
-		resetPlatform();
+		restorePlatform();
+	});
+
+	it('fails when credentials are incorrect', async () => {
+		const error = new Error('Invalid username/password. Please try again.');
+		spy.exec.mockRejectedValue(error);
+		await expect(expo.authenticate('bycedric', 'incorrect')).rejects.toBe(error);
+		expect(spy.fail).toBeCalledWith(error);
 	});
 });

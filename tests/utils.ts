@@ -12,6 +12,23 @@ export function setPlatform(platform: NodeJS.Platform) {
 /**
  * Revert the platform to the original one.
  */
-export function resetPlatform() {
+export function restorePlatform() {
 	setPlatform(originalPlatform);
+}
+
+// keep track of the original environment variables
+const originalEnv = { ...process.env };
+
+/**
+ * Change the environment variable for testing purposes.
+ */
+export function setEnv(name: string, value: string) {
+	process.env[name] = value;
+}
+
+/**
+ * Revert the environment variable changes.
+ */
+export function restoreEnv() {
+	process.env = originalEnv;
 }

@@ -14,6 +14,7 @@ jest.mock('libnpm', () => registry);
 jest.mock('../src/cache', () => cache);
 
 import * as install from '../src/install';
+import { setEnv, restoreEnv } from './utils';
 
 describe('resolve', () => {
 	it('fetches exact version of expo-cli', async () => {
@@ -41,19 +42,23 @@ describe('install', () => {
 });
 
 describe('fromPackager', () => {
+	afterEach(() => {
+		restoreEnv();
+	});
+
 	it('resolves tool path', async () => {
 		await install.fromPackager('3.0.10', 'npm');
 		expect(io.which).toBeCalledWith('npm');
 	});
 
 	it('creates temporary folder', async () => {
-		process.env['RUNNER_TEMP'] = '/temp/path';
+		setEnv('RUNNER_TEMP', '/temp/path');
 		await install.fromPackager('latest', 'yarn');
 		expect(io.mkdirP).toBeCalledWith('/temp/path');
 	});
 
 	it('installs expo with tool', async () => {
-		process.env['RUNNER_TEMP'] = '/temp/path';
+		setEnv('RUNNER_TEMP', '/temp/path');
 		io.which.mockResolvedValue('npm');
 		const expoPath = await install.fromPackager('beta', 'npm');
 		expect(expoPath).toBe('/temp/path');
