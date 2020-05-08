@@ -1,3 +1,24 @@
+## [5.1.0](https://github.com/expo/expo-github-action/compare/5.0.0...5.1.0) (2020-05-08)
+
+### New features
+
+* fail when provided credentials are incorrect ([#43](https://github.com/expo/expo-github-action/pull/43)) ([a7b6ce4](https://github.com/expo/expo-github-action/commit/a7b6ce4))
+
+### Bug fixes
+
+* remove custom and add global error handling ([#46](https://github.com/expo/expo-github-action/pull/46)) ([a4955da](https://github.com/expo/expo-github-action/commit/a4955da))
+
+### Test changes
+
+* check if build is up to date ([#45](https://github.com/expo/expo-github-action/pull/45)) ([cb49096](https://github.com/expo/expo-github-action/commit/cb49096))
+* add missing cache unit tests ([#44](https://github.com/expo/expo-github-action/pull/44)) ([4279327](https://github.com/expo/expo-github-action/commit/4279327))
+
+### Other chores
+
+* update dependencies and configuration ([#42](https://github.com/expo/expo-github-action/pull/42)) ([32b5f9c](https://github.com/expo/expo-github-action/commit/32b5f9c))
+* **deps**: bump acorn from 5.7.3 to 5.7.4 ([#37](https://github.com/expo/expo-github-action/pull/37)) ([4aaf05f](https://github.com/expo/expo-github-action/commit/4aaf05f))
+
+
 ## [5.0.0](https://github.com/expo/expo-github-action/compare/4.1.0...5.0.0) (2019-12-31)
 
 ### BREAKING CHANGES
