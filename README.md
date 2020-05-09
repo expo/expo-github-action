@@ -1,37 +1,54 @@
-# Expo GitHub Action
-
-Publish, build, or manage your [Expo][link-expo] project with GitHub Actions!
-This action installs the [Expo CLI][link-expo-cli] on your preferred os and authenticates your project.
-You can also use [the Docker image][link-docker-expo] in other Docker-based environments.
-
-1. [What's inside?](#whats-inside)
-2. [Used variables](#used-variables)
-3. [Example workflows](#example-workflows)
-4. [Things to know](#things-to-know)
+<div align="center">
+  <h1>expo github action</h1>
+  <p></p>
+  <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with Github Actions!</p>
+  <sup>
+    <a href="https://github.com/expo/expo-github-action/releases">
+      <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
+    </a>
+    <a href="https://app.circleci.com/pipelines/github/expo/expo-github-action">
+      <img src="https://img.shields.io/circleci/build/github/expo/expo-github-action/master?style=flat-square" alt="builds" />
+    </a>
+    <a href="https://github.com/expo/expo-github-action/blob/master/LICENSE.md">
+      <img src="https://img.shields.io/github/license/expo/expo-github-action?style=flat-square" alt="license" />
+    </a>
+  </sup>
+  <br />
+  <p align="center">
+    <a href="https://github.com/expo/expo-github-action#configuration-options"><b>Usage</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="https://github.com/expo/expo-github-action#example-workflows"><b>Examples</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="https://github.com/expo/expo-github-action#things-to-know"><b>Caveats</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="https://github.com/expo/expo-github-action/blob/master/CHANGELOG.md"><b>Changelog</b></a>
+  </p>
+  <br />
+</div>
 
 ## What's inside?
 
-Within this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
-That means you can perform any command like login, publish, and build.
-Also, this action takes care of authentication when both `expo-username` and `expo-password` variables are defined.
+With this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
+It allows you to fully automate the `expo publish` or `expo build` process, leaving you with more time available for your project.
+There are some additional features included to make the usage of this action as simple as possible, like caching and authentication.
 
-## Used variables
+## Configuration options
 
-This action is customizable through variables; they are defined in the [`action.yml`][link-expo-cli-action].
+This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-variable              | description
----                   | ---
-`expo-username`       | The username of your Expo account. _(you can hardcode this or use secrets)_
-`expo-password`       | The password of your Expo account. _**([use this with secrets][link-actions-secrets])**_
-`expo-version`        | The Expo CLI you want to use. _(can be any semver range, defaults to `latest`)_
-`expo-packager`       | The package manager you want to use to install the CLI. _(can be `npm` or `yarn`, defaults to `yarn`)_
-`expo-cache`          | If it should the actions cache, [read more about it here](#using-the-built-in-cache) _(can be `true` or `false`, defaults to `false`)_
-`expo-cache-key`      | An optional custom remote cache key _(**warning**, only use this when you know what you are doing)_
-`expo-patch-watchers` | If it should patch the `fs.inotify.` limits causing `ENOSPC` errors on Linux. _(can be `true` or `false`, defaults to `true`)_
+variable              | default  | description
+---                   | ---      | ---
+`expo-username`       | -        | The username of your Expo account _(e.g. `bycedric`)_
+`expo-password`       | -        | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_
+`expo-version`        | `latest` | The Expo CLI version to use, can be any [SemVer][link-semver-playground]. _(e.g. `3.x`)_
+`expo-packager`       | `yarn`   | The package manager to install the CLI with. _(e.g. `npm`)_
+`expo-cache`          | `false`  | If it should the [GitHub actions (remote) cache]((#using-the-built-in-cache)).
+`expo-cache-key`      | -        | An optional custom (remote) cache key. _(**use with caution**)_
+`expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
 
-> It's recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
-> For more info on how to use this, please read the [workflow syntax documentation][link-actions-syntax-with].
+> Never hardcode your `expo-password` in your workflow, use [secrets][[link-actions-secrets]] to store them.
+> It's also recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 
 ## Example workflows
 
@@ -61,7 +78,7 @@ jobs:
     name: Install and publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
@@ -77,8 +94,8 @@ jobs:
 ### Cache Expo CLI for other jobs
 
 Below you can see a slightly modified version of the example above.
-In this one, we enabled the built-in cache that will reuse a previous installed Expo CLI.
-This skips the installation part and extracts the files directly, boosting the performance of your workflow.
+In this one, we enabled the built-in cache that will reuse a previously installed Expo CLI.
+It skips the installation part and extracts the files directly, boosting the performance of your workflow.
 
 > You can [read more about the cache here](#using-the-built-in-cache)
 
@@ -93,7 +110,7 @@ jobs:
     name: Install and publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
@@ -110,8 +127,8 @@ jobs:
 ### Test PRs and publish a review version
 
 Reviewing pull requests can take some time if you have to read every line of code.
-To make this easier, you can publish the edited version of the PR using a dedicated release channel.
-Below you can see an example of a workflow that publishes and comments when the app is ready for review.
+To make this easier, you can publish the edited version of the PR using a [release channel][link-expo-release-channels].
+Below you can see an example of a workflow that publishes and comments on te PR when the app is published.
 
 ```yml
 name: Expo Review
@@ -121,7 +138,7 @@ jobs:
     name: Install and publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
@@ -143,7 +160,6 @@ jobs:
 
 With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on multiple environments.
 These matrixes can help to make sure your app runs smoothly on a broad set of different development machines.
-The action below is only running on pull requests to avoid unnecessary builds.
 
 > If you don't need automatic authentication, you can omit the `expo-username` and `expo-password` variables.
 
@@ -159,7 +175,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         node: [10, 12, 13]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
@@ -174,8 +190,7 @@ jobs:
 ### Test and build web every day at 08:00
 
 You can also schedule jobs by using the cron syntax.
-It helps you update or check your app now and then.
-For example, the [Expo CLI Docker images uses this][link-docker-expo-cron] to make sure the images are up to date.
+It can help to minimize the number of updates your users have to install.
 
 ```yml
 name: Expo Daily CI
@@ -187,7 +202,7 @@ jobs:
     name: Daily Continuous Integration
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
@@ -203,31 +218,29 @@ jobs:
 
 ### Automatic Expo login
 
-You need to authenticate for some Expo commands as `expo publish` and `expo build:*`.
-This project has an additional feature to make this easy and secure.
-The action uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] variable internally to make this happen.
+You need to authenticate for some Expo commands like `expo publish` and `expo build`.
+This action gives you configuration options to keep your workflow simple.
+Under the hood, it uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] environment variable to make this as secure as possible.
+
+> Note, this action only uses your credentials to authenticate with Expo. It doesn't store these anywhere.
 
 ### Using the built-in cache
 
-As of writing, GitHub Actions lacks a feature to "cache" files and directories in 3rd party actions.
-That's why we implemented the [Cypress fork of the `actions/cache`][link-actions-cache-cypress] to enable some sort of caching.
-You can opt-in to this by setting the `expo-cache` variable to `true`.
-If you know what you are doing and need more control, you can also define a custom cache key with `expo-cache-key`.
+As of writing, GitHub doesn't provide a (remote) cache for 3rd party actions.
+That's why we implemented the [Cypress fork of the `actions/cache`][link-actions-cache-cypress].
+With this, you can opt-in to caching the Expo CLI install, making it a lot faster.
+If you need more control over this cache, you can define a custom cache key with `expo-cache-key`.
 
 > Note, this cache will count towards your [repo cache limit][link-actions-cache-limit].
 
 ### ENOSPC errors on Linux
 
-React Native bundles are created by the Metro bundler, even when using Expo.
-Unfortunately, this Metro bundler requires quite some resources.
-As of writing, GitHub Actions has some small default values for the `fs.inotify` settings.
-Inside we included a patch that increases these limits for the "active workflow" run.
+When you run `expo publish` or `expo build`, a new bundle is created.
+Creating these bundles require quite some resources.
+As of writing, GitHub actions has some small default values for the `fs.inotify` settings.
+Inside this action, we included a patch that increases these limits for the current workflow.
 It increases the `max_user_instances`, `max_user_watches` and `max_queued_events` to `524288`.
 You can disable this patch by setting the `expo-patch-watchers` to `false`.
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
 <div align="center">
   <br />
@@ -236,15 +249,11 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 </div>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
-[link-actions-cache]: https://github.com/actions/cache
 [link-actions-cache-cypress]: https://github.com/cypress-io/github-actions-cache
 [link-actions-cache-limit]: https://github.com/actions/cache#cache-limits
 [link-actions-node]: https://github.com/actions/setup-node
-[link-actions-secrets]: https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables
-[link-actions-syntax-with]: https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepswith
-[link-docker-expo]: https://github.com/bycedric/expo-cli-images
-[link-docker-expo-cron]: https://github.com/byCedric/expo-cli-images/blob/d93389e52135d6a599853aed7893adc6a8b57c84/.github/workflows/daily-builds.yml#L5
-[link-expo]: https://expo.io
-[link-expo-cli]: https://docs.expo.io/versions/latest/workflow/expo-cli
-[link-expo-cli-action]: action.yml
-[link-expo-cli-password]: https://github.com/expo/expo-cli/blob/8ea616d8848a123270b97e226e33dcb3dde49653/packages/expo-cli/src/accounts.js#L94
+[link-actions-secrets]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
+[link-expo-cli]: https://docs.expo.io/workflow/expo-cli/
+[link-expo-cli-password]: https://github.com/expo/expo-cli/blob/master/packages/expo-cli/src/accounts.ts#L88-L90
+[link-expo-release-channels]: https://docs.expo.io/distribution/release-channels/
+[link-semver-playground]: https://semver.npmjs.com/
