@@ -229,11 +229,11 @@ You can disable this patch by setting the `expo-patch-watchers` to `false`.
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
---- ---
-
-<p align="center">
- with :heart: <a href="https://bycedric.com" target="_blank">byCedric</a>
-</p>
+<div align="center">
+  <br />
+  with :heart: <strong>byCedric</strong>
+  <br />
+</div>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
 [link-actions-cache]: https://github.com/actions/cache
