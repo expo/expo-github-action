@@ -47,7 +47,7 @@ variable              | default  | description
 `expo-cache-key`      | -        | An optional custom (remote) cache key. _(**use with caution**)_
 `expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
 
-> Never hardcode your `expo-password` in your workflow, use [secrets][[link-actions-secrets]] to store them.
+> Never hardcode your `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
 > It's also recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 
 ## Example workflows
