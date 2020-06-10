@@ -1,3 +1,10 @@
+## [5.1.0](https://github.com/expo/expo-github-action/compare/5.1.0...5.1.1) (2020-06-10)
+
+### Bug fixes
+
+* use inputs metadata key ([#49](https://github.com/expo/expo-github-action/pull/49)) ([71dfeab](https://github.com/expo/expo-github-action/commit/71dfeab))
+
+
 ## [5.1.0](https://github.com/expo/expo-github-action/compare/5.0.0...5.1.0) (2020-05-08)
 
 ### New features
