@@ -43,7 +43,7 @@ variable              | default  | description
 `expo-password`       | -        | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_
 `expo-version`        | `latest` | The Expo CLI version to use, can be any [SemVer][link-semver-playground]. _(e.g. `3.x`)_
 `expo-packager`       | `yarn`   | The package manager to install the CLI with. _(e.g. `npm`)_
-`expo-cache`          | `false`  | If it should use the [GitHub actions (remote) cache](#cache-expo-cli-for-other-jobs).
+`expo-cache`          | `false`  | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).
 `expo-cache-key`      | -        | An optional custom (remote) cache key. _(**use with caution**)_
 `expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
 
