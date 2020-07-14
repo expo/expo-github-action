@@ -244,7 +244,7 @@ You can disable this patch by setting the `expo-patch-watchers` to `false`.
 
 <div align="center">
   <br />
-  with :heart: &nbsp; <strong>byCedric</strong>
+  with :heart:&nbsp;<strong>byCedric</strong>
   <br />
 </div>
 

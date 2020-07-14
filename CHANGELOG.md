@@ -1,4 +1,24 @@
-## [5.1.0](https://github.com/expo/expo-github-action/compare/5.1.0...5.1.1) (2020-06-10)
+## [5.2.0](https://github.com/expo/expo-github-action/compare/5.1.1...5.2.0) (2020-07-14)
+
+### Bug fixes
+
+* proper space between icon and text ([#50](https://github.com/expo/expo-github-action/pull/50)) ([b8a49f4](https://github.com/expo/expo-github-action/commit/b8a49f4))
+
+### Code refactors
+
+* use github actions instead of circle ([#54](https://github.com/expo/expo-github-action/pull/54)) ([d3602b9](https://github.com/expo/expo-github-action/commit/d3602b9))
+
+### Documentation changes
+
+* fix grammar and link in readme ([#53](https://github.com/expo/expo-github-action/pull/53)) ([6ac67f0](https://github.com/expo/expo-github-action/commit/6ac67f0))
+* update build badge in readme ([#56](https://github.com/expo/expo-github-action/pull/56)) ([050b701](https://github.com/expo/expo-github-action/commit/050b701))
+
+### Other chores
+
+* upgrade all dependencies to latest version ([#55](https://github.com/expo/expo-github-action/pull/55)) ([404bd09](https://github.com/expo/expo-github-action/commit/404bd09))
+
+
+## [5.1.1](https://github.com/expo/expo-github-action/compare/5.1.0...5.1.1) (2020-06-10)
 
 ### Bug fixes
 
