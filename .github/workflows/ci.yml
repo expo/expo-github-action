@@ -16,6 +16,13 @@ jobs:
           - macos-latest
           - ubuntu-latest
           - windows-latest
+        include:
+          - node: 12
+            os: macos-latest
+            checkUpToDate: true
+          - node: 12
+            os: ubuntu-latest
+            checkUpToDate: true
     steps:
       - name: Setup repo
         uses: actions/checkout@v2
@@ -44,5 +51,5 @@ jobs:
       - name: Build package
         run: yarn build
       - name: Build up-to-date
-        if: ${{ matrix.node == 12 }}
+        if: ${{ matrix.checkUpToDate }}
         run: git diff --stat --exit-code build
