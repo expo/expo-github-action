@@ -44,4 +44,5 @@ jobs:
       - name: Build package
         run: yarn build
       - name: Build up-to-date
+        if: ${{ matrix.node == 12 }}
         run: git diff --stat --exit-code build
