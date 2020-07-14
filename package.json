@@ -17,7 +17,8 @@
 	"scripts": {
 		"test": "jest",
 		"lint": "tsc --noEmit && eslint --ext ts ./src ./tests",
-		"build": "ncc build src/index.ts --out build"
+		"build": "ncc build src/index.ts --out build",
+		"clean": "rimraf build"
 	},
 	"dependencies": {
 		"@actions/cache": "github:cypress-io/github-actions-cache#8bec6cc",
@@ -38,12 +39,13 @@
 		"husky": "^3.1.0",
 		"jest": "^26.0.1",
 		"jest-circus": "^26.0.1",
+		"rimraf": "^3.0.2",
 		"ts-jest": "^25.5.0",
 		"typescript": "^3.8.3"
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "npm run build && git add build"
+			"pre-commit": "yarn build && git add build"
 		}
 	}
 }
