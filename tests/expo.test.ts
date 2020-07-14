@@ -25,7 +25,6 @@ describe('authenticate', () => {
 		utils.setEnv('TEST_INCLUDED', 'hellyeah');
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
-		expect(spy.exec.mock.calls[0][0]).toBe('expo');
 		expect(spy.exec.mock.calls[0][1]).toStrictEqual(['login', '--username=bycedric'])
 		expect(spy.exec.mock.calls[0][2]).toMatchObject({
 			env: {
@@ -36,7 +35,23 @@ describe('authenticate', () => {
 		utils.restoreEnv();
 	});
 
-	it('executes login command with `.cmd` suffix on windows', async () => {
+	it('executes login command with `expo` on macos', async () => {
+		utils.setPlatform('darwin');
+		await expo.authenticate('bycedric', 'mypassword');
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][0]).toBe('expo');
+		utils.restorePlatform();
+	});
+
+	it('executes login command with `expo` on ubuntu', async () => {
+		utils.setPlatform('linux');
+		await expo.authenticate('bycedric', 'mypassword');
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][0]).toBe('expo');
+		utils.restorePlatform();
+	});
+
+	it('executes login command with `expo.cmd` on windows', async () => {
 		utils.setPlatform('win32');
 		await expo.authenticate('bycedric', 'mypassword');
 		expect(spy.exec).toBeCalled();
