@@ -6,8 +6,8 @@
     <a href="https://github.com/expo/expo-github-action/releases">
       <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
     </a>
-    <a href="https://app.circleci.com/pipelines/github/expo/expo-github-action">
-      <img src="https://img.shields.io/circleci/build/github/expo/expo-github-action/master?style=flat-square" alt="builds" />
+    <a href="https://github.com/expo/expo-github-action/actions">
+      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/CI/master.svg?style=flat-square" alt="builds" />
     </a>
     <a href="https://github.com/expo/expo-github-action/blob/master/LICENSE.md">
       <img src="https://img.shields.io/github/license/expo/expo-github-action?style=flat-square" alt="license" />
