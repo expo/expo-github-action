@@ -25,23 +25,23 @@
 		"@actions/core": "^1.2.4",
 		"@actions/exec": "^1.0.4",
 		"@actions/io": "^1.0.2",
-		"@actions/tool-cache": "^1.3.4",
+		"@actions/tool-cache": "^1.5.5",
 		"libnpm": "^3.0.1"
 	},
 	"devDependencies": {
-		"@types/jest": "^25.2.1",
-		"@types/node": "^13.13.5",
-		"@typescript-eslint/eslint-plugin": "^2.31.0",
-		"@typescript-eslint/parser": "^2.31.0",
-		"@zeit/ncc": "^0.22.1",
-		"eslint": "^6.8.0",
-		"eslint-plugin-jest": "^23.9.0",
-		"husky": "^3.1.0",
+		"@types/jest": "^26.0.4",
+		"@types/node": "^12.12.49",
+		"@typescript-eslint/eslint-plugin": "^3.6.1",
+		"@typescript-eslint/parser": "^3.6.1",
+		"@zeit/ncc": "^0.22.3",
+		"eslint": "^7.4.0",
+		"eslint-plugin-jest": "^23.18.0",
+		"husky": "^4.2.5",
 		"jest": "^26.0.1",
-		"jest-circus": "^26.0.1",
+		"jest-circus": "^26.1.0",
 		"rimraf": "^3.0.2",
-		"ts-jest": "^25.5.0",
-		"typescript": "^3.8.3"
+		"ts-jest": "^26.1.2",
+		"typescript": "^3.9.6"
 	},
 	"husky": {
 		"hooks": {
