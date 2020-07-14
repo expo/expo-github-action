@@ -1,15 +1,15 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
+	parser: '@typescript-eslint/parser',
+	plugins: [
+		'@typescript-eslint',
 		'jest',
-  ],
-  env: {
-    es6: true,
-    'jest/globals': true,
-    node: true,
-  },
-  extends: [
+	],
+	env: {
+		es6: true,
+		'jest/globals': true,
+		node: true,
+	},
+	extends: [
 		'eslint:recommended',
 		'plugin:@typescript-eslint/recommended',
 	],
@@ -18,6 +18,7 @@ module.exports = {
 		'@typescript-eslint/explicit-member-accessibility': [
 			'error', { 'accessibility': 'no-public' },
 		],
+		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/indent': ['error', 'tab'],
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-use-before-define': 'off',
