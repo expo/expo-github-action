@@ -28,9 +28,13 @@ describe('toLocalCache', () => {
 });
 
 describe('fromRemoteCache', () => {
-	const spy = {
-		restore: jest.spyOn(remoteCache, 'restoreCache').mockImplementation(),
-	};
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = {
+			restore: jest.spyOn(remoteCache, 'restoreCache').mockImplementation(),
+		};
+	});
 
 	beforeAll(() => {
 		utils.setEnv('RUNNER_TOOL_CACHE', join('cache', 'path'));
@@ -38,6 +42,7 @@ describe('fromRemoteCache', () => {
 
 	afterAll(() => {
 		utils.restoreEnv();
+		spy.restore.mockRestore();
 	});
 
 	it('restores remote cache with default key', async () => {
@@ -45,7 +50,7 @@ describe('fromRemoteCache', () => {
 		expect(remoteCache.restoreCache).toBeCalledWith(
 			join('cache', 'path', 'expo-cli', '3.20.1', os.arch()),
 			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`,
-			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`,
+			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`
 		);
 	});
 
@@ -54,14 +59,14 @@ describe('fromRemoteCache', () => {
 		expect(remoteCache.restoreCache).toBeCalledWith(
 			join('cache', 'path', 'expo-cli', '3.20.0', os.arch()),
 			'custom-cache-key',
-			'custom-cache-key',
+			'custom-cache-key'
 		);
 	});
 
 	it('returns path when remote cache exists', async () => {
 		spy.restore.mockResolvedValueOnce(true);
 		await expect(cache.fromRemoteCache('3.20.1', 'npm')).resolves.toBe(
-			join('cache', 'path', 'expo-cli', '3.20.1', os.arch()),
+			join('cache', 'path', 'expo-cli', '3.20.1', os.arch())
 		);
 	});
 
@@ -73,15 +78,23 @@ describe('fromRemoteCache', () => {
 });
 
 describe('toRemoteCache', () => {
-	const spy = {
-		save: jest.spyOn(remoteCache, 'saveCache').mockImplementation(),
-	};
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = {
+			save: jest.spyOn(remoteCache, 'saveCache').mockImplementation(),
+		};
+	});
+
+	afterAll(() => {
+		spy.save.mockRestore();
+	});
 
 	it('saves remote cache with default key', async () => {
 		expect(await cache.toRemoteCache(join('local', 'path'), '3.20.1', 'npm')).toBeUndefined();
 		expect(remoteCache.saveCache).toBeCalledWith(
 			join('local', 'path'),
-			`expo-cli-${process.platform}-${os.arch()}-npm-3.20.1`,
+			`expo-cli-${process.platform}-${os.arch()}-npm-3.20.1`
 		);
 	});
 

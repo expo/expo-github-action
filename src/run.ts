@@ -13,10 +13,11 @@ export async function run() {
 
 	addPath(path);
 
-	await authenticate(
-		getInput('expo-username'),
-		getInput('expo-password'),
-	);
+	await authenticate({
+		token: getInput('expo-token') || undefined,
+		username: getInput('expo-username') || undefined,
+		password: getInput('expo-password') || undefined,
+	});
 
 	const shouldPatchWatchers = getInput('expo-patch-watchers') || 'true';
 

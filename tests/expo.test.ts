@@ -3,41 +3,103 @@ import * as cli from '@actions/exec';
 import * as expo from '../src/expo';
 import * as utils from './utils';
 
-describe('authenticate', () => {
-	const spy = {
-		exec: jest.spyOn(cli, 'exec').mockImplementation(),
-		info: jest.spyOn(core, 'info').mockImplementation(),
-	};
+// describe('authenticate', () => {
+// 	let spy: { [key: string]: jest.SpyInstance } = {};
+
+// 	beforeAll(() => {
+// 		spy = {
+// 			info: jest.spyOn(core, 'info').mockImplementation(),
+// 			exec: jest.spyOn(cli, 'exec').mockImplementation(),
+// 			authWithToken: jest.spyOn(expo, 'authWithToken').mockImplementation(),
+// 			authWithCredentials: jest.spyOn(expo, 'authWithCredentials').mockImplementation(),
+// 		};
+// 	});
+
+// 	afterAll(() => {
+// 		spy.info.mockRestore();
+// 		spy.exec.mockRestore();
+// 		spy.authWithToken.mockRestore();
+// 		spy.authWithCredentials.mockRestore();
+// 	});
+
+// 	it('skips authentication without token or credentials', async () => {
+// 		await expo.authenticate({});
+// 		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
+// 	});
+
+// 	it('authenticates with token when provided', async () => {
+// 		await expo.authenticate({ token: TOKEN });
+// 		expect(spy.authWithCredentials).not.toBeCalled();
+// 		expect(spy.authWithToken).toBeCalledWith(TOKEN);
+// 	});
+
+// 	it('authenticates with credentials when provided', async () => {
+// 		await expo.authenticate({ username: USER, password: PASS });
+// 		expect(spy.authWithToken).not.toBeCalled();
+// 		expect(spy.authWithCredentials).toBeCalledWith(USER, PASS);
+// 	});
+
+// 	it('authenticates with token when token and credentials are provided', async () => {
+// 		await expo.authenticate({ token: TOKEN, username: USER, password: PASS });
+// 		expect(spy.authWithCredentials).not.toBeCalled();
+// 		expect(spy.authWithToken).toBeCalledWith(TOKEN);
+// 	});
+// });
+
+const TOKEN = 'ABC123';
+const USER = 'bycedric';
+const PASS = 'mypassword';
+
+describe('authWithCredentials', () => {
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = {
+			exec: jest.spyOn(cli, 'exec').mockImplementation(),
+			info: jest.spyOn(core, 'info').mockImplementation(),
+		};
+	});
+
+	afterAll(() => {
+		spy.exec.mockRestore();
+		spy.info.mockRestore();
+	});
 
 	it('skips authentication without credentials', async () => {
-		await expo.authenticate('', '');
+		await expo.authWithCredentials();
 		expect(spy.exec).not.toBeCalled();
-		expect(spy.info).toBeCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
 	});
 
 	it('skips authentication without password', async () => {
-		await expo.authenticate('bycedric', '');
+		await expo.authWithCredentials(USER);
 		expect(spy.exec).not.toBeCalled();
-		expect(spy.info).toBeCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
 	});
 
 	it('executes login command with password through environment', async () => {
 		utils.setEnv('TEST_INCLUDED', 'hellyeah');
-		await expo.authenticate('bycedric', 'mypassword');
+		await expo.authWithCredentials(USER, PASS);
 		expect(spy.exec).toBeCalled();
-		expect(spy.exec.mock.calls[0][1]).toStrictEqual(['login', '--username=bycedric'])
+		expect(spy.exec.mock.calls[0][1]).toStrictEqual(['login', `--username=${USER}`]);
 		expect(spy.exec.mock.calls[0][2]).toMatchObject({
 			env: {
 				TEST_INCLUDED: 'hellyeah',
-				EXPO_CLI_PASSWORD: 'mypassword',
+				EXPO_CLI_PASSWORD: PASS,
 			},
 		});
 		utils.restoreEnv();
 	});
 
+	it('fails when credentials are incorrect', async () => {
+		const error = new Error('Invalid username/password. Please try again.');
+		spy.exec.mockRejectedValue(error);
+		await expect(expo.authWithCredentials(USER, PASS)).rejects.toBe(error);
+	});
+
 	it('executes login command with `expo` on macos', async () => {
 		utils.setPlatform('darwin');
-		await expo.authenticate('bycedric', 'mypassword');
+		await expo.authWithCredentials(USER, PASS);
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo');
 		utils.restorePlatform();
@@ -45,7 +107,7 @@ describe('authenticate', () => {
 
 	it('executes login command with `expo` on ubuntu', async () => {
 		utils.setPlatform('linux');
-		await expo.authenticate('bycedric', 'mypassword');
+		await expo.authWithCredentials(USER, PASS);
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo');
 		utils.restorePlatform();
@@ -53,15 +115,77 @@ describe('authenticate', () => {
 
 	it('executes login command with `expo.cmd` on windows', async () => {
 		utils.setPlatform('win32');
-		await expo.authenticate('bycedric', 'mypassword');
+		await expo.authWithCredentials(USER, PASS);
 		expect(spy.exec).toBeCalled();
 		expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
 		utils.restorePlatform();
 	});
+});
 
-	it('fails when credentials are incorrect', async () => {
-		const error = new Error('Invalid username/password. Please try again.');
+describe('authWithToken', () => {
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = {
+			exportVariable: jest.spyOn(core, 'exportVariable').mockImplementation(),
+			exec: jest.spyOn(cli, 'exec').mockImplementation(),
+			info: jest.spyOn(core, 'info').mockImplementation(),
+		};
+	});
+
+	afterAll(() => {
+		spy.exportVariable.mockRestore();
+		spy.exec.mockRestore();
+		spy.info.mockRestore();
+	});
+
+	it('skips authentication without token', async () => {
+		await expo.authWithToken();
+		expect(spy.exec).not.toBeCalled();
+		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
+	});
+
+	it('executes whoami command with token through environment', async () => {
+		utils.setEnv('TEST_INCLUDED', 'hellyeah');
+		await expo.authWithToken(TOKEN);
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][1]).toStrictEqual(['whoami']);
+		expect(spy.exec.mock.calls[0][2]).toMatchObject({
+			env: {
+				TEST_INCLUDED: 'hellyeah',
+				EXPO_TOKEN: TOKEN,
+			},
+		});
+		utils.restoreEnv();
+	});
+
+	it('fails when token is incorrect', async () => {
+		const error = new Error('Not logged in');
 		spy.exec.mockRejectedValue(error);
-		await expect(expo.authenticate('bycedric', 'incorrect')).rejects.toBe(error);
+		await expect(expo.authWithToken(TOKEN)).rejects.toBe(error);
+	});
+
+	it('executes whoami command with `expo` on macos', async () => {
+		utils.setPlatform('darwin');
+		await expo.authWithToken(TOKEN);
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][0]).toBe('expo');
+		utils.restorePlatform();
+	});
+
+	it('executes whoami command with `expo` on ubuntu', async () => {
+		utils.setPlatform('linux');
+		await expo.authWithToken(TOKEN);
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][0]).toBe('expo');
+		utils.restorePlatform();
+	});
+
+	it('executes whoami command with `expo.cmd` on windows', async () => {
+		utils.setPlatform('win32');
+		await expo.authWithToken(TOKEN);
+		expect(spy.exec).toBeCalled();
+		expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
+		utils.restorePlatform();
 	});
 });

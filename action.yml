@@ -14,6 +14,8 @@ inputs:
     default: latest
   expo-username:
     description: Your Expo username, for authentication.
+  expo-token:
+    description: Your Expo token, for authentication. (use with secrets)
   expo-password:
     description: Your Expo password, for authentication. (use with secrets)
   expo-packager:
