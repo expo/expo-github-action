@@ -3,49 +3,6 @@ import * as cli from '@actions/exec';
 import * as expo from '../src/expo';
 import * as utils from './utils';
 
-// describe('authenticate', () => {
-// 	let spy: { [key: string]: jest.SpyInstance } = {};
-
-// 	beforeAll(() => {
-// 		spy = {
-// 			info: jest.spyOn(core, 'info').mockImplementation(),
-// 			exec: jest.spyOn(cli, 'exec').mockImplementation(),
-// 			authWithToken: jest.spyOn(expo, 'authWithToken').mockImplementation(),
-// 			authWithCredentials: jest.spyOn(expo, 'authWithCredentials').mockImplementation(),
-// 		};
-// 	});
-
-// 	afterAll(() => {
-// 		spy.info.mockRestore();
-// 		spy.exec.mockRestore();
-// 		spy.authWithToken.mockRestore();
-// 		spy.authWithCredentials.mockRestore();
-// 	});
-
-// 	it('skips authentication without token or credentials', async () => {
-// 		await expo.authenticate({});
-// 		expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
-// 	});
-
-// 	it('authenticates with token when provided', async () => {
-// 		await expo.authenticate({ token: TOKEN });
-// 		expect(spy.authWithCredentials).not.toBeCalled();
-// 		expect(spy.authWithToken).toBeCalledWith(TOKEN);
-// 	});
-
-// 	it('authenticates with credentials when provided', async () => {
-// 		await expo.authenticate({ username: USER, password: PASS });
-// 		expect(spy.authWithToken).not.toBeCalled();
-// 		expect(spy.authWithCredentials).toBeCalledWith(USER, PASS);
-// 	});
-
-// 	it('authenticates with token when token and credentials are provided', async () => {
-// 		await expo.authenticate({ token: TOKEN, username: USER, password: PASS });
-// 		expect(spy.authWithCredentials).not.toBeCalled();
-// 		expect(spy.authWithToken).toBeCalledWith(TOKEN);
-// 	});
-// });
-
 const TOKEN = 'ABC123';
 const USER = 'bycedric';
 const PASS = 'mypassword';
