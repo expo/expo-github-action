@@ -15,6 +15,7 @@ import { run } from '../src/run';
 interface MockInputProps {
 	version?: string;
 	packager?: string;
+	token?: string;
 	username?: string;
 	password?: string;
 	patchWatchers?: string;
@@ -26,14 +27,24 @@ const mockInput = (props: MockInputProps = {}) => {
 	// fix: kind of dirty workaround for missing "mock 'value' based on arguments"
 	const input = (name: string) => {
 		switch (name) {
-			case 'expo-version': return props.version || '';
-			case 'expo-packager': return props.packager || '';
-			case 'expo-username': return props.username || '';
-			case 'expo-password': return props.password || '';
-			case 'expo-patch-watchers': return props.patchWatchers || '';
-			case 'expo-cache': return props.cache || '';
-			case 'expo-cache-key': return props.cacheKey || '';
-			default: return '';
+			case 'expo-version':
+				return props.version || '';
+			case 'expo-packager':
+				return props.packager || '';
+			case 'expo-token':
+				return props.token || '';
+			case 'expo-username':
+				return props.username || '';
+			case 'expo-password':
+				return props.password || '';
+			case 'expo-patch-watchers':
+				return props.patchWatchers || '';
+			case 'expo-cache':
+				return props.cache || '';
+			case 'expo-cache-key':
+				return props.cacheKey || '';
+			default:
+				return '';
 		}
 	};
 
@@ -80,6 +91,12 @@ describe('run', () => {
 	it('authenticates with provided credentials', async () => {
 		mockInput({ username: 'bycedric', password: 'mypassword', patchWatchers: 'false' });
 		await run();
-		expect(expo.authenticate).toBeCalledWith('bycedric', 'mypassword');
+		expect(expo.authenticate).toBeCalledWith({ username: 'bycedric', password: 'mypassword' });
+	});
+
+	it('authenticates with provided token', async () => {
+		mockInput({ token: 'ABC123', patchWatchers: 'false' });
+		await run();
+		expect(expo.authenticate).toBeCalledWith({ token: 'ABC123' });
 	});
 });

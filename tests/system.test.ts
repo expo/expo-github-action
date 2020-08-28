@@ -4,14 +4,24 @@ import * as system from '../src/system';
 import * as utils from './utils';
 
 describe('patchWatchers', () => {
-	const spy = {
-		info: jest.spyOn(core, 'info').mockImplementation(),
-		warning: jest.spyOn(core, 'warning').mockImplementation(),
-		exec: jest.spyOn(cli, 'exec').mockImplementation(),
-	};
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = {
+			info: jest.spyOn(core, 'info').mockImplementation(),
+			warning: jest.spyOn(core, 'warning').mockImplementation(),
+			exec: jest.spyOn(cli, 'exec').mockImplementation(),
+		};
+	});
 
 	afterEach(() => {
 		utils.restorePlatform();
+	});
+
+	afterAll(() => {
+		spy.info.mockRestore();
+		spy.warning.mockRestore();
+		spy.exec.mockRestore();
 	});
 
 	it('increses fs inotify settings with sysctl', async () => {
@@ -28,7 +38,7 @@ describe('patchWatchers', () => {
 		spy.exec.mockRejectedValueOnce(error);
 		utils.setPlatform('linux');
 		await system.patchWatchers();
-		expect(core.warning).toBeCalledWith(expect.stringContaining('can\'t patch watchers'));
+		expect(core.warning).toBeCalledWith(expect.stringContaining("can't patch watchers"));
 		expect(core.warning).toBeCalledWith(
 			expect.stringContaining('https://github.com/expo/expo-github-action/issues/20')
 		);

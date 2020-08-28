@@ -22,7 +22,7 @@ export async function patchWatchers() {
 		await cli.exec('sudo sysctl fs.inotify.max_queued_events=524288');
 		await cli.exec('sudo sysctl -p');
 	} catch {
-		core.warning('Looks like we can\'t patch watchers/inotify limits, you might encouter the `ENOSPC` error.');
+		core.warning("Looks like we can't patch watchers/inotify limits, you might encouter the `ENOSPC` error.");
 		core.warning('For more info, https://github.com/expo/expo-github-action/issues/20');
 	}
 }

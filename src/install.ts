@@ -2,22 +2,17 @@ import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as io from '@actions/io';
 import * as path from 'path';
-import {
-	fromLocalCache,
-	fromRemoteCache,
-	toLocalCache,
-	toRemoteCache,
-} from './cache';
+import { fromLocalCache, fromRemoteCache, toLocalCache, toRemoteCache } from './cache';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
 
-interface InstallConfig {
+type InstallConfig = {
 	version: string;
 	packager: string;
 	cache?: boolean;
 	cacheKey?: string;
-}
+};
 
 /**
  * Resolve the provided semver to exact version of `expo-cli`.
@@ -44,7 +39,7 @@ export async function install(config: InstallConfig) {
 	}
 
 	if (!root) {
-		root = await fromPackager(exact, config.packager)
+		root = await fromPackager(exact, config.packager);
 		root = await toLocalCache(root, exact);
 
 		if (config.cache) {

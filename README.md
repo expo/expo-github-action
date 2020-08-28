@@ -40,6 +40,7 @@ Here is a summary of all the variables that you can use and their purpose.
 variable              | default  | description
 ---                   | ---      | ---
 `expo-username`       | -        | The username of your Expo account _(e.g. `bycedric`)_
+`expo-token`          | -        | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_
 `expo-password`       | -        | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_
 `expo-version`        | `latest` | The Expo CLI version to use, can be any [SemVer][link-semver-playground]. _(e.g. `3.x`)_
 `expo-packager`       | `yarn`   | The package manager to install the CLI with. _(e.g. `npm`)_
@@ -47,8 +48,12 @@ variable              | default  | description
 `expo-cache-key`      | -        | An optional custom (remote) cache key. _(**use with caution**)_
 `expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
 
-> Never hardcode your `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
+> Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
+
 > It's also recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
+
+> `expo-token` is available from Expo CLI `3.25.0`.
+
 
 ## Example workflows
 
@@ -60,6 +65,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 3. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
 4. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
 5. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
+6. [Authenticate using an Expo token](#authenticate-using-an-expo-token)
 
 ### Publish on any push to master
 
@@ -214,15 +220,44 @@ jobs:
       - run: expo build:web
 ```
 
+### Authenticate using an Expo token
+
+Instead of username and password, you can also authenticate using a token.
+This might help increasing security and avoids adding username and password to your repository secrets.
+
+```yml
+name: Expo Publish
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: expo/expo-github-action@v5
+        with:
+          expo-version: 3.x
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+      - run: yarn install
+      - run: expo publish
+```
+
 ## Things to know
 
 ### Automatic Expo login
 
 You need to authenticate for some Expo commands like `expo publish` and `expo build`.
 This action gives you configuration options to keep your workflow simple.
-Under the hood, it uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] environment variable to make this as secure as possible.
+You can choose if you want to authenticate using an `EXPO_TOKEN` or account credentials.
+Under the hood, it uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] environment variable to make credentials authentication as secure as possible.
 
-> Note, this action only uses your credentials to authenticate with Expo. It doesn't store these anywhere.
+> Note, this action only uses your token or credentials to authenticate with Expo. It doesn't store these anywhere.
 
 ### Using the built-in cache
 

@@ -12072,7 +12072,11 @@ function run() {
             cacheKey: core_1.getInput('expo-cache-key') || undefined,
         });
         core_1.addPath(path);
-        yield expo_1.authenticate(core_1.getInput('expo-username'), core_1.getInput('expo-password'));
+        yield expo_1.authenticate({
+            token: core_1.getInput('expo-token') || undefined,
+            username: core_1.getInput('expo-username') || undefined,
+            password: core_1.getInput('expo-password') || undefined,
+        });
         const shouldPatchWatchers = core_1.getInput('expo-patch-watchers') || 'true';
         if (shouldPatchWatchers !== 'false') {
             yield system_1.patchWatchers();
@@ -20722,7 +20726,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticate = void 0;
+exports.authenticate = exports.authWithToken = exports.authWithCredentials = void 0;
 const core = __importStar(__webpack_require__(470));
 const cli = __importStar(__webpack_require__(986));
 /**
@@ -20730,19 +20734,52 @@ const cli = __importStar(__webpack_require__(986));
  * This step is required for publishing and building new apps.
  * It uses the `EXPO_CLI_PASSWORD` environment variable for improved security.
  */
-function authenticate(username, password) {
+function authWithCredentials(username, password) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!username || !password) {
-            return core.info('Skipping authentication, `expo-username` and/or `expo-password` not set...');
+            return core.info('Skipping authentication: `expo-username` and/or `expo-password` not set...');
         }
         // github actions toolkit will handle commands with `.cmd` on windows, we need that
-        const bin = process.platform === 'win32'
-            ? 'expo.cmd'
-            : 'expo';
+        const bin = process.platform === 'win32' ? 'expo.cmd' : 'expo';
         yield cli.exec(bin, ['login', `--username=${username}`], {
             env: Object.assign(Object.assign({}, process.env), { EXPO_CLI_PASSWORD: password }),
         });
     });
+}
+exports.authWithCredentials = authWithCredentials;
+/**
+ * Authenticate with Expo using `EXPO_TOKEN`.
+ * This exports the EXPO_TOKEN environment variable for all future steps within the workflow.
+ * It also double-checks if this token is valid and for what user, by running `expo whoami`.
+ *
+ * @see https://github.com/actions/toolkit/blob/905b2c7b0681b11056141a60055f1ba77358b7e9/packages/core/src/core.ts#L39
+ */
+function authWithToken(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!token) {
+            return core.info('Skipping authentication: `expo-token` not set...');
+        }
+        // github actions toolkit will handle commands with `.cmd` on windows, we need that
+        const bin = process.platform === 'win32' ? 'expo.cmd' : 'expo';
+        yield cli.exec(bin, ['whoami'], {
+            env: Object.assign(Object.assign({}, process.env), { EXPO_TOKEN: token }),
+        });
+        core.exportVariable('EXPO_TOKEN', token);
+    });
+}
+exports.authWithToken = authWithToken;
+/**
+ * Authenticate with Expo using either the token or username/password method.
+ * If both of them are set, token has priority.
+ */
+function authenticate(options) {
+    if (options.token) {
+        return authWithToken(options.token);
+    }
+    if (options.username || options.password) {
+        return authWithCredentials(options.username, options.password);
+    }
+    core.info('Skipping authentication: `expo-token`, `expo-username`, and/or `expo-password` not set...');
 }
 exports.authenticate = authenticate;
 
@@ -67064,7 +67101,7 @@ function patchWatchers() {
             yield cli.exec('sudo sysctl -p');
         }
         catch (_a) {
-            core.warning('Looks like we can\'t patch watchers/inotify limits, you might encouter the `ENOSPC` error.');
+            core.warning("Looks like we can't patch watchers/inotify limits, you might encouter the `ENOSPC` error.");
             core.warning('For more info, https://github.com/expo/expo-github-action/issues/20');
         }
     });
