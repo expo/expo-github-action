@@ -40,7 +40,7 @@ Here is a summary of all the variables that you can use and their purpose.
 variable              | default  | description
 ---                   | ---      | ---
 `expo-username`       | -        | The username of your Expo account _(e.g. `bycedric`)_
-`expo-token`          | -        | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])
+`expo-token`          | -        | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_
 `expo-password`       | -        | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_
 `expo-version`        | `latest` | The Expo CLI version to use, can be any [SemVer][link-semver-playground]. _(e.g. `3.x`)_
 `expo-packager`       | `yarn`   | The package manager to install the CLI with. _(e.g. `npm`)_
@@ -49,7 +49,11 @@ variable              | default  | description
 `expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
+
 > It's also recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
+
+> `expo-token` is available from Expo CLI `3.25.0`.
+
 
 ## Example workflows
 
