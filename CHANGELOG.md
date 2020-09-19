@@ -1,3 +1,10 @@
+## [5.3.0](https://github.com/expo/expo-github-action/compare/5.2.0...5.3.0) (2020-09-19)
+
+### New features
+
+* add expo token authentication method ([#57](https://github.com/expo/expo-github-action/pull/57)) ([1c36889](https://github.com/expo/expo-github-action/commit/1c36889))
+
+
 ## [5.2.0](https://github.com/expo/expo-github-action/compare/5.1.1...5.2.0) (2020-07-14)
 
 ### Bug fixes
