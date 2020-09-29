@@ -21,7 +21,7 @@
 		"clean": "rimraf build"
 	},
 	"dependencies": {
-		"@actions/cache": "github:cypress-io/github-actions-cache#8bec6cc",
+		"@actions/cache": "1.0.2",
 		"@actions/core": "^1.2.4",
 		"@actions/exec": "^1.0.4",
 		"@actions/io": "^1.0.2",
