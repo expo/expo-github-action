@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/expo/expo-github-action/compare/5.3.0...5.3.1) (2020-10-20)
+
+### Other chores
+
+* bump @actions/core from 1.2.4 to 1.2.6 ([#63](https://github.com/expo/expo-github-action/pull/63)) ([b807fa6](https://github.com/expo/expo-github-action/commit/b807fa6))
+
+
 ## [5.3.0](https://github.com/expo/expo-github-action/compare/5.2.0...5.3.0) (2020-09-19)
 
 ### New features
