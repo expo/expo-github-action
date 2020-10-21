@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@actions/cache@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@actions/cache/-/cache-1.0.2.tgz#a223dcc752c7f988016d28ee7232f930f85cec61"
-  integrity sha512-CzAseaJ4cKmOI58EIWUb/LfeYdM7Y25s39OEMtWAhEPrPPzrbSEjGHCLaYjJ0V8C4iojo8vBYh5B3OIJ37EiJw==
+"@actions/cache@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@actions/cache/-/cache-1.0.3.tgz#fc30090bc64abd8a0e3d6694245984a8354e6891"
+  integrity sha512-2DcdMrqbfj5LcsEYIh6ACgjb0bNMeMPP7y1a+bf/Sk0MFfkkrYRNFihkXRV6v0TNkNo0b5X38xmUguRZ5ZPLbw==
   dependencies:
     "@actions/core" "^1.2.4"
     "@actions/exec" "^1.0.1"
     "@actions/glob" "^0.1.0"
-    "@actions/http-client" "^1.0.8"
+    "@actions/http-client" "^1.0.9"
     "@actions/io" "^1.0.1"
     "@azure/ms-rest-js" "^2.0.7"
     "@azure/storage-blob" "^12.1.2"
@@ -41,6 +41,13 @@
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@actions/http-client/-/http-client-1.0.8.tgz#8bd76e8eca89dc8bcf619aa128eba85f7a39af45"
   integrity sha512-G4JjJ6f9Hb3Zvejj+ewLLKLf99ZC+9v+yCxoYf9vSyH+WkzPLB2LuUtRMGNkooMqdugGBFStIKXOuvH1W+EctA==
+  dependencies:
+    tunnel "0.0.6"
+
+"@actions/http-client@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@actions/http-client/-/http-client-1.0.9.tgz#af1947d020043dbc6a3b4c5918892095c30ffb52"
+  integrity sha512-0O4SsJ7q+MK0ycvXPl2e6bMXV7dxAXOGjrXS1eTF9s2S401Tp6c/P3c3Joz04QefC1J6Gt942Wl2jbm3f4mLcg==
   dependencies:
     tunnel "0.0.6"
 

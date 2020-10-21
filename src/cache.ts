@@ -1,4 +1,4 @@
-import { restoreCache, saveCache } from '@actions/cache';
+import { ReserveCacheError, restoreCache, saveCache } from '@actions/cache';
 import * as toolCache from '@actions/tool-cache';
 import path from 'path';
 import os from 'os';
@@ -45,7 +45,13 @@ export async function fromRemoteCache(version: string, packager: string, customC
 export async function toRemoteCache(source: string, version: string, packager: string, customCacheKey?: string) {
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
 
-	await saveCache([source], cacheKey);
+	try {
+		await saveCache([source], cacheKey);
+	} catch (error) {
+		if (error instanceof ReserveCacheError) {
+			console.log(`Skipping cache save: ${error.message}`);
+		} else throw error;
+	}
 }
 
 /**
