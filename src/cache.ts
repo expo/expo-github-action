@@ -1,4 +1,5 @@
 import { ReserveCacheError, restoreCache, saveCache } from '@actions/cache';
+import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
 import path from 'path';
 import os from 'os';
@@ -49,8 +50,11 @@ export async function toRemoteCache(source: string, version: string, packager: s
 		await saveCache([source], cacheKey);
 	} catch (error) {
 		if (error instanceof ReserveCacheError) {
-			console.log(`Skipping cache save: ${error.message}`);
-		} else throw error;
+			core.info('Skipping remote cache storage, encountered error:');
+			core.info(error.message);
+		} else {
+			throw error;
+		}
 	}
 }
 
