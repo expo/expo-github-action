@@ -10,7 +10,7 @@ import os from 'os';
  *
  * @see https://github.com/actions/toolkit/issues/47
  */
-export async function fromLocalCache(version: string) {
+export async function fromLocalCache(version: string): Promise<string | undefined> {
 	return toolCache.find('expo-cli', version);
 }
 
@@ -20,7 +20,7 @@ export async function fromLocalCache(version: string) {
  *
  * @see https://github.com/actions/toolkit/issues/47
  */
-export async function toLocalCache(root: string, version: string) {
+export async function toLocalCache(root: string, version: string): Promise<string> {
 	return toolCache.cacheDir(root, 'expo-cli', version);
 }
 
@@ -28,7 +28,7 @@ export async function toLocalCache(root: string, version: string) {
  * Download the remotely stored `expo-cli` from cache, if any.
  * Note, this cache is shared between jobs.
  */
-export async function fromRemoteCache(version: string, packager: string, customCacheKey?: string) {
+export async function fromRemoteCache(version: string, packager: string, customCacheKey?: string): Promise<string | undefined> {
 	// see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
 	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', 'expo-cli', version, os.arch());
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
@@ -43,7 +43,7 @@ export async function fromRemoteCache(version: string, packager: string, customC
  * Store the root of `expo-cli` in the remote cache, for future reuse.
  * Note, this cache is shared between jobs.
  */
-export async function toRemoteCache(source: string, version: string, packager: string, customCacheKey?: string) {
+export async function toRemoteCache(source: string, version: string, packager: string, customCacheKey?: string): Promise<void> {
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
 
 	try {
@@ -61,6 +61,6 @@ export async function toRemoteCache(source: string, version: string, packager: s
 /**
  * Get the cache key to use when (re)storing the Expo CLI from remote cache.
  */
-function getRemoteKey(version: string, packager: string) {
+function getRemoteKey(version: string, packager: string): string {
 	return `expo-cli-${process.platform}-${os.arch()}-${packager}-${version}`;
 }

@@ -3,7 +3,7 @@ import { authenticate } from './expo';
 import { install, InstallConfig } from './install';
 import { patchWatchers } from './system';
 
-export async function run() {
+export async function run(): Promise<void> {
 	const config: InstallConfig = {
 		version: getInput('expo-version') || 'latest',
 		packager: getInput('expo-packager') || 'yarn',

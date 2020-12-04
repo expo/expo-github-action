@@ -17,10 +17,10 @@ jobs:
           - ubuntu-latest
           - windows-latest
         include:
-          - node: 12
+          - node: 14
             os: macos-latest
             checkUpToDate: true
-          - node: 12
+          - node: 14
             os: ubuntu-latest
             checkUpToDate: true
     steps:
