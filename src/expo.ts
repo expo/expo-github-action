@@ -67,4 +67,5 @@ export function authenticate(options: AuthOptions) {
 	}
 
 	core.info('Skipping authentication: `expo-token`, `expo-username`, and/or `expo-password` not set...');
+	return Promise.resolve();
 }

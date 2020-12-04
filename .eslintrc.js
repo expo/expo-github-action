@@ -22,5 +22,6 @@ module.exports = {
 		'@typescript-eslint/indent': ['error', 'tab'],
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-use-before-define': 'off',
+		'@typescript-eslint/no-explicit-any': 'off',
 	},
 };

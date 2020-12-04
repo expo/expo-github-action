@@ -1,4 +1,8 @@
-const core = { addPath: jest.fn(), getInput: jest.fn() };
+const core = {
+	addPath: jest.fn(),
+	getInput: jest.fn(),
+	group: (message: string, action: () => Promise<any>) => action()
+};
 const exec = { exec: jest.fn() };
 const expo = { authenticate: jest.fn() };
 const install = { install: jest.fn() };

@@ -7,7 +7,7 @@ import { fromLocalCache, fromRemoteCache, toLocalCache, toRemoteCache } from './
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
 
-type InstallConfig = {
+export type InstallConfig = {
 	version: string;
 	packager: string;
 	cache?: boolean;
