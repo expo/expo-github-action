@@ -8,7 +8,7 @@ import * as cli from '@actions/exec';
  *
  * @see https://github.com/expo/expo-github-action/issues/20
  */
-export async function patchWatchers() {
+export async function patchWatchers(): Promise<void> {
 	if (process.platform !== 'linux') {
 		return core.info('Skipping patch for watchers, not running on Linux...');
 	}

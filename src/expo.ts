@@ -12,7 +12,7 @@ type AuthOptions = {
  * This step is required for publishing and building new apps.
  * It uses the `EXPO_CLI_PASSWORD` environment variable for improved security.
  */
-export async function authWithCredentials(username?: string, password?: string) {
+export async function authWithCredentials(username?: string, password?: string): Promise<void> {
 	if (!username || !password) {
 		return core.info('Skipping authentication: `expo-username` and/or `expo-password` not set...');
 	}
@@ -35,7 +35,7 @@ export async function authWithCredentials(username?: string, password?: string) 
  *
  * @see https://github.com/actions/toolkit/blob/905b2c7b0681b11056141a60055f1ba77358b7e9/packages/core/src/core.ts#L39
  */
-export async function authWithToken(token?: string) {
+export async function authWithToken(token?: string): Promise<void> {
 	if (!token) {
 		return core.info('Skipping authentication: `expo-token` not set...');
 	}
@@ -57,7 +57,7 @@ export async function authWithToken(token?: string) {
  * Authenticate with Expo using either the token or username/password method.
  * If both of them are set, token has priority.
  */
-export function authenticate(options: AuthOptions) {
+export function authenticate(options: AuthOptions): Promise<void> {
 	if (options.token) {
 		return authWithToken(options.token);
 	}

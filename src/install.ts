@@ -19,7 +19,7 @@ export type InstallConfig = {
  * This uses the npm registry and accepts latest, dist-tags or version ranges.
  * It's used to determine the cached version of `expo-cli`.
  */
-export async function resolve(version: string) {
+export async function resolve(version: string): Promise<string> {
 	return (await registry.manifest(`expo-cli@${version}`)).version;
 }
 
@@ -28,7 +28,7 @@ export async function resolve(version: string) {
  * Here you can provide any semver range or dist tag used in the registry.
  * It returns the path where Expo is installed.
  */
-export async function install(config: InstallConfig) {
+export async function install(config: InstallConfig): Promise<string> {
 	const exact = await resolve(config.version);
 	let root: string | undefined = await fromLocalCache(exact);
 
@@ -54,7 +54,7 @@ export async function install(config: InstallConfig) {
  * Install `expo-cli`, by version, using npm or yarn.
  * It creates a temporary directory to store all required files.
  */
-export async function fromPackager(version: string, packager: string) {
+export async function fromPackager(version: string, packager: string): Promise<string> {
 	const root = process.env['RUNNER_TEMP'] || '';
 	const tool = await io.which(packager);
 
