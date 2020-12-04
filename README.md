@@ -261,9 +261,9 @@ Under the hood, it uses the [`EXPO_CLI_PASSWORD`][link-expo-cli-password] enviro
 
 ### Using the built-in cache
 
-As of writing, GitHub doesn't provide a (remote) cache for 3rd party actions.
-That's why we implemented the [Cypress fork of the `actions/cache`][link-actions-cache-cypress].
-With this, you can opt-in to caching the Expo CLI install, making it a lot faster.
+You can opt-in to caching the installation, making it a lot faster.
+Under the hood, it uses the [`@action/cache`][link-actions-cache-package] package to restore the Expo CLI installation.
+This action generates a unique cache key for the OS, used packager, and exact version of the Expo CLI.
 If you need more control over this cache, you can define a custom cache key with `expo-cache-key`.
 
 > Note, this cache will count towards your [repo cache limit][link-actions-cache-limit].
@@ -284,8 +284,8 @@ You can disable this patch by setting the `expo-patch-watchers` to `false`.
 </div>
 
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
-[link-actions-cache-cypress]: https://github.com/cypress-io/github-actions-cache
 [link-actions-cache-limit]: https://github.com/actions/cache#cache-limits
+[link-actions-cache-package]: https://www.npmjs.com/package/@actions/cache
 [link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
 [link-expo-cli]: https://docs.expo.io/workflow/expo-cli/
