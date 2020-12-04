@@ -1,6 +1,6 @@
 import os from 'os';
 import { join } from 'path';
-import * as remoteCache from '@actions/cache/lib';
+import * as remoteCache from '@actions/cache';
 import * as toolCache from '@actions/tool-cache';
 import * as cache from '../src/cache';
 import * as utils from './utils';
@@ -48,18 +48,16 @@ describe('fromRemoteCache', () => {
 	it('restores remote cache with default key', async () => {
 		expect(await cache.fromRemoteCache('3.20.1', 'yarn')).toBeUndefined();
 		expect(remoteCache.restoreCache).toBeCalledWith(
-			join('cache', 'path', 'expo-cli', '3.20.1', os.arch()),
+			[join('cache', 'path', 'expo-cli', '3.20.1', os.arch())],
 			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`,
-			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`
 		);
 	});
 
 	it('restores remote cache with custom key', async () => {
 		expect(await cache.fromRemoteCache('3.20.0', 'yarn', 'custom-cache-key')).toBeUndefined();
 		expect(remoteCache.restoreCache).toBeCalledWith(
-			join('cache', 'path', 'expo-cli', '3.20.0', os.arch()),
+			[join('cache', 'path', 'expo-cli', '3.20.0', os.arch())],
 			'custom-cache-key',
-			'custom-cache-key'
 		);
 	});
 
@@ -93,14 +91,14 @@ describe('toRemoteCache', () => {
 	it('saves remote cache with default key', async () => {
 		expect(await cache.toRemoteCache(join('local', 'path'), '3.20.1', 'npm')).toBeUndefined();
 		expect(remoteCache.saveCache).toBeCalledWith(
-			join('local', 'path'),
+			[join('local', 'path')],
 			`expo-cli-${process.platform}-${os.arch()}-npm-3.20.1`
 		);
 	});
 
 	it('saves remote cache with custom key', async () => {
 		expect(await cache.toRemoteCache(join('local', 'path'), '3.20.1', 'yarn', 'custom-cache-key')).toBeUndefined();
-		expect(remoteCache.saveCache).toBeCalledWith(join('local', 'path'), 'custom-cache-key');
+		expect(remoteCache.saveCache).toBeCalledWith([join('local', 'path')], 'custom-cache-key');
 	});
 
 	it('fails when remote cache throws', async () => {
