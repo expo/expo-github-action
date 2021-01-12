@@ -2,10 +2,8 @@ import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import * as io from '@actions/io';
 import * as path from 'path';
-import { fromLocalCache, fromRemoteCache, toLocalCache, toRemoteCache } from './cache';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const registry = require('libnpm');
+import { fromLocalCache, fromRemoteCache, toLocalCache, toRemoteCache } from './cache';
 
 export type InstallConfig = {
 	version: string;
@@ -15,35 +13,25 @@ export type InstallConfig = {
 };
 
 /**
- * Resolve the provided semver to exact version of `expo-cli`.
- * This uses the npm registry and accepts latest, dist-tags or version ranges.
- * It's used to determine the cached version of `expo-cli`.
- */
-export async function resolve(version: string): Promise<string> {
-	return (await registry.manifest(`expo-cli@${version}`)).version;
-}
-
-/**
  * Install `expo-cli`, by version, using the packager.
  * Here you can provide any semver range or dist tag used in the registry.
  * It returns the path where Expo is installed.
  */
 export async function install(config: InstallConfig): Promise<string> {
-	const exact = await resolve(config.version);
-	let root: string | undefined = await fromLocalCache(exact);
+	let root: string | undefined = await fromLocalCache(config.version);
 
 	if (!root && config.cache) {
-		root = await fromRemoteCache(exact, config.packager, config.cacheKey);
+		root = await fromRemoteCache(config.version, config.packager, config.cacheKey);
 	} else {
 		core.info('Skipping remote cache, not enabled...');
 	}
 
 	if (!root) {
-		root = await fromPackager(exact, config.packager);
-		root = await toLocalCache(root, exact);
+		root = await fromPackager(config.version, config.packager);
+		root = await toLocalCache(root, config.version);
 
 		if (config.cache) {
-			await toRemoteCache(root, exact, config.packager, config.cacheKey);
+			await toRemoteCache(root, config.version, config.packager, config.cacheKey);
 		}
 	}
 

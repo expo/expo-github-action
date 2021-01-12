@@ -1,7 +1,7 @@
 import { addPath, getInput, group } from '@actions/core';
-import { authenticate } from './expo';
+
 import { install, InstallConfig } from './install';
-import { patchWatchers } from './system';
+import { maybeAuthenticate, maybePatchWatchers, resolveVersion } from './tools';
 
 export async function run(): Promise<void> {
 	const config: InstallConfig = {
@@ -11,10 +11,13 @@ export async function run(): Promise<void> {
 		cacheKey: getInput('expo-cache-key') || undefined,
 	};
 
+	// Resolve the exact requested Expo CLI version
+	config.version = await resolveVersion(config.version);
+
 	const path = await group(
 		config.cache
-			? `Installing Expo CLI from cache or with ${config.packager}`
-			: `Installing Expo CLI with ${config.packager}`,
+			? `Installing Expo CLI (${config.version}) from cache or with ${config.packager}`
+			: `Installing Expo CLI (${config.version}) with ${config.packager}`,
 		() => install(config),
 	);
 
@@ -22,7 +25,7 @@ export async function run(): Promise<void> {
 
 	await group(
 		'Checking current authenticated account',
-		() => authenticate({
+		() => maybeAuthenticate({
 			token: getInput('expo-token') || undefined,
 			username: getInput('expo-username') || undefined,
 			password: getInput('expo-password') || undefined,
@@ -34,7 +37,7 @@ export async function run(): Promise<void> {
 	if (shouldPatchWatchers !== 'false') {
 		await group(
 			'Patching system watchers for the `ENOSPC` error',
-			() => patchWatchers(),
+			() => maybePatchWatchers(),
 		);
 	}
 }

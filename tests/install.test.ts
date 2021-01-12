@@ -1,6 +1,5 @@
 const cli = { exec: jest.fn() };
 const io = { mkdirP: jest.fn(), which: jest.fn() };
-const registry = { manifest: jest.fn() };
 const cache = {
 	fromLocalCache: jest.fn(),
 	fromRemoteCache: jest.fn(),
@@ -10,20 +9,12 @@ const cache = {
 
 jest.mock('@actions/exec', () => cli);
 jest.mock('@actions/io', () => io);
-jest.mock('libnpm', () => registry);
 jest.mock('../src/cache', () => cache);
 
 import { join } from 'path';
+
 import * as install from '../src/install';
 import * as utils from './utils';
-
-describe('resolve', () => {
-	it('fetches exact version of expo-cli', async () => {
-		registry.manifest.mockResolvedValue({ version: '3.0.10' });
-		expect(await install.resolve('latest')).toBe('3.0.10');
-		expect(registry.manifest).toBeCalledWith('expo-cli@latest');
-	});
-});
 
 describe('install', () => {
 	it('installs path from local cache', async () => {
@@ -45,10 +36,9 @@ describe('install', () => {
 	it('installs path from remote cache', async () => {
 		cache.fromLocalCache.mockResolvedValue(undefined);
 		cache.fromRemoteCache.mockResolvedValue(join('cache', 'path'));
-		registry.manifest.mockResolvedValue({ version: '3.20.0' });
 		const expoPath = await install.install({ version: '3.20.1', packager: 'npm', cache: true });
 		expect(expoPath).toBe(join('cache', 'path', 'node_modules', '.bin'));
-		expect(cache.fromRemoteCache).toBeCalledWith('3.20.0', 'npm', undefined);
+		expect(cache.fromRemoteCache).toBeCalledWith('3.20.1', 'npm', undefined);
 	});
 
 	it('installs path from packager and cache it remotely', async () => {
@@ -56,7 +46,6 @@ describe('install', () => {
 		cache.fromLocalCache.mockResolvedValue(undefined);
 		cache.fromRemoteCache.mockResolvedValue(undefined);
 		cache.toLocalCache.mockResolvedValue(join('cache', 'path'));
-		registry.manifest.mockResolvedValue({ version: '3.20.1' });
 		const expoPath = await install.install({ version: '3.20.1', packager: 'npm', cache: true });
 		expect(expoPath).toBe(join('cache', 'path', 'node_modules', '.bin'));
 		expect(cache.toRemoteCache).toBeCalledWith(join('cache', 'path'), '3.20.1', 'npm', undefined);
