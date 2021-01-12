@@ -254,3 +254,29 @@ describe('maybeWarnForUpdate', () => {
 		expect(spy.warning).toBeCalledWith('If you run into issues, try upgrading your workflow to "expo-version: 4.x"');
 	})
 });
+
+describe('handleError', () => {
+	let spy: { [key: string]: jest.SpyInstance } = {};
+
+	beforeEach(() => {
+		spy = { setFailed: jest.spyOn(core, 'setFailed').mockImplementation() };
+	});
+
+	afterAll(() => {
+		spy.setFailed.mockRestore();
+	});
+
+	it('marks the job as failed', async () => {
+		const error = new Error('test');
+		registry.manifest.mockResolvedValue('4.0.0');
+		await tools.handleError(error);
+		expect(core.setFailed).toBeCalledWith(error);
+	});
+
+	it('fails with original error when update warning failed', async () => {
+		const error = new Error('test');
+		registry.manifest.mockRejectedValue(new Error('npm issue'));
+		await tools.handleError(error);
+		expect(core.setFailed).toBeCalledWith(error);
+	});
+});
