@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
 import { run } from './run';
+import { handleError } from './tools';
 
-run().catch(core.setFailed);
+run().catch(handleError);

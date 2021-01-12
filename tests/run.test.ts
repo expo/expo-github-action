@@ -4,15 +4,17 @@ const core = {
 	group: (message: string, action: () => Promise<any>) => action()
 };
 const exec = { exec: jest.fn() };
-const expo = { authenticate: jest.fn() };
 const install = { install: jest.fn() };
-const system = { patchWatchers: jest.fn() };
+const tools = {
+	resolveVersion: jest.fn(v => v),
+	maybeAuthenticate: jest.fn(),
+	maybePatchWatchers: jest.fn(),
+};
 
 jest.mock('@actions/core', () => core);
 jest.mock('@actions/exec', () => exec);
-jest.mock('../src/expo', () => expo);
+jest.mock('../src/tools', () => tools);
 jest.mock('../src/install', () => install);
-jest.mock('../src/system', () => system);
 
 import { run } from '../src/run';
 
@@ -77,30 +79,30 @@ describe('run', () => {
 	it('patches the system when set to true', async () => {
 		mockInput({ patchWatchers: 'true' });
 		await run();
-		expect(system.patchWatchers).toHaveBeenCalled();
+		expect(tools.maybePatchWatchers).toHaveBeenCalled();
 	});
 
 	it('patches the system when not set', async () => {
 		mockInput({ patchWatchers: '' });
 		await run();
-		expect(system.patchWatchers).toHaveBeenCalled();
+		expect(tools.maybePatchWatchers).toHaveBeenCalled();
 	});
 
 	it('skips the system patch when set to false', async () => {
 		mockInput({ patchWatchers: 'false' });
 		await run();
-		expect(system.patchWatchers).not.toHaveBeenCalled();
+		expect(tools.maybePatchWatchers).not.toHaveBeenCalled();
 	});
 
 	it('authenticates with provided credentials', async () => {
 		mockInput({ username: 'bycedric', password: 'mypassword', patchWatchers: 'false' });
 		await run();
-		expect(expo.authenticate).toBeCalledWith({ username: 'bycedric', password: 'mypassword' });
+		expect(tools.maybeAuthenticate).toBeCalledWith({ username: 'bycedric', password: 'mypassword' });
 	});
 
 	it('authenticates with provided token', async () => {
 		mockInput({ token: 'ABC123', patchWatchers: 'false' });
 		await run();
-		expect(expo.authenticate).toBeCalledWith({ token: 'ABC123' });
+		expect(tools.maybeAuthenticate).toBeCalledWith({ token: 'ABC123' });
 	});
 });
