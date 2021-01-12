@@ -1,3 +1,26 @@
+## [5.4.0](https://github.com/expo/expo-github-action/compare/5.3.1...5.4.0) (2021-01-12)
+
+### New features
+
+* improve error handling with update check ([#76](https://github.com/expo/expo-github-action/pull/76)) ([917e072](https://github.com/expo/expo-github-action/commit/917e072))
+
+### Code refactors
+
+* use official actions cache package instead of cypress fork ([#62](https://github.com/expo/expo-github-action/pull/62)) ([0eb46e9](https://github.com/expo/expo-github-action/commit/0eb46e9))
+* output cache errors with actions core ([187c4ad](https://github.com/expo/expo-github-action/commit/187c4ad))
+* group output by steps for readability ([#70](https://github.com/expo/expo-github-action/pull/70)) ([75b743c](https://github.com/expo/expo-github-action/commit/75b743c))
+* update all dev dependencies to latest version ([#71](https://github.com/expo/expo-github-action/pull/71)) ([ed7f67d](https://github.com/expo/expo-github-action/commit/ed7f67d))
+
+### Documentation changes
+
+* update the cache description without the fork ([13d7820](https://github.com/expo/expo-github-action/commit/13d7820))
+* update readme to latest expo cli and node ([#77](https://github.com/expo/expo-github-action/pull/77)) ([6c0f4d7](https://github.com/expo/expo-github-action/commit/6c0f4d7))
+
+### Other chores
+
+* update all dependencies to latest versions ([#78](https://github.com/expo/expo-github-action/pull/78)) ([4ec7251](https://github.com/expo/expo-github-action/commit/4ec7251))
+
+
 ## [5.3.1](https://github.com/expo/expo-github-action/compare/5.3.0...5.3.1) (2020-10-20)
 
 ### Other chores
