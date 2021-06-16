@@ -83,8 +83,8 @@ function handleRemoteCacheError(error: Error): boolean {
 	);
 
 	if (isReserveCacheError || isCacheUnavailable) {
-		core.info('Skipping remote cache storage, encountered error:');
-		core.info(error.message);
+		core.warning('Skipping remote cache storage, encountered error:');
+		core.warning(error.message);
 		return true;
 	}
 
