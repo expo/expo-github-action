@@ -40,9 +40,7 @@ export async function fromRemoteCache(version: string, packager: string, customC
 			return target;
 		}
 	} catch (error) {
-		if (error.message.toLowerCase().includes('cache service url not found')) {
-			core.info('Skipping remote cache storage, service URL not found.');
-		} else {
+		if (!handleRemoteCacheError(error)) {
 			throw error;
 		}
 	}
@@ -58,10 +56,7 @@ export async function toRemoteCache(source: string, version: string, packager: s
 	try {
 		await saveCache([source], cacheKey);
 	} catch (error) {
-		if (error instanceof ReserveCacheError) {
-			core.info('Skipping remote cache storage, encountered error:');
-			core.info(error.message);
-		} else {
+		if (!handleRemoteCacheError(error)) {
 			throw error;
 		}
 	}
@@ -72,4 +67,26 @@ export async function toRemoteCache(source: string, version: string, packager: s
  */
 function getRemoteKey(version: string, packager: string): string {
 	return `expo-cli-${process.platform}-${os.arch()}-${packager}-${version}`;
+}
+
+/**
+ * Handle any incoming errors from cache methods.
+ * This can include actual errors like `ReserveCacheErrors` or unavailability errors.
+ * When the error is handled, it MUST provide feedback for the developer.
+ *
+ * @returns If the error was handled properly.
+ */
+function handleRemoteCacheError(error: Error): boolean {
+	const isReserveCacheError = error instanceof ReserveCacheError;
+	const isCacheUnavailable = error.message.toLowerCase().includes(
+		'cache service url not found',
+	);
+
+	if (isReserveCacheError || isCacheUnavailable) {
+		core.info('Skipping remote cache storage, encountered error:');
+		core.info(error.message);
+		return true;
+	}
+
+	return false;
 }
