@@ -74,6 +74,13 @@ describe('fromRemoteCache', () => {
 		spy.restore.mockRejectedValueOnce(error);
 		await expect(cache.fromRemoteCache('3.20.1', 'yarn')).rejects.toBe(error);
 	});
+
+	it('skips remote cache when unavailable', async () => {
+		// see: https://github.com/actions/toolkit/blob/9167ce1f3a32ad495fc1dbcb574c03c0e013ae53/packages/cache/src/internal/cacheHttpClient.ts#L41
+		const error = new Error('Cache Service Url not found, unable to restore cache.');
+		spy.restore.mockRejectedValueOnce(error);
+		await expect(cache.fromRemoteCache('3.20.1', 'yarn')).resolves.toBeUndefined();
+	});
 });
 
 describe('toRemoteCache', () => {
@@ -106,5 +113,12 @@ describe('toRemoteCache', () => {
 		const error = new Error('Remote cache save failed');
 		spy.save.mockRejectedValueOnce(error);
 		await expect(cache.toRemoteCache(join('local', 'path'), '3.20.1', 'yarn')).rejects.toBe(error);
+	});
+
+	it('skips remote cache when unavailable', async () => {
+		// see: https://github.com/actions/toolkit/blob/9167ce1f3a32ad495fc1dbcb574c03c0e013ae53/packages/cache/src/internal/cacheHttpClient.ts#L41
+		const error = new Error('Cache Service Url not found, unable to restore cache.');
+		spy.save.mockRejectedValueOnce(error);
+		await expect(cache.toRemoteCache(join('local', 'path'), '3.20.1', 'yarn')).resolves.toBeUndefined();
 	});
 });
