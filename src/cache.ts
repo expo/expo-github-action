@@ -32,10 +32,19 @@ export async function fromRemoteCache(version: string, packager: string, customC
 	// see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
 	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', 'expo-cli', version, os.arch());
 	const cacheKey = customCacheKey || getRemoteKey(version, packager);
-	const hit = await restoreCache([target], cacheKey);
 
-	if (hit) {
-		return target;
+	try {
+		// When running with nektos/act, or other custom environments, the cache might not be set up.
+		const hit = await restoreCache([target], cacheKey);
+		if (hit) {
+			return target;
+		}
+	} catch (error) {
+		if (error.message.toLowerCase().includes('cache service url not found')) {
+			core.info('Skipping remote cache storage, service URL not found.');
+		} else {
+			throw error;
+		}
 	}
 }
 
