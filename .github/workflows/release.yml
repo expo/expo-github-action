@@ -1,0 +1,49 @@
+---
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'type "release" to confirm creating a new release (main branch only)'
+        required: false
+jobs:
+  release:
+    name: Release version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Find cache
+        id: yarn-cache-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --check-files
+      - name: Lint package
+        run: yarn lint
+      - name: Test package
+        run: yarn test
+      - name: Build clean
+        run: yarn clean
+      - name: Build package
+        run: yarn build
+      - name: Test-run release
+        if: success() && github.event.inputs.release != 'release'
+        run: yarn semantic-release --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        if: success() && github.ref == 'refs/heads/main' && github.event.inputs.release == 'release'
+        run: yarn semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
