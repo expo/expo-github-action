@@ -2,7 +2,7 @@
 
 ## 📦 Download and Setup
 
-1. [Fork](https://help.github.com/articles/fork-a-repo/) this repository to your own GitHub account and then [clone](https://help.github.com/articles/cloning-a-repository/) it to your local device. (`git remote add upstream git@github.com:expo/vscode-expo.git` 😉)
+1. [Fork](https://help.github.com/articles/fork-a-repo/) this repository to your own GitHub account and then [clone](https://help.github.com/articles/cloning-a-repository/) it to your local device. (`git remote add upstream git@github.com:expo/expo-github-action.git` 😉)
 2. Make sure you have the following packages globally installed on your system:
    - [node](https://nodejs.org/) (active Node LTS or higher is recommended)
    - [yarn](https://yarnpkg.com/)
