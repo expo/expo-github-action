@@ -1,3 +1,34 @@
+## [5.5.0](https://github.com/expo/expo-github-action/compare/5.4.0...5.5.0) (2021-06-17)
+
+
+### New features
+
+* switch to node 14 for the action itself ([f13b0ea](https://github.com/expo/expo-github-action/commit/f13b0ea032efcf2e6689743879af6b3e1c72201d))
+
+
+### Bug fixes
+
+* add support for environments without remote cache ([#91](https://github.com/expo/expo-github-action/issues/91)) ([9c0e696](https://github.com/expo/expo-github-action/commit/9c0e6962510d4e08c6429cac42f624c563675ee1))
+
+
+### Code changes
+
+* simplify typescript config with community config ([#94](https://github.com/expo/expo-github-action/issues/94)) ([da4e754](https://github.com/expo/expo-github-action/commit/da4e75428b7c5ffd16e8b2c698f590313c741621))
+* update all dependencies to latest versions ([#93](https://github.com/expo/expo-github-action/issues/93)) ([6bc0bed](https://github.com/expo/expo-github-action/commit/6bc0bedbc75bb0d6743e4accf032cd01348d6775))
+
+
+### Other chores
+
+* add semantic release for easy versioning ([#95](https://github.com/expo/expo-github-action/issues/95)) ([6354b0a](https://github.com/expo/expo-github-action/commit/6354b0a0477a72375cee808d8a5b6006d6e86e77))
+* fix the allowed branches for semenatic release ([6b8c488](https://github.com/expo/expo-github-action/commit/6b8c488fd6239c9a76d7f95355a58bc8b2a20ac4))
+* mock the github actions warning to avoid leaking annotations ([#96](https://github.com/expo/expo-github-action/issues/96)) ([a11a47a](https://github.com/expo/expo-github-action/commit/a11a47a3e8735a206eed196499604322b0bdc877))
+* tweak the release workflow ([79ebfbc](https://github.com/expo/expo-github-action/commit/79ebfbc3b83497f443fd65eb5bd33484e5519f64))
+
+
+### Documentation changes
+
+* add missing release step to contributing guide ([04e3b32](https://github.com/expo/expo-github-action/commit/04e3b32e94e3abe9cd65d37c57a0cead55186970))
+
 ## [5.4.0](https://github.com/expo/expo-github-action/compare/5.3.1...5.4.0) (2021-01-12)
 
 ### New features
