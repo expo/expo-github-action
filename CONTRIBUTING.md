@@ -47,4 +47,11 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 
 To release a new version for Github Actions, we have to create a new release in Github. You can run the `Release` workflow to generate a new version, changelog, and Github release.
 
-After the exact version tag is created, update the `v{major}` tag to the latest major version.
+After the exact version tag is created, update the `v{major}` tag to the latest major version. Make sure you are on the default branch at the commit of versioning.
+
+```bash
+$ git checkout master
+$ git fetch --tags && git pull
+$ git tag --force v{major}
+$ git push --force --tags
+```
