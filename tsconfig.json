@@ -9,7 +9,8 @@
 		"rootDir": "./src",
 		"strict": true,
 		"noImplicitAny": false,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"skipLibCheck": true
 	},
 	"exclude": [
 		"node_modules",
