@@ -1,6 +1,7 @@
 import os from 'os';
 import { join } from 'path';
 import * as remoteCache from '@actions/cache';
+import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
 
 import * as cache from '../src/cache';
@@ -34,6 +35,7 @@ describe('fromRemoteCache', () => {
 	beforeEach(() => {
 		spy = {
 			restore: jest.spyOn(remoteCache, 'restoreCache').mockImplementation(),
+			warning: jest.spyOn(core, 'warning').mockImplementation(),
 		};
 	});
 
@@ -44,6 +46,7 @@ describe('fromRemoteCache', () => {
 	afterAll(() => {
 		utils.restoreEnv();
 		spy.restore.mockRestore();
+		spy.warning.mockRestore();
 	});
 
 	it('restores remote cache with default key', async () => {
@@ -80,6 +83,7 @@ describe('fromRemoteCache', () => {
 		const error = new Error('Cache Service Url not found, unable to restore cache.');
 		spy.restore.mockRejectedValueOnce(error);
 		await expect(cache.fromRemoteCache('3.20.1', 'yarn')).resolves.toBeUndefined();
+		expect(spy.warning).toHaveBeenCalledWith(expect.stringContaining('Skipping remote cache'));
 	});
 });
 
@@ -89,11 +93,13 @@ describe('toRemoteCache', () => {
 	beforeEach(() => {
 		spy = {
 			save: jest.spyOn(remoteCache, 'saveCache').mockImplementation(),
+			warning: jest.spyOn(core, 'warning').mockImplementation(),
 		};
 	});
 
 	afterAll(() => {
 		spy.save.mockRestore();
+		spy.warning.mockRestore();
 	});
 
 	it('saves remote cache with default key', async () => {
@@ -120,5 +126,6 @@ describe('toRemoteCache', () => {
 		const error = new Error('Cache Service Url not found, unable to restore cache.');
 		spy.save.mockRejectedValueOnce(error);
 		await expect(cache.toRemoteCache(join('local', 'path'), '3.20.1', 'yarn')).resolves.toBeUndefined();
+		expect(spy.warning).toHaveBeenCalledWith(expect.stringContaining('Skipping remote cache'));
 	});
 });
