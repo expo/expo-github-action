@@ -1,3 +1,10 @@
+### [5.5.1](https://github.com/expo/expo-github-action/compare/5.5.0...5.5.1) (2021-06-17)
+
+
+### Bug fixes
+
+* revert to node 12 for the action ([2662a5f](https://github.com/expo/expo-github-action/commit/2662a5f0dec42d7a9c66b55f8ce937f37aaac9b4))
+
 ## [5.5.0](https://github.com/expo/expo-github-action/compare/5.4.0...5.5.0) (2021-06-17)
 
 
