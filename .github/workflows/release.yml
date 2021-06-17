@@ -37,13 +37,15 @@ jobs:
         run: yarn clean
       - name: Build package
         run: yarn build
+      - name: Build up-to-date
+        run: git diff --stat --exit-code build
       - name: Test-run release
         if: success() && github.event.inputs.release != 'release'
         run: yarn semantic-release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
-        if: success() && github.ref == 'refs/heads/main' && github.event.inputs.release == 'release'
+        if: success() && github.event.inputs.release == 'release' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
