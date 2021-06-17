@@ -22,6 +22,11 @@
   resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.2.6.tgz#a78d49f41a4def18e88ce47c2cac615d5694bf09"
   integrity sha512-ZQYitnqiyBc3D+k7LsgSBmMDVkOVidaagDG7j3fOym77jNunWRuYx7VSHa9GNfFZh+zh61xsCjRj4JxMZlDqTA==
 
+"@actions/core@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.4.0.tgz#cf2e6ee317e314b03886adfeb20e448d50d6e524"
+  integrity sha512-CGx2ilGq5i7zSLgiiGUtBCxhRRxibJYU6Fim0Q1Wg2aQL2LTnF27zbqZOrxfvFQ55eSBW0L8uVStgtKMpa0Qlg==
+
 "@actions/exec@^1.0.0", "@actions/exec@^1.0.1", "@actions/exec@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@actions/exec/-/exec-1.0.4.tgz#99d75310e62e59fc37d2ee6dcff6d4bffadd3a5d"
