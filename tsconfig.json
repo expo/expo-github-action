@@ -1,18 +1,12 @@
 {
+	"extends": "./node_modules/@tsconfig/node14/tsconfig.json",
 	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
-		"lib": [
-			"es6"
-		],
 		"outDir": "./build",
 		"rootDir": "./src",
-		"strict": true,
-		"noImplicitAny": false,
-		"esModuleInterop": true,
-		"skipLibCheck": true
+		"noImplicitAny": false
 	},
 	"exclude": [
+		"build",
 		"node_modules",
 		"tests/**"
 	]
