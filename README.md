@@ -28,7 +28,7 @@
 
 ## What's inside?
 
-With this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
+With this Expo action, you have full access to [Expo CLI][link-expo-cli] and [EAS CLI][link-eas-cli] itself.
 It allows you to fully automate the `expo publish` or `expo build` process, leaving you with more time available for your project.
 There are some additional features included to make the usage of this action as simple as possible, like caching and authentication.
 
@@ -37,19 +37,19 @@ There are some additional features included to make the usage of this action as 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-| variable         | default | description                                                                                           |
-| ---------------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted.                  |
-| `expo-cache`     | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                      |
-| `expo-cache-key` | -       | An optional custom (remote) cache key. _(**use with caution**)_                                       |
-| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted.                    |
-| `eas-cache`      | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                      |
-| `eas-cache-key`  | -       | An optional custom (remote) cache key. _(**use with caution**)_                                       |
-| `packager`       | `yarn`  | The package manager to use. _(e.g. `npm`)_                                                            |
-| `token`          | -       | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_           |
-| `username`       | -       | The username of your Expo account _(e.g. `bycedric`)_                                                 |
-| `password`       | -       | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_ |
-| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).                               |
+| variable         | default | description                                                                                                  |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted.                         |
+| `expo-cache`     | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
+| `expo-cache-key` | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
+| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted. (`latest` is recommended) |
+| `eas-cache`      | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
+| `eas-cache-key`  | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
+| `packager`       | `yarn`  | The package manager to use. _(e.g. `npm`)_                                                                   |
+| `token`          | -       | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_                  |
+| `username`       | -       | The username of your Expo account _(e.g. `bycedric`)_                                                        |
+| `password`       | -       | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_        |
+| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).                                      |
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
 
@@ -129,11 +129,11 @@ jobs:
 
 ### Creating a new EAS build
 
-You can also install EAS CLI with this Github Action.
+You can also install [EAS](https://docs.expo.io/eas/) CLI with this Github Action.
 Below we've swapped `expo-version` with `eas-version`, but you can also use them together.
 Both the `token` and `username`/`password` is shared between both Expo and EAS CLI.
 
-> You can [read more about EAS here](https://docs.expo.io/eas/)
+> We recommend using `latest` for `eas-version` to always have the most up-to-date version.
 
 ```yml
 name: EAS build
@@ -152,8 +152,7 @@ jobs:
           node-version: 14.x
       - uses: expo/expo-github-action@v5
         with:
-          eas-version: ^0.17.0
-          eas-cache: true
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: yarn install
       - run: eas build
@@ -320,4 +319,5 @@ You can disable this patch by setting the `patch-watchers` to `false`.
 [link-expo-cli]: https://docs.expo.io/workflow/expo-cli/
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/master/packages/expo-cli/src/accounts.ts#L88-L90
 [link-expo-release-channels]: https://docs.expo.io/distribution/release-channels/
+[link-eas-cli]: https://github.com/expo/eas-cli#readme
 [link-semver-playground]: https://semver.npmjs.com/
