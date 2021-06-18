@@ -1,43 +1,58 @@
-import { addPath, getInput, group } from '@actions/core';
+import { addPath, getInput, group, info } from '@actions/core';
 
-import { install, InstallConfig } from './install';
-import { maybeAuthenticate, maybePatchWatchers, resolveVersion } from './tools';
+import { install } from './install';
+import * as tools from './tools';
 
 export async function run(): Promise<void> {
-	const config: InstallConfig = {
-		version: getInput('expo-version') || 'latest',
-		packager: getInput('expo-packager') || 'yarn',
-		cache: (getInput('expo-cache') || 'false') === 'true',
-		cacheKey: getInput('expo-cache-key') || undefined,
-	};
-
-	// Resolve the exact requested Expo CLI version
-	config.version = await resolveVersion(config.version);
-
-	const path = await group(
-		config.cache
-			? `Installing Expo CLI (${config.version}) from cache or with ${config.packager}`
-			: `Installing Expo CLI (${config.version}) with ${config.packager}`,
-		() => install(config),
-	);
-
-	addPath(path);
+	const expoVersion = await installCli('expo-cli');
+	const easVersion = await installCli('eas-cli');
 
 	await group(
 		'Checking current authenticated account',
-		() => maybeAuthenticate({
-			token: getInput('expo-token') || undefined,
-			username: getInput('expo-username') || undefined,
-			password: getInput('expo-password') || undefined,
+		() => tools.maybeAuthenticate({
+			cli: expoVersion ? 'expo-cli' : easVersion ? 'eas-cli' : undefined,
+			token: getInput('token') || undefined,
+			username: getInput('username') || undefined,
+			password: getInput('password') || undefined,
 		}),
 	);
 
-	const shouldPatchWatchers = getInput('expo-patch-watchers') || 'true';
-
-	if (shouldPatchWatchers !== 'false') {
+	if (tools.getBoolean(getInput('patch-watchers'), true)) {
 		await group(
 			'Patching system watchers for the `ENOSPC` error',
-			() => maybePatchWatchers(),
+			() => tools.maybePatchWatchers(),
 		);
 	}
+}
+
+async function installCli(name: tools.PackageName): Promise<string | void> {
+	const shortName = tools.getBinaryName(name);
+	const inputVersion = getInput(`${shortName}-version`);
+	const packager = getInput('packager') || 'yarn';
+
+	if (!inputVersion) {
+		return info(`Skipping installation of ${name}, \`${shortName}-version\` not provided.`);
+	}
+
+	const version = await tools.resolveVersion(name, inputVersion);
+	const cache = tools.getBoolean(getInput(`${shortName}-cache`), false);
+
+	try {
+		const path = await group(
+			cache
+				? `Installing ${name} (${version}) from cache or with ${packager}`
+				: `Installing ${name} (${version}) with ${packager}`,
+			() => install({
+				packager, version, cache,
+				package: name,
+				cacheKey: getInput(`${shortName}-cache-key`) || undefined,
+			}),
+		);
+
+		addPath(path);
+	} catch (error) {
+		tools.handleError(name, error);
+	}
+
+	return version;
 }
