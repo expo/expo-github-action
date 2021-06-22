@@ -28,7 +28,7 @@
 
 ## What's inside?
 
-With this Expo action, you have full access to the [Expo CLI][link-expo-cli] itself.
+With this Expo action, you have full access to [Expo CLI][link-expo-cli] and [EAS CLI][link-eas-cli] itself.
 It allows you to fully automate the `expo publish` or `expo build` process, leaving you with more time available for your project.
 There are some additional features included to make the usage of this action as simple as possible, like caching and authentication.
 
@@ -37,20 +37,21 @@ There are some additional features included to make the usage of this action as 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-variable              | default  | description
----                   | ---      | ---
-`expo-username`       | -        | The username of your Expo account _(e.g. `bycedric`)_
-`expo-token`          | -        | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_
-`expo-password`       | -        | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_
-`expo-version`        | `latest` | The Expo CLI version to use, can be any [SemVer][link-semver-playground]. _(e.g. `3.x`)_
-`expo-packager`       | `yarn`   | The package manager to install the CLI with. _(e.g. `npm`)_
-`expo-cache`          | `false`  | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).
-`expo-cache-key`      | -        | An optional custom (remote) cache key. _(**use with caution**)_
-`expo-patch-watchers` | `true`   | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).
+| variable         | default | description                                                                                                  |
+| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted.                         |
+| `expo-cache`     | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
+| `expo-cache-key` | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
+| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted. (`latest` is recommended) |
+| `eas-cache`      | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
+| `eas-cache-key`  | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
+| `packager`       | `yarn`  | The package manager to use. _(e.g. `npm`)_                                                                   |
+| `token`          | -       | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_                  |
+| `username`       | -       | The username of your Expo account _(e.g. `bycedric`)_                                                        |
+| `password`       | -       | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_        |
+| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).                                      |
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
-
-> It's also recommended to set the `expo-version` to avoid breaking changes when a new major version is released.
 
 ## Example workflows
 
@@ -59,16 +60,17 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 1. [Publish on any push to master](#publish-on-any-push-to-master)
 2. [Cache Expo CLI for other jobs](#cache-expo-cli-for-other-jobs)
-3. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
-4. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
-5. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
-6. [Authenticate using an Expo token](#authenticate-using-an-expo-token)
+3. [Creating a new EAS build](#publish-on-any-push-to-master)
+4. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
+5. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
+6. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
+7. [Authenticate using credentials](#authenticate-using-credentials)
 
 ### Publish on any push to master
 
 Below you can see the example configuration to publish whenever the master branch is updated.
 The workflow listens to the `push` event and sets up Node 12 using the [Setup Node Action][link-actions-node].
-It also authenticates the Expo project by defining both `expo-username` and `expo-password`.
+It also auto-authenticates when the `token` is provided.
 
 ```yml
 name: Expo Publish
@@ -88,8 +90,7 @@ jobs:
       - uses: expo/expo-github-action@v5
         with:
           expo-version: 4.x
-          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
-          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+          token: ${{ secrets.EXPO_TOKEN }}
       - run: yarn install
       - run: expo publish
 ```
@@ -120,11 +121,41 @@ jobs:
       - uses: expo/expo-github-action@v5
         with:
           expo-version: 4.x
-          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
-          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
           expo-cache: true
+          token: ${{ secrets.EXPO_TOKEN }}
       - run: yarn install
       - run: expo publish
+```
+
+### Creating a new EAS build
+
+You can also install [EAS](https://docs.expo.io/eas/) CLI with this Github Action.
+Below we've swapped `expo-version` with `eas-version`, but you can also use them together.
+Both the `token` and `username`/`password` is shared between both Expo and EAS CLI.
+
+> We recommend using `latest` for `eas-version` to always have the most up-to-date version.
+
+```yml
+name: EAS build
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    name: Create new build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - uses: expo/expo-github-action@v5
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: yarn install
+      - run: eas build
 ```
 
 ### Test PRs and publish a review version
@@ -148,8 +179,7 @@ jobs:
       - uses: expo/expo-github-action@v5
         with:
           expo-version: 4.x
-          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
-          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+          token: ${{ secrets.EXPO_TOKEN }}
       - run: yarn install
       - run: expo publish --release-channel=pr-${{ github.event.number }}
       - uses: unsplash/comment-on-pr@master
@@ -164,7 +194,7 @@ jobs:
 With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on multiple environments.
 These matrixes can help to make sure your app runs smoothly on a broad set of different development machines.
 
-> If you don't need automatic authentication, you can omit the `expo-username` and `expo-password` variables.
+> If you don't need automatic authentication, you can omit the `token` variables.
 
 ```yml
 name: Expo CI
@@ -217,10 +247,10 @@ jobs:
       - run: expo build:web
 ```
 
-### Authenticate using an Expo token
+### Authenticate using credentials
 
-Instead of username and password, you can also authenticate using a token.
-This might help increasing security and avoids adding username and password to your repository secrets.
+Instead of using an access token, you can also authenticate using credentials.
+This is only possible when Expo CLI is installed.
 
 ```yml
 name: Expo Publish
@@ -240,7 +270,8 @@ jobs:
       - uses: expo/expo-github-action@v5
         with:
           expo-version: 4.x
-          expo-token: ${{ secrets.EXPO_TOKEN }}
+          username: ${{ secrets.EXPO_CLI_USERNAME }}
+          password: ${{ secrets.EXPO_CLI_PASSWORD }}
       - run: yarn install
       - run: expo publish
 ```
@@ -263,7 +294,7 @@ Under the hood, it uses the [`@action/cache`][link-actions-cache-package] packag
 This action generates a unique cache key for the OS, used packager, and exact version of the Expo CLI.
 If you need more control over this cache, you can define a custom cache key with `expo-cache-key`.
 
-> Note, this cache will count towards your [repo cache limit][link-actions-cache-limit].
+> Note, this cache will count towards your [repo cache limit][link-actions-cache-limit]. The Expo and EAS CLI are stored in different caches.
 
 ### ENOSPC errors on Linux
 
@@ -272,7 +303,7 @@ Creating these bundles require quite some resources.
 As of writing, GitHub actions has some small default values for the `fs.inotify` settings.
 Inside this action, we included a patch that increases these limits for the current workflow.
 It increases the `max_user_instances`, `max_user_watches` and `max_queued_events` to `524288`.
-You can disable this patch by setting the `expo-patch-watchers` to `false`.
+You can disable this patch by setting the `patch-watchers` to `false`.
 
 <div align="center">
   <br />
@@ -288,4 +319,5 @@ You can disable this patch by setting the `expo-patch-watchers` to `false`.
 [link-expo-cli]: https://docs.expo.io/workflow/expo-cli/
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/master/packages/expo-cli/src/accounts.ts#L88-L90
 [link-expo-release-channels]: https://docs.expo.io/distribution/release-channels/
+[link-eas-cli]: https://github.com/expo/eas-cli#readme
 [link-semver-playground]: https://semver.npmjs.com/

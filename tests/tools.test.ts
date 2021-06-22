@@ -7,15 +7,57 @@ import * as cli from '@actions/exec';
 import * as tools from '../src/tools';
 import * as utils from './utils';
 
-describe('resolveVersion', () => {
-	it('fetches exact version of expo-cli', async () => {
-		registry.manifest.mockResolvedValue({ version: '3.0.10' });
-		expect(await tools.resolveVersion('latest')).toBe('3.0.10');
-		expect(registry.manifest).toBeCalledWith('expo-cli@latest');
+describe(tools.getBoolean, () => {
+	it('rreturns false for empty strings by default', () => {
+		expect(tools.getBoolean('')).toBeFalsy();
+	});
+
+	it('returns true for empty strings with default set to true', () => {
+		expect(tools.getBoolean('', true)).toBeTruthy();
+	});
+
+	it('returns true for `true` strings by default', () => {
+		expect(tools.getBoolean('true')).toBeTruthy();
+	});
+
+	it('returns false for `false` strings with default set to false', () => {
+		expect(tools.getBoolean('false', false)).toBeFalsy();
+	});
+
+	it('returns false for `false` strings with default set to true', () => {
+		expect(tools.getBoolean('false', true)).toBeFalsy();
 	});
 });
 
-describe('maybeAuthenticate', () => {
+describe(tools.getBinaryName, () => {
+	it('returns expo for `expo-cli`', () => {
+		expect(tools.getBinaryName('expo-cli')).toBe('expo');
+	});
+
+	it('returns eas for `eas-cli`', () => {
+		expect(tools.getBinaryName('eas-cli')).toBe('eas');
+	});
+
+	it('returns eas.cmd for `eas-cli` for windows', () => {
+		expect(tools.getBinaryName('eas-cli', true)).toBe('eas.cmd');
+	});
+});
+
+describe(tools.resolveVersion, () => {
+	it('fetches exact version of expo-cli', async () => {
+		registry.manifest.mockResolvedValue({ version: '3.0.10' });
+		expect(await tools.resolveVersion('expo-cli', 'latest')).toBe('3.0.10');
+		expect(registry.manifest).toBeCalledWith('expo-cli@latest');
+	});
+
+	it('fetches exact version of eas-cli', async () => {
+		registry.manifest.mockResolvedValue({ version: '4.2.0' });
+		expect(await tools.resolveVersion('eas-cli', 'latest')).toBe('4.2.0');
+		expect(registry.manifest).toBeCalledWith('eas-cli@latest');
+	});
+});
+
+describe(tools.maybeAuthenticate, () => {
 	const token = 'ABC123';
 	const username = 'bycedric';
 	const password = 'mypassword';
@@ -45,7 +87,7 @@ describe('maybeAuthenticate', () => {
 
 		it('executes whoami command with token through environment', async () => {
 			utils.setEnv('TEST_INCLUDED', 'hellyeah');
-			await tools.maybeAuthenticate({ token });
+			await tools.maybeAuthenticate({ token, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][1]).toStrictEqual(['whoami']);
 			expect(spy.exec.mock.calls[0][2]).toMatchObject({
@@ -60,28 +102,34 @@ describe('maybeAuthenticate', () => {
 		it('fails when token is incorrect', async () => {
 			const error = new Error('Not logged in');
 			spy.exec.mockRejectedValue(error);
-			await expect(tools.maybeAuthenticate({ token })).rejects.toBe(error);
+			await expect(tools.maybeAuthenticate({ token, cli: 'expo-cli' })).rejects.toBe(error);
+		});
+
+		it('skips validation without cli', async () => {
+			await tools.maybeAuthenticate({ token });
+			expect(spy.exec).not.toBeCalled();
+			expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping token validation'));
 		});
 
 		it('executes whoami command with `expo` on macos', async () => {
 			utils.setPlatform('darwin');
-			await tools.maybeAuthenticate({ token });
+			await tools.maybeAuthenticate({ token, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][0]).toBe('expo');
 			utils.restorePlatform();
 		});
 
-		it('executes whoami command with `expo` on ubuntu', async () => {
+		it('executes whoami command with `eas` on ubuntu', async () => {
 			utils.setPlatform('linux');
-			await tools.maybeAuthenticate({ token });
+			await tools.maybeAuthenticate({ token, cli: 'eas-cli' });
 			expect(spy.exec).toBeCalled();
-			expect(spy.exec.mock.calls[0][0]).toBe('expo');
+			expect(spy.exec.mock.calls[0][0]).toBe('eas');
 			utils.restorePlatform();
 		});
 
 		it('executes whoami command with `expo.cmd` on windows', async () => {
 			utils.setPlatform('win32');
-			await tools.maybeAuthenticate({ token });
+			await tools.maybeAuthenticate({ token, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
 			utils.restorePlatform();
@@ -95,29 +143,43 @@ describe('maybeAuthenticate', () => {
 			spy = {
 				exec: jest.spyOn(cli, 'exec').mockImplementation(),
 				info: jest.spyOn(core, 'info').mockImplementation(),
+				warning: jest.spyOn(core, 'warning').mockImplementation(),
 			};
 		});
 
 		afterAll(() => {
 			spy.exec.mockRestore();
 			spy.info.mockRestore();
+			spy.warning.mockRestore();
+		});
+
+		it('skips authentication without cli', async () => {
+			await tools.maybeAuthenticate({});
+			expect(spy.exec).not.toBeCalled();
+			expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
 		});
 
 		it('skips authentication without credentials', async () => {
-			await tools.maybeAuthenticate();
+			await tools.maybeAuthenticate({ cli: 'expo-cli' });
 			expect(spy.exec).not.toBeCalled();
 			expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
 		});
 
 		it('skips authentication without password', async () => {
-			await tools.maybeAuthenticate({ username });
+			await tools.maybeAuthenticate({ username, cli: 'expo-cli' });
 			expect(spy.exec).not.toBeCalled();
 			expect(spy.info).toBeCalledWith(expect.stringContaining('Skipping authentication'));
 		});
 
+		it('skips authentication with credentials for eas-cli', async () => {
+			await tools.maybeAuthenticate({ username, password, cli: 'eas-cli' });
+			expect(spy.exec).not.toBeCalled();
+			expect(spy.warning).toBeCalledWith(expect.stringContaining('Skipping authentication'));
+		});
+
 		it('executes login command with password through environment', async () => {
 			utils.setEnv('TEST_INCLUDED', 'hellyeah');
-			await tools.maybeAuthenticate({ username, password })
+			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' })
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][1]).toStrictEqual(['login', `--username=${username}`]);
 			expect(spy.exec.mock.calls[0][2]).toMatchObject({
@@ -132,14 +194,14 @@ describe('maybeAuthenticate', () => {
 		it('fails when credentials are incorrect', async () => {
 			const error = new Error('Invalid username/password. Please try again.');
 			spy.exec.mockRejectedValue(error);
-			await expect(tools.maybeAuthenticate({ username, password }))
+			await expect(tools.maybeAuthenticate({ username, password, cli: 'expo-cli' }))
 				.rejects
 				.toBe(error);
 		});
 
 		it('executes login command with `expo` on macos', async () => {
 			utils.setPlatform('darwin');
-			await tools.maybeAuthenticate({ username, password });
+			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][0]).toBe('expo');
 			utils.restorePlatform();
@@ -147,7 +209,7 @@ describe('maybeAuthenticate', () => {
 
 		it('executes login command with `expo` on ubuntu', async () => {
 			utils.setPlatform('linux');
-			await tools.maybeAuthenticate({ username, password });
+			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][0]).toBe('expo');
 			utils.restorePlatform();
@@ -155,7 +217,7 @@ describe('maybeAuthenticate', () => {
 
 		it('executes login command with `expo.cmd` on windows', async () => {
 			utils.setPlatform('win32');
-			await tools.maybeAuthenticate({ username, password });
+			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][0]).toBe('expo.cmd');
 			utils.restorePlatform();
@@ -163,7 +225,7 @@ describe('maybeAuthenticate', () => {
 	});
 });
 
-describe('maybePatchWatchers', () => {
+describe(tools.maybePatchWatchers, () => {
 	let spy: { [key: string]: jest.SpyInstance } = {};
 
 	beforeEach(() => {
@@ -226,7 +288,7 @@ describe('maybePatchWatchers', () => {
 	});
 });
 
-describe('maybeWarnForUpdate', () => {
+describe(tools.maybeWarnForUpdate, () => {
 	let spy: { [key: string]: jest.SpyInstance } = {};
 
 	beforeEach(() => {
@@ -241,7 +303,7 @@ describe('maybeWarnForUpdate', () => {
 		registry.manifest
 			.mockResolvedValueOnce({ version: '4.1.0' })
 			.mockResolvedValueOnce({ version: '4.0.1'});
-		await tools.maybeWarnForUpdate();
+		await tools.maybeWarnForUpdate('eas-cli');
 		expect(spy.warning).not.toBeCalled();
 	})
 
@@ -249,13 +311,13 @@ describe('maybeWarnForUpdate', () => {
 		registry.manifest
 			.mockResolvedValueOnce({ version: '4.1.0' })
 			.mockResolvedValueOnce({ version: '3.0.1'});
-		await tools.maybeWarnForUpdate();
+		await tools.maybeWarnForUpdate('expo-cli');
 		expect(spy.warning).toBeCalledWith('There is a new major version available of the Expo CLI (4.1.0)');
 		expect(spy.warning).toBeCalledWith('If you run into issues, try upgrading your workflow to "expo-version: 4.x"');
 	})
 });
 
-describe('handleError', () => {
+describe(tools.handleError, () => {
 	let spy: { [key: string]: jest.SpyInstance } = {};
 
 	beforeEach(() => {
@@ -266,17 +328,17 @@ describe('handleError', () => {
 		spy.setFailed.mockRestore();
 	});
 
-	it('marks the job as failed', async () => {
+	it('marks the job as failed with expo-cli', async () => {
 		const error = new Error('test');
 		registry.manifest.mockResolvedValue('4.0.0');
-		await tools.handleError(error);
+		await tools.handleError('expo-cli', error);
 		expect(core.setFailed).toBeCalledWith(error);
 	});
 
 	it('fails with original error when update warning failed', async () => {
 		const error = new Error('test');
 		registry.manifest.mockRejectedValue(new Error('npm issue'));
-		await tools.handleError(error);
+		await tools.handleError('eas-cli', error);
 		expect(core.setFailed).toBeCalledWith(error);
 	});
 });

@@ -5,19 +5,38 @@ import semver from 'semver';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const registry = require('libnpm');
 
-type AuthenticateOptions = {
+export type PackageName = 'expo-cli' | 'eas-cli';
+
+export type AuthenticateOptions = {
+	cli?: PackageName;
 	token?: string;
 	username?: string;
 	password?: string;
 };
 
 /**
+ * Get a boolean value from string, useful for Github Actions boolean inputs.
+ */
+export function getBoolean(value: string, defaultValue = false): boolean {
+	return (value.toLowerCase() || (defaultValue ? 'true' : 'false')) === 'true';
+}
+
+/**
+ * Convert `expo-cli` or `eas-cli` to just their binary name.
+ * For windows we have to use `<bin>.cmd`, toolkit will handle the Windows binary with that.
+ */
+export function getBinaryName(name: PackageName, forWindows = false): string {
+	const bin = name.toLowerCase().replace('-cli', '');
+	return forWindows ? `${bin}.cmd` : bin;
+}
+
+/**
  * Resolve the provided semver to exact version of `expo-cli`.
  * This uses the npm registry and accepts latest, dist-tags or version ranges.
  * It's used to determine the cached version of `expo-cli`.
  */
-export async function resolveVersion(version: string): Promise<string> {
-	return (await registry.manifest(`expo-cli@${version}`)).version;
+export async function resolveVersion(name: PackageName, version: string): Promise<string> {
+	return (await registry.manifest(`${name}@${version}`)).version;
 }
 
 /**
@@ -25,27 +44,35 @@ export async function resolveVersion(version: string): Promise<string> {
  * If both of them are set, token has priority.
  */
 export async function maybeAuthenticate(options: AuthenticateOptions = {}): Promise<void> {
-	// github actions toolkit will handle commands with `.cmd` on windows, we need that
-	const bin = process.platform === 'win32' ? 'expo.cmd' : 'expo';
-
 	if (options.token) {
-		await cli.exec(bin, ['whoami'], {
-			env: { ...process.env, EXPO_TOKEN: options.token },
-		});
+		if (options.cli) {
+			const bin = getBinaryName(options.cli, process.platform === 'win32');
+			await cli.exec(bin, ['whoami'], {
+				env: { ...process.env, EXPO_TOKEN: options.token },
+			});
+		} else {
+			core.info('Skipping token validation: no CLI installed, can\'t run `whoami`.');
+		}
+
 		return core.exportVariable('EXPO_TOKEN', options.token);
 	}
 
 	if (options.username || options.password) {
-		if (!options.username || !options.password) {
-			return core.info('Skipping authentication: `expo-username` and/or `expo-password` not set...');
+		if (options.cli !== 'expo-cli') {
+			return core.warning('Skipping authentication: only Expo CLI supports programmatic credentials, use `token` instead.');
 		}
+
+		if (!options.username || !options.password) {
+			return core.info('Skipping authentication: `username` and/or `password` not set...');
+		}
+
+		const bin = getBinaryName(options.cli, process.platform === 'win32');
 		await cli.exec(bin, ['login', `--username=${options.username}`], {
 			env: { ...process.env, EXPO_CLI_PASSWORD: options.password },
 		});
-		return;
 	}
 
-	core.info('Skipping authentication: `expo-token`, `expo-username`, and/or `expo-password` not set...');
+	core.info('Skipping authentication: `token`, `username`, and/or `password` not set...');
 }
 
 /**
@@ -79,13 +106,14 @@ export async function maybePatchWatchers(): Promise<void> {
  * If there is, create a warning for people to upgrade their workflow.
  * Because this introduces additional requests, it should only be executed when necessary.
  */
-export async function maybeWarnForUpdate(): Promise<void> {
-	const latest = await resolveVersion('latest');
-	const current = await resolveVersion(core.getInput('expo-version') || 'latest');
+export async function maybeWarnForUpdate(name: PackageName): Promise<void> {
+	const binaryName = getBinaryName(name);
+	const latest = await resolveVersion(name, 'latest');
+	const current = await resolveVersion(name, core.getInput(`${getBinaryName(name)}-version`) || 'latest');
 
 	if (semver.diff(latest, current) === 'major') {
 		core.warning(`There is a new major version available of the Expo CLI (${latest})`);
-		core.warning(`If you run into issues, try upgrading your workflow to "expo-version: ${semver.major(latest)}.x"`);
+		core.warning(`If you run into issues, try upgrading your workflow to "${binaryName}-version: ${semver.major(latest)}.x"`);
 	}
 }
 
@@ -93,9 +121,9 @@ export async function maybeWarnForUpdate(): Promise<void> {
  * Handle errors when this action fails, providing useful next-steps for developers.
  * This mostly checks if the installed version is the latest version.
  */
-export async function handleError(error: Error) {
+export async function handleError(name: PackageName, error: Error) {
 	try {
-		await maybeWarnForUpdate();
+		await maybeWarnForUpdate(name);
 	} catch {
 		// If this fails, ignore it
 	}

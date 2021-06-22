@@ -10,22 +10,28 @@ runs:
   main: build/index.js
 inputs:
   expo-version:
-    description: The Expo CLI version to install. (use any semver/dist-tag available)
-    default: latest
-  expo-username:
-    description: Your Expo username, for authentication.
-  expo-token:
-    description: Your Expo token, for authentication. (use with secrets)
-  expo-password:
-    description: Your Expo password, for authentication. (use with secrets)
-  expo-packager:
-    description: The package manager used to install the Expo CLI. (can be yarn or npm)
-    default: yarn
-  expo-patch-watchers:
-    description: If Expo should fix the default watchers limit, helps with ENOSPC errors. (can be true or false)
-    default: true
+    description: The Expo CLI version to install (use any semver/dist-tag available).
   expo-cache:
-    description: If Expo should be stored in the GitHub Actions cache (can be true or false)
+    description: If Expo CLI should be stored in the GitHub Actions cache.
     default: false
   expo-cache-key:
-    description: A custom remote cache key to use (best to let GitHub Actions handle it)
+    description: A custom remote cache key to use for Expo CLI.
+  eas-version:
+    description: The EAS CLI version to install (use any semver/dist-tag available).
+  eas-cache:
+    description: If EAS CLI should be stored in the GitHub Actions cache.
+    default: false
+  eas-cache-key:
+    description: A custom remote cache key to use for EAS CLI.
+  username:
+    description: Your Expo username, for authentication.
+  token:
+    description: Your Expo token, for authentication. (use with secrets)
+  password:
+    description: Your Expo password, for authentication. (use with secrets)
+  packager:
+    description: The package manager used to install the Expo CLI. (can be yarn or npm)
+    default: yarn
+  patch-watchers:
+    description: If Expo should fix the default watchers limit, helps with ENOSPC errors. (can be true or false)
+    default: true

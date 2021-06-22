@@ -4,14 +4,18 @@ import * as toolCache from '@actions/tool-cache';
 import path from 'path';
 import os from 'os';
 
+import type { InstallConfig } from './install';
+
+export type CacheConfig = Omit<InstallConfig, 'cache'>;
+
 /**
  * Get the path to the `expo-cli` from cache, if any.
  * Note, this cache is **NOT** shared between jobs.
  *
  * @see https://github.com/actions/toolkit/issues/47
  */
-export async function fromLocalCache(version: string): Promise<string | undefined> {
-	return toolCache.find('expo-cli', version);
+export async function fromLocalCache(config: CacheConfig): Promise<string | undefined> {
+	return toolCache.find(config.package, config.version);
 }
 
 /**
@@ -20,18 +24,18 @@ export async function fromLocalCache(version: string): Promise<string | undefine
  *
  * @see https://github.com/actions/toolkit/issues/47
  */
-export async function toLocalCache(root: string, version: string): Promise<string> {
-	return toolCache.cacheDir(root, 'expo-cli', version);
+export async function toLocalCache(root: string, config: CacheConfig): Promise<string> {
+	return toolCache.cacheDir(root, config.package, config.version);
 }
 
 /**
  * Download the remotely stored `expo-cli` from cache, if any.
  * Note, this cache is shared between jobs.
  */
-export async function fromRemoteCache(version: string, packager: string, customCacheKey?: string): Promise<string | undefined> {
+export async function fromRemoteCache(config: CacheConfig): Promise<string | undefined> {
 	// see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
-	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', 'expo-cli', version, os.arch());
-	const cacheKey = customCacheKey || getRemoteKey(version, packager);
+	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', config.package, config.version, os.arch());
+	const cacheKey = config.cacheKey || getRemoteKey(config);
 
 	try {
 		// When running with nektos/act, or other custom environments, the cache might not be set up.
@@ -50,8 +54,8 @@ export async function fromRemoteCache(version: string, packager: string, customC
  * Store the root of `expo-cli` in the remote cache, for future reuse.
  * Note, this cache is shared between jobs.
  */
-export async function toRemoteCache(source: string, version: string, packager: string, customCacheKey?: string): Promise<void> {
-	const cacheKey = customCacheKey || getRemoteKey(version, packager);
+export async function toRemoteCache(source: string, config: CacheConfig): Promise<void> {
+	const cacheKey = config.cacheKey || getRemoteKey(config);
 
 	try {
 		await saveCache([source], cacheKey);
@@ -65,8 +69,8 @@ export async function toRemoteCache(source: string, version: string, packager: s
 /**
  * Get the cache key to use when (re)storing the Expo CLI from remote cache.
  */
-function getRemoteKey(version: string, packager: string): string {
-	return `expo-cli-${process.platform}-${os.arch()}-${packager}-${version}`;
+function getRemoteKey(config: Omit<CacheConfig, 'cacheKey'>): string {
+	return `${config.package}-${process.platform}-${os.arch()}-${config.packager}-${config.version}`;
 }
 
 /**
