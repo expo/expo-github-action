@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
-        if: success() && github.event.inputs.release == 'release' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        if: success() && github.event.inputs.release == 'release' && github.ref == 'refs/heads/main'
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
