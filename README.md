@@ -7,9 +7,9 @@
       <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
     </a>
     <a href="https://github.com/expo/expo-github-action/actions">
-      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/CI/master.svg?style=flat-square" alt="builds" />
+      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/CI/main.svg?style=flat-square" alt="builds" />
     </a>
-    <a href="https://github.com/expo/expo-github-action/blob/master/LICENSE.md">
+    <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
       <img src="https://img.shields.io/github/license/expo/expo-github-action?style=flat-square" alt="license" />
     </a>
   </sup>
@@ -21,7 +21,7 @@
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
     <a href="https://github.com/expo/expo-github-action#things-to-know"><b>Caveats</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="https://github.com/expo/expo-github-action/blob/master/CHANGELOG.md"><b>Changelog</b></a>
+    <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
   </p>
   <br />
 </div>
@@ -53,22 +53,24 @@ Here is a summary of all the variables that you can use and their purpose.
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
 
+> Using `latest` for `eas-version` is recommened, you should always have the latest version of this CLI installed.
+
 ## Example workflows
 
 Before you dive into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
-1. [Publish on any push to master](#publish-on-any-push-to-master)
+1. [Publish on any push to main](#publish-on-any-push-to-main)
 2. [Cache Expo CLI for other jobs](#cache-expo-cli-for-other-jobs)
-3. [Creating a new EAS build](#publish-on-any-push-to-master)
+3. [Creating a new EAS build](#creating-a-new-eas-build)
 4. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
 5. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
 6. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
 7. [Authenticate using credentials](#authenticate-using-credentials)
 
-### Publish on any push to master
+### Publish on any push to main
 
-Below you can see the example configuration to publish whenever the master branch is updated.
+Below you can see the example configuration to publish whenever the main branch is updated.
 The workflow listens to the `push` event and sets up Node 12 using the [Setup Node Action][link-actions-node].
 It also auto-authenticates when the `token` is provided.
 
@@ -77,7 +79,7 @@ name: Expo Publish
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   publish:
     name: Install and publish
@@ -87,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           token: ${{ secrets.EXPO_TOKEN }}
@@ -108,7 +110,7 @@ name: Expo Publish
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   publish:
     name: Install and publish
@@ -118,7 +120,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           expo-cache: true
@@ -140,7 +142,7 @@ name: EAS build
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   build:
     name: Create new build
@@ -150,7 +152,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -176,13 +178,13 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           token: ${{ secrets.EXPO_TOKEN }}
       - run: yarn install
       - run: expo publish --release-channel=pr-${{ github.event.number }}
-      - uses: unsplash/comment-on-pr@master
+      - uses: unsplash/comment-on-pr@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -212,7 +214,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
       - run: yarn install
@@ -239,7 +241,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
       - run: yarn install
@@ -257,7 +259,7 @@ name: Expo Publish
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   publish:
     name: Install and publish
@@ -267,7 +269,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           username: ${{ secrets.EXPO_CLI_USERNAME }}
