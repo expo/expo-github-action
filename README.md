@@ -62,7 +62,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 1. [Publish on any push to main](#publish-on-any-push-to-main)
 2. [Cache Expo CLI for other jobs](#cache-expo-cli-for-other-jobs)
-3. [Creating a new EAS build](#publish-on-any-push-to-main)
+3. [Creating a new EAS build](#creating-a-new-eas-build)
 4. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
 5. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-nodes-and-systems)
 6. [Test and build web every day at 08:00](#test-and-build-web-every-day-at-0800)
