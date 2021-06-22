@@ -11,7 +11,7 @@ const rules = [
 const sortMap = Object.fromEntries(rules.map((rule, index) => [rule.title, index]));
 
 module.exports = {
-  branches: ['main', 'master'],
+  branches: ['main'],
   tagFormat: '${version}',
   plugins: [
     ['@semantic-release/commit-analyzer', {
