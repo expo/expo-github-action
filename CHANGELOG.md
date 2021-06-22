@@ -1,3 +1,26 @@
+## [6.0.0](https://github.com/expo/expo-github-action/compare/5.5.1...6.0.0) (2021-06-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* Github Action inputs are changed to allow both Expo and EAS CLI.
+
+### New features
+
+* add support for eas cli installs ([#98](https://github.com/expo/expo-github-action/issues/98)) ([04692c3](https://github.com/expo/expo-github-action/commit/04692c3cb1f7ad977f62841ca0bb175c903f653f))
+
+
+### Other chores
+
+* update node to 14 and 16 in ci ([#100](https://github.com/expo/expo-github-action/issues/100)) ([a03876e](https://github.com/expo/expo-github-action/commit/a03876e3c556bea147f2be007eac911bf78c9b23))
+
+
+### Documentation changes
+
+* add commands to contirbuting guide for updating v{major} tags ([1b57c37](https://github.com/expo/expo-github-action/commit/1b57c37e9bdfe92e183befb3595debc64da672f0))
+* update readme for v6 release ([#101](https://github.com/expo/expo-github-action/issues/101)) ([8b43bae](https://github.com/expo/expo-github-action/commit/8b43bae073f280d4fa76aa174642ad46febe985c))
+* update upstream reference in contributing guide ([76ce4de](https://github.com/expo/expo-github-action/commit/76ce4de80ea89b343404cdabadc922882af80487))
+
 ### [5.5.1](https://github.com/expo/expo-github-action/compare/5.5.0...5.5.1) (2021-06-17)
 
 
