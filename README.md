@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           token: ${{ secrets.EXPO_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           expo-cache: true
@@ -152,7 +152,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -178,7 +178,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           token: ${{ secrets.EXPO_TOKEN }}
@@ -214,7 +214,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
       - run: yarn install
@@ -241,7 +241,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
       - run: yarn install
@@ -269,7 +269,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: expo/expo-github-action@v5
+      - uses: expo/expo-github-action@v6
         with:
           expo-version: 4.x
           username: ${{ secrets.EXPO_CLI_USERNAME }}
