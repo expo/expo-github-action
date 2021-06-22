@@ -50,7 +50,7 @@ To release a new version for Github Actions, we have to create a new release in 
 After the exact version tag is created, update the `v{major}` tag to the latest major version. Make sure you are on the default branch at the commit of versioning.
 
 ```bash
-$ git checkout master
+$ git checkout main
 $ git fetch --tags && git pull
 $ git tag --force v{major}
 $ git push --force --tags
