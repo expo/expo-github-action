@@ -53,6 +53,8 @@ Here is a summary of all the variables that you can use and their purpose.
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
 
+> Using `latest` for `eas-version` is recommened, you should always have the latest version of this CLI installed.
+
 ## Example workflows
 
 Before you dive into the workflow examples, you should know the basics of GitHub Actions.
