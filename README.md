@@ -71,7 +71,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 ### Publish on any push to main
 
 Below you can see the example configuration to publish whenever the main branch is updated.
-The workflow listens to the `push` event and sets up Node 12 using the [Setup Node Action][link-actions-node].
+The workflow listens to the `push` event and sets up Node 14 using the [Setup Node Action][link-actions-node].
 It also auto-authenticates when the `token` is provided.
 
 ```yml
