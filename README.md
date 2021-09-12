@@ -131,7 +131,7 @@ jobs:
 
 ### Creating a new EAS build
 
-You can also install [EAS](https://docs.expo.io/eas/) CLI with this Github Action.
+You can also install [EAS](https://docs.expo.dev/eas/) CLI with this Github Action.
 Below we've swapped `expo-version` with `eas-version`, but you can also use them together.
 Both the `token` and `username`/`password` is shared between both Expo and EAS CLI.
 
@@ -188,7 +188,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: App is ready for review, you can [see it here](https://expo.io/@bycedric/use-expo?release-channel=pr-${{ github.event.number }}).
+          msg: App is ready for review, you can [see it here](https://expo.dev/@bycedric/use-expo?release-channel=pr-${{ github.event.number }}).
 ```
 
 ### Test PRs on multiple nodes and systems
@@ -318,8 +318,8 @@ You can disable this patch by setting the `patch-watchers` to `false`.
 [link-actions-cache-package]: https://www.npmjs.com/package/@actions/cache
 [link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-[link-expo-cli]: https://docs.expo.io/workflow/expo-cli/
+[link-expo-cli]: https://docs.expo.dev/workflow/expo-cli/
 [link-expo-cli-password]: https://github.com/expo/expo-cli/blob/master/packages/expo-cli/src/accounts.ts#L88-L90
-[link-expo-release-channels]: https://docs.expo.io/distribution/release-channels/
+[link-expo-release-channels]: https://docs.expo.dev/distribution/release-channels/
 [link-eas-cli]: https://github.com/expo/eas-cli#readme
 [link-semver-playground]: https://semver.npmjs.com/
