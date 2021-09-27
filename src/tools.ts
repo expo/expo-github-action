@@ -15,7 +15,7 @@ export type AuthenticateOptions = {
 };
 
 /**
- * Get a boolean value from string, useful for Github Actions boolean inputs.
+ * Get a boolean value from string, useful for GitHub Actions boolean inputs.
  */
 export function getBoolean(value: string, defaultValue = false): boolean {
 	return (value.toLowerCase() || (defaultValue ? 'true' : 'false')) === 'true';
