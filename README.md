@@ -1,8 +1,7 @@
 <div align="center">
   <h1>expo github action</h1>
-  <p></p>
   <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with GitHub Actions!</p>
-  <sup>
+  <p>
     <a href="https://github.com/expo/expo-github-action/releases">
       <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
     </a>
@@ -12,8 +11,7 @@
     <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
       <img src="https://img.shields.io/github/license/expo/expo-github-action?style=flat-square" alt="license" />
     </a>
-  </sup>
-  <br />
+  </p>
   <p align="center">
     <a href="https://github.com/expo/expo-github-action#configuration-options"><b>Usage</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
@@ -23,7 +21,6 @@
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
     <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
   </p>
-  <br />
 </div>
 
 ## What's inside?
