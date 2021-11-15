@@ -1,4 +1,4 @@
-# Contributing to Expo Github Action
+# Contributing to Expo GitHub Action
 
 ## 📦 Download and Setup
 
@@ -10,9 +10,9 @@
 
 ## 🏎️ Running a custom version
 
-To try out your changed with Github Action, you have [to reference your fork and/or branch or commit reference](https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#using-release-management-for-your-custom-actions) in the workflow you want to try. After that, you have two options:
+To try out your changed with GitHub Action, you have [to reference your fork and/or branch or commit reference](https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#using-release-management-for-your-custom-actions) in the workflow you want to try. After that, you have two options:
 
-1. Run the workflow in Github Actions itself by triggering your workflow.
+1. Run the workflow in GitHub Actions itself by triggering your workflow.
 2. Run the workflow locally with [nektos/act](https://github.com/nektos/act).
 
 ## ✅ Testing
@@ -45,7 +45,7 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 
 ## 🚀 Releasing a new version
 
-To release a new version for Github Actions, we have to create a new release in Github. You can run the `Release` workflow to generate a new version, changelog, and Github release.
+To release a new version for GitHub Actions, we have to create a new release in GitHub. You can run the `Release` workflow to generate a new version, changelog, and GitHub release.
 
 After the exact version tag is created, update the `v{major}` tag to the latest major version. Make sure you are on the default branch at the commit of versioning.
 

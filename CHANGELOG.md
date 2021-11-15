@@ -3,7 +3,7 @@
 
 ### ⚠ BREAKING CHANGES
 
-* Github Action inputs are changed to allow both Expo and EAS CLI.
+* GitHub Action inputs are changed to allow both Expo and EAS CLI.
 
 ### New features
 

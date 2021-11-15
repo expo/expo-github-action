@@ -1,7 +1,7 @@
 <div align="center">
   <h1>expo github action</h1>
   <p></p>
-  <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with Github Actions!</p>
+  <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with GitHub Actions!</p>
   <sup>
     <a href="https://github.com/expo/expo-github-action/releases">
       <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
@@ -131,7 +131,7 @@ jobs:
 
 ### Creating a new EAS build
 
-You can also install [EAS](https://docs.expo.dev/eas/) CLI with this Github Action.
+You can also install [EAS](https://docs.expo.dev/eas/) CLI with this GitHub Action.
 Below we've swapped `expo-version` with `eas-version`, but you can also use them together.
 Both the `token` and `username`/`password` is shared between both Expo and EAS CLI.
 
