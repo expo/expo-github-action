@@ -10,7 +10,6 @@ module.exports = {
 	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
 	rules: {
 		'@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
-		'@typescript-eslint/indent': ['error', 'tab'],
 		'prettier/prettier': 'error',
 	},
 };
