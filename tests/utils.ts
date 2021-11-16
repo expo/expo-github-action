@@ -32,3 +32,19 @@ export function setEnv(name: string, value: string): void {
 export function restoreEnv(): void {
 	process.env = originalEnv;
 }
+
+/**
+ * Get a mocked version of the tools.
+ */
+export function getToolsMock() {
+	return {
+		getBoolean: jest.fn((v, d) => v ? v === 'true' : d),
+		getBinaryName: jest.fn(v => v.replace('-cli', '')),
+		resolveVersion: jest.fn((n, v) => v),
+		maybeAuthenticate: jest.fn(),
+		maybePatchWatchers: jest.fn(),
+		maybeWarnForUpdate: jest.fn(),
+		handleError: jest.fn(),
+		performAction: jest.fn(),
+	};
+}
