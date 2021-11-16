@@ -34,19 +34,19 @@ There are some additional features included to make the usage of this action as 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-| variable         | default | description                                                                                                  |
-| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted.                         |
-| `expo-cache`     | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
-| `expo-cache-key` | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
-| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted. (`latest` is recommended) |
-| `eas-cache`      | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                             |
-| `eas-cache-key`  | -       | An optional custom (remote) cache key. _(**use with caution**)_                                              |
-| `packager`       | `yarn`  | The package manager to use. _(e.g. `npm`)_                                                                   |
-| `token`          | -       | The token of your Expo account _(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_                  |
-| `username`       | -       | The username of your Expo account _(e.g. `bycedric`)_                                                        |
-| `password`       | -       | The password of your Expo account _(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_        |
-| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).                                      |
+| variable         | default | description                                                                                                      |
+| ---------------- | :-----: | ---------------------------------------------------------------------------------------------------------------- |
+| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted.                             |
+| `expo-cache`     | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                                 |
+| `expo-cache-key` | -       | An optional custom (remote) cache key. _(**use with caution**)_                                                  |
+| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted.<br/>(`latest` is recommended) |
+| `eas-cache`      | `false` | If it should use the [GitHub actions (remote) cache](#using-the-built-in-cache).                                 |
+| `eas-cache-key`  | -       | An optional custom (remote) cache key. _(**use with caution**)_                                                  |
+| `packager`       | `yarn`  | The package manager to use.<br/>_(e.g. `npm`)_                                                                   |
+| `token`          | -       | The token of your Expo account.<br/>_(e.g. [`${{ secrets.EXPO_TOKEN }}`][link-actions-secrets])_                 |
+| `username`       | -       | The username of your Expo account.<br/>_(e.g. `bycedric`)_                                                       |
+| `password`       | -       | The password of your Expo account.<br/>_(e.g. [`${{ secrets.EXPO_CLI_PASSWORD }}`][link-actions-secrets])_       |
+| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).                                          |
 
 > Never hardcode `expo-token` or `expo-password` in your workflow, use [secrets][link-actions-secrets] to store them.
 
