@@ -51,7 +51,7 @@ export async function maybeAuthenticate(options: AuthenticateOptions = {}): Prom
 				env: { ...process.env, EXPO_TOKEN: options.token },
 			});
 		} else {
-			core.info('Skipping token validation: no CLI installed, can\'t run `whoami`.');
+			core.info("Skipping token validation: no CLI installed, can't run `whoami`.");
 		}
 
 		return core.exportVariable('EXPO_TOKEN', options.token);
@@ -59,7 +59,9 @@ export async function maybeAuthenticate(options: AuthenticateOptions = {}): Prom
 
 	if (options.username || options.password) {
 		if (options.cli !== 'expo-cli') {
-			return core.warning('Skipping authentication: only Expo CLI supports programmatic credentials, use `token` instead.');
+			return core.warning(
+				'Skipping authentication: only Expo CLI supports programmatic credentials, use `token` instead.'
+			);
 		}
 
 		if (!options.username || !options.password) {
@@ -113,7 +115,9 @@ export async function maybeWarnForUpdate(name: PackageName): Promise<void> {
 
 	if (semver.diff(latest, current) === 'major') {
 		core.warning(`There is a new major version available of the Expo CLI (${latest})`);
-		core.warning(`If you run into issues, try upgrading your workflow to "${binaryName}-version: ${semver.major(latest)}.x"`);
+		core.warning(
+			`If you run into issues, try upgrading your workflow to "${binaryName}-version: ${semver.major(latest)}.x"`
+		);
 	}
 }
 

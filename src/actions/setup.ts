@@ -10,21 +10,17 @@ export async function setupAction(): Promise<void> {
 	const expoVersion = await installCli('expo-cli');
 	const easVersion = await installCli('eas-cli');
 
-	await group(
-		'Checking current authenticated account',
-		() => tools.maybeAuthenticate({
+	await group('Checking current authenticated account', () =>
+		tools.maybeAuthenticate({
 			cli: expoVersion ? 'expo-cli' : easVersion ? 'eas-cli' : undefined,
 			token: getInput('token') || undefined,
 			username: getInput('username') || undefined,
 			password: getInput('password') || undefined,
-		}),
+		})
 	);
 
 	if (tools.getBoolean(getInput('patch-watchers'), true)) {
-		await group(
-			'Patching system watchers for the `ENOSPC` error',
-			() => tools.maybePatchWatchers(),
-		);
+		await group('Patching system watchers for the `ENOSPC` error', () => tools.maybePatchWatchers());
 	}
 }
 
@@ -45,11 +41,14 @@ async function installCli(name: tools.PackageName): Promise<string | void> {
 			cache
 				? `Installing ${name} (${version}) from cache or with ${packager}`
 				: `Installing ${name} (${version}) with ${packager}`,
-			() => install({
-				packager, version, cache,
-				package: name,
-				cacheKey: getInput(`${shortName}-cache-key`) || undefined,
-			}),
+			() =>
+				install({
+					packager,
+					version,
+					cache,
+					package: name,
+					cacheKey: getInput(`${shortName}-cache-key`) || undefined,
+				})
 		);
 
 		addPath(path);

@@ -179,7 +179,7 @@ describe(tools.maybeAuthenticate, () => {
 
 		it('executes login command with password through environment', async () => {
 			utils.setEnv('TEST_INCLUDED', 'hellyeah');
-			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' })
+			await tools.maybeAuthenticate({ username, password, cli: 'expo-cli' });
 			expect(spy.exec).toBeCalled();
 			expect(spy.exec.mock.calls[0][1]).toStrictEqual(['login', `--username=${username}`]);
 			expect(spy.exec.mock.calls[0][2]).toMatchObject({
@@ -194,9 +194,7 @@ describe(tools.maybeAuthenticate, () => {
 		it('fails when credentials are incorrect', async () => {
 			const error = new Error('Invalid username/password. Please try again.');
 			spy.exec.mockRejectedValue(error);
-			await expect(tools.maybeAuthenticate({ username, password, cli: 'expo-cli' }))
-				.rejects
-				.toBe(error);
+			await expect(tools.maybeAuthenticate({ username, password, cli: 'expo-cli' })).rejects.toBe(error);
 		});
 
 		it('executes login command with `expo` on macos', async () => {
@@ -300,21 +298,17 @@ describe(tools.maybeWarnForUpdate, () => {
 	});
 
 	it('is silent when major version is up to date', async () => {
-		registry.manifest
-			.mockResolvedValueOnce({ version: '4.1.0' })
-			.mockResolvedValueOnce({ version: '4.0.1'});
+		registry.manifest.mockResolvedValueOnce({ version: '4.1.0' }).mockResolvedValueOnce({ version: '4.0.1' });
 		await tools.maybeWarnForUpdate('eas-cli');
 		expect(spy.warning).not.toBeCalled();
-	})
+	});
 
 	it('warns when major version is outdated', async () => {
-		registry.manifest
-			.mockResolvedValueOnce({ version: '4.1.0' })
-			.mockResolvedValueOnce({ version: '3.0.1'});
+		registry.manifest.mockResolvedValueOnce({ version: '4.1.0' }).mockResolvedValueOnce({ version: '3.0.1' });
 		await tools.maybeWarnForUpdate('expo-cli');
 		expect(spy.warning).toBeCalledWith('There is a new major version available of the Expo CLI (4.1.0)');
 		expect(spy.warning).toBeCalledWith('If you run into issues, try upgrading your workflow to "expo-version: 4.x"');
-	})
+	});
 });
 
 describe(tools.handleError, () => {

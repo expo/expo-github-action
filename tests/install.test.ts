@@ -29,7 +29,11 @@ describe('install', () => {
 		cache.toLocalCache.mockResolvedValue(join('cache', 'path'));
 		const expoPath = await install.install({ package: 'expo-cli', version: '3.0.10', packager: 'npm' });
 		expect(expoPath).toBe(join('cache', 'path', 'node_modules', '.bin'));
-		expect(cache.toLocalCache).toBeCalledWith(join('temp', 'path'), { package: 'expo-cli', version: '3.0.10', packager: 'npm' });
+		expect(cache.toLocalCache).toBeCalledWith(join('temp', 'path'), {
+			package: 'expo-cli',
+			version: '3.0.10',
+			packager: 'npm',
+		});
 		utils.restoreEnv();
 	});
 
@@ -38,7 +42,12 @@ describe('install', () => {
 		cache.fromRemoteCache.mockResolvedValue(join('cache', 'path'));
 		const expoPath = await install.install({ package: 'eas-cli', version: '4.2.0', packager: 'yarn', cache: true });
 		expect(expoPath).toBe(join('cache', 'path', 'node_modules', '.bin'));
-		expect(cache.fromRemoteCache).toBeCalledWith({ package: 'eas-cli', version: '4.2.0', packager: 'yarn', cache: true });
+		expect(cache.fromRemoteCache).toBeCalledWith({
+			package: 'eas-cli',
+			version: '4.2.0',
+			packager: 'yarn',
+			cache: true,
+		});
 	});
 
 	it('installs path from packager and cache it remotely', async () => {
@@ -48,7 +57,12 @@ describe('install', () => {
 		cache.toLocalCache.mockResolvedValue(join('cache', 'path'));
 		const expoPath = await install.install({ package: 'expo-cli', version: '3.20.1', packager: 'npm', cache: true });
 		expect(expoPath).toBe(join('cache', 'path', 'node_modules', '.bin'));
-		expect(cache.toRemoteCache).toBeCalledWith(join('cache', 'path'), { package: 'expo-cli', version: '3.20.1', packager: 'npm', cache: true });
+		expect(cache.toRemoteCache).toBeCalledWith(join('cache', 'path'), {
+			package: 'expo-cli',
+			version: '3.20.1',
+			packager: 'npm',
+			cache: true,
+		});
 		utils.restoreEnv();
 	});
 });

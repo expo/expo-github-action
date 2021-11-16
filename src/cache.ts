@@ -82,9 +82,7 @@ function getRemoteKey(config: Omit<CacheConfig, 'cacheKey'>): string {
  */
 function handleRemoteCacheError(error: Error): boolean {
 	const isReserveCacheError = error instanceof ReserveCacheError;
-	const isCacheUnavailable = error.message.toLowerCase().includes(
-		'cache service url not found',
-	);
+	const isCacheUnavailable = error.message.toLowerCase().includes('cache service url not found');
 
 	if (isReserveCacheError || isCacheUnavailable) {
 		core.warning('Skipping remote cache storage, encountered error:');
