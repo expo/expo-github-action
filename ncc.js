@@ -29,8 +29,8 @@ async function build(file) {
 		await write(path.join(dir, asset), assets[asset].source);
 	}
 
-	await write(path.join(dir, 'index.js'), code);
-	await write(path.join(dir, 'index.map.js'), map);
+	await write(path.join(dir, 'index.js'), code.replace(/\r\n/g, '\n'));
+	await write(path.join(dir, 'index.map.js'), map.replace(/\r\n/g, '\n'));
 
 	console.log(`✓ ${path.relative(__dirname, file)}`);
 }
