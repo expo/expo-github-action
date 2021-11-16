@@ -53,7 +53,7 @@ describe(cache.fromRemoteCache, () => {
 		expect(await cache.fromRemoteCache({ package: 'expo-cli', version: '3.20.1', packager: 'yarn' })).toBeUndefined();
 		expect(remoteCache.restoreCache).toBeCalledWith(
 			[join('cache', 'path', 'expo-cli', '3.20.1', os.arch())],
-			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`,
+			`expo-cli-${process.platform}-${os.arch()}-yarn-3.20.1`
 		);
 	});
 
@@ -68,30 +68,30 @@ describe(cache.fromRemoteCache, () => {
 		).toBeUndefined();
 		expect(remoteCache.restoreCache).toBeCalledWith(
 			[join('cache', 'path', 'eas-cli', '4.2.0', os.arch())],
-			'custom-cache-key',
+			'custom-cache-key'
 		);
 	});
 
 	it('returns path when remote cache exists', async () => {
 		spy.restore.mockResolvedValueOnce(true);
-		expect(
-			await cache.fromRemoteCache({ package: 'expo-cli', version: '3.20.1', packager: 'npm' })
-		).toBe(join('cache', 'path', 'expo-cli', '3.20.1', os.arch()));
+		expect(await cache.fromRemoteCache({ package: 'expo-cli', version: '3.20.1', packager: 'npm' })).toBe(
+			join('cache', 'path', 'expo-cli', '3.20.1', os.arch())
+		);
 	});
 
 	it('fails when remote cache throws', async () => {
 		const error = new Error('Remote cache restore failed');
 		spy.restore.mockRejectedValueOnce(error);
-		await expect(cache.fromRemoteCache({ package: 'eas-cli', version: '3.20.1', packager: 'yarn' })).rejects.toBe(error);
+		await expect(cache.fromRemoteCache({ package: 'eas-cli', version: '3.20.1', packager: 'yarn' })).rejects.toBe(
+			error
+		);
 	});
 
 	it('skips remote cache when unavailable', async () => {
 		// see: https://github.com/actions/toolkit/blob/9167ce1f3a32ad495fc1dbcb574c03c0e013ae53/packages/cache/src/internal/cacheHttpClient.ts#L41
 		const error = new Error('Cache Service Url not found, unable to restore cache.');
 		spy.restore.mockRejectedValueOnce(error);
-		expect(
-			await cache.fromRemoteCache({ package: 'expo-cli', version: '3.20.1', packager: 'yarn' })
-		).toBeUndefined();
+		expect(await cache.fromRemoteCache({ package: 'expo-cli', version: '3.20.1', packager: 'yarn' })).toBeUndefined();
 		expect(spy.warning).toHaveBeenCalledWith(expect.stringContaining('Skipping remote cache'));
 	});
 });
@@ -112,7 +112,9 @@ describe(cache.toRemoteCache, () => {
 	});
 
 	it('saves remote cache with default key', async () => {
-		expect(await cache.toRemoteCache(join('local', 'path'), { package: 'eas-cli', version: '3.20.1', packager: 'npm' })).toBeUndefined();
+		expect(
+			await cache.toRemoteCache(join('local', 'path'), { package: 'eas-cli', version: '3.20.1', packager: 'npm' })
+		).toBeUndefined();
 		expect(remoteCache.saveCache).toBeCalledWith(
 			[join('local', 'path')],
 			`eas-cli-${process.platform}-${os.arch()}-npm-3.20.1`
@@ -120,30 +122,32 @@ describe(cache.toRemoteCache, () => {
 	});
 
 	it('saves remote cache with custom key', async () => {
-		expect(await cache.toRemoteCache(
-			join('local', 'path'),
-			{ package: 'eas-cli', version: '3.20.1', packager: 'yarn', cacheKey: 'custom-cache-key' }
-		)).toBeUndefined();
+		expect(
+			await cache.toRemoteCache(join('local', 'path'), {
+				package: 'eas-cli',
+				version: '3.20.1',
+				packager: 'yarn',
+				cacheKey: 'custom-cache-key',
+			})
+		).toBeUndefined();
 		expect(remoteCache.saveCache).toBeCalledWith([join('local', 'path')], 'custom-cache-key');
 	});
 
 	it('fails when remote cache throws', async () => {
 		const error = new Error('Remote cache save failed');
 		spy.save.mockRejectedValueOnce(error);
-		await expect(cache.toRemoteCache(
-			join('local', 'path'),
-			{ package: 'expo-cli', version: '3.20.1', packager: 'yarn' },
-		)).rejects.toBe(error);
+		await expect(
+			cache.toRemoteCache(join('local', 'path'), { package: 'expo-cli', version: '3.20.1', packager: 'yarn' })
+		).rejects.toBe(error);
 	});
 
 	it('skips remote cache when unavailable', async () => {
 		// see: https://github.com/actions/toolkit/blob/9167ce1f3a32ad495fc1dbcb574c03c0e013ae53/packages/cache/src/internal/cacheHttpClient.ts#L41
 		const error = new Error('Cache Service Url not found, unable to restore cache.');
 		spy.save.mockRejectedValueOnce(error);
-		await expect(cache.toRemoteCache(
-			join('local', 'path'),
-			{ package: 'expo-cli', version: '3.20.1', packager: 'yarn' },
-		)).resolves.toBeUndefined();
+		await expect(
+			cache.toRemoteCache(join('local', 'path'), { package: 'expo-cli', version: '3.20.1', packager: 'yarn' })
+		).resolves.toBeUndefined();
 		expect(spy.warning).toHaveBeenCalledWith(expect.stringContaining('Skipping remote cache'));
 	});
 });

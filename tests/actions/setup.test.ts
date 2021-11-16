@@ -62,8 +62,7 @@ describe('run', () => {
 				mockInput({ [`${cliName}Version`]: 'latest' });
 				await setupAction();
 				expect(install.install).toBeCalledWith({
-					package:
-					packageName,
+					package: packageName,
 					version: 'latest',
 					packager: 'yarn',
 					cache: false,
@@ -101,7 +100,7 @@ describe('run', () => {
 					packager: 'yarn',
 					[`${cliName}Version`]: '4.2.0',
 					[`${cliName}Cache`]: 'true',
-					[`${cliName}CacheKey`]: 'custom-key'
+					[`${cliName}CacheKey`]: 'custom-key',
 				});
 				await setupAction();
 				expect(install.install).toBeCalledWith({
@@ -145,7 +144,7 @@ function mockInput(props: MockInputProps = {}) {
 			case 'expo-cache':
 				return props.expoCache || '';
 			case 'expo-cache-key':
-				return props.expoCacheKey || '';``
+				return props.expoCacheKey || '';
 			case 'eas-version':
 				return props.easVersion || '';
 			case 'eas-cache':

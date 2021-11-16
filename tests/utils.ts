@@ -38,7 +38,7 @@ export function restoreEnv(): void {
  */
 export function getToolsMock() {
 	return {
-		getBoolean: jest.fn((v, d) => v ? v === 'true' : d),
+		getBoolean: jest.fn((v, d) => (v ? v === 'true' : d)),
 		getBinaryName: jest.fn(v => v.replace('-cli', '')),
 		resolveVersion: jest.fn((n, v) => v),
 		maybeAuthenticate: jest.fn(),
