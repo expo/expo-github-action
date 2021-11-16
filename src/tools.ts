@@ -8,17 +8,17 @@ const registry = require('libnpm');
 export type PackageName = 'expo-cli' | 'eas-cli';
 
 export type AuthenticateOptions = {
-	cli?: PackageName;
-	token?: string;
-	username?: string;
-	password?: string;
+  cli?: PackageName;
+  token?: string;
+  username?: string;
+  password?: string;
 };
 
 /**
  * Get a boolean value from string, useful for GitHub Actions boolean inputs.
  */
 export function getBoolean(value: string, defaultValue = false): boolean {
-	return (value || String(defaultValue)).toLowerCase() === 'true';
+  return (value || String(defaultValue)).toLowerCase() === 'true';
 }
 
 /**
@@ -26,8 +26,8 @@ export function getBoolean(value: string, defaultValue = false): boolean {
  * For windows we have to use `<bin>.cmd`, toolkit will handle the Windows binary with that.
  */
 export function getBinaryName(name: PackageName, forWindows = false): string {
-	const bin = name.toLowerCase().replace('-cli', '');
-	return forWindows ? `${bin}.cmd` : bin;
+  const bin = name.toLowerCase().replace('-cli', '');
+  return forWindows ? `${bin}.cmd` : bin;
 }
 
 /**
@@ -36,7 +36,7 @@ export function getBinaryName(name: PackageName, forWindows = false): string {
  * It's used to determine the cached version of `expo-cli`.
  */
 export async function resolveVersion(name: PackageName, version: string): Promise<string> {
-	return (await registry.manifest(`${name}@${version}`)).version;
+  return (await registry.manifest(`${name}@${version}`)).version;
 }
 
 /**
@@ -44,37 +44,37 @@ export async function resolveVersion(name: PackageName, version: string): Promis
  * If both of them are set, token has priority.
  */
 export async function maybeAuthenticate(options: AuthenticateOptions = {}): Promise<void> {
-	if (options.token) {
-		if (options.cli) {
-			const bin = getBinaryName(options.cli, process.platform === 'win32');
-			await cli.exec(bin, ['whoami'], {
-				env: { ...process.env, EXPO_TOKEN: options.token },
-			});
-		} else {
-			core.info("Skipping token validation: no CLI installed, can't run `whoami`.");
-		}
+  if (options.token) {
+    if (options.cli) {
+      const bin = getBinaryName(options.cli, process.platform === 'win32');
+      await cli.exec(bin, ['whoami'], {
+        env: { ...process.env, EXPO_TOKEN: options.token },
+      });
+    } else {
+      core.info("Skipping token validation: no CLI installed, can't run `whoami`.");
+    }
 
-		return core.exportVariable('EXPO_TOKEN', options.token);
-	}
+    return core.exportVariable('EXPO_TOKEN', options.token);
+  }
 
-	if (options.username || options.password) {
-		if (options.cli !== 'expo-cli') {
-			return core.warning(
-				'Skipping authentication: only Expo CLI supports programmatic credentials, use `token` instead.'
-			);
-		}
+  if (options.username || options.password) {
+    if (options.cli !== 'expo-cli') {
+      return core.warning(
+        'Skipping authentication: only Expo CLI supports programmatic credentials, use `token` instead.'
+      );
+    }
 
-		if (!options.username || !options.password) {
-			return core.info('Skipping authentication: `username` and/or `password` not set...');
-		}
+    if (!options.username || !options.password) {
+      return core.info('Skipping authentication: `username` and/or `password` not set...');
+    }
 
-		const bin = getBinaryName(options.cli, process.platform === 'win32');
-		await cli.exec(bin, ['login', `--username=${options.username}`], {
-			env: { ...process.env, EXPO_CLI_PASSWORD: options.password },
-		});
-	}
+    const bin = getBinaryName(options.cli, process.platform === 'win32');
+    await cli.exec(bin, ['login', `--username=${options.username}`], {
+      env: { ...process.env, EXPO_CLI_PASSWORD: options.password },
+    });
+  }
 
-	core.info('Skipping authentication: `token`, `username`, and/or `password` not set...');
+  core.info('Skipping authentication: `token`, `username`, and/or `password` not set...');
 }
 
 /**
@@ -85,22 +85,22 @@ export async function maybeAuthenticate(options: AuthenticateOptions = {}): Prom
  * @see https://github.com/expo/expo-github-action/issues/20
  */
 export async function maybePatchWatchers(): Promise<void> {
-	if (process.platform !== 'linux') {
-		return core.info('Skipping patch for watchers, not running on Linux...');
-	}
+  if (process.platform !== 'linux') {
+    return core.info('Skipping patch for watchers, not running on Linux...');
+  }
 
-	core.info('Patching system watchers for the `ENOSPC` error...');
+  core.info('Patching system watchers for the `ENOSPC` error...');
 
-	try {
-		// see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
-		await cli.exec('sudo sysctl fs.inotify.max_user_instances=524288');
-		await cli.exec('sudo sysctl fs.inotify.max_user_watches=524288');
-		await cli.exec('sudo sysctl fs.inotify.max_queued_events=524288');
-		await cli.exec('sudo sysctl -p');
-	} catch {
-		core.warning("Looks like we can't patch watchers/inotify limits, you might encouter the `ENOSPC` error.");
-		core.warning('For more info, https://github.com/expo/expo-github-action/issues/20');
-	}
+  try {
+    // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
+    await cli.exec('sudo sysctl fs.inotify.max_user_instances=524288');
+    await cli.exec('sudo sysctl fs.inotify.max_user_watches=524288');
+    await cli.exec('sudo sysctl fs.inotify.max_queued_events=524288');
+    await cli.exec('sudo sysctl -p');
+  } catch {
+    core.warning("Looks like we can't patch watchers/inotify limits, you might encouter the `ENOSPC` error.");
+    core.warning('For more info, https://github.com/expo/expo-github-action/issues/20');
+  }
 }
 
 /**
@@ -109,16 +109,16 @@ export async function maybePatchWatchers(): Promise<void> {
  * Because this introduces additional requests, it should only be executed when necessary.
  */
 export async function maybeWarnForUpdate(name: PackageName): Promise<void> {
-	const binaryName = getBinaryName(name);
-	const latest = await resolveVersion(name, 'latest');
-	const current = await resolveVersion(name, core.getInput(`${getBinaryName(name)}-version`) || 'latest');
+  const binaryName = getBinaryName(name);
+  const latest = await resolveVersion(name, 'latest');
+  const current = await resolveVersion(name, core.getInput(`${getBinaryName(name)}-version`) || 'latest');
 
-	if (semver.diff(latest, current) === 'major') {
-		core.warning(`There is a new major version available of the Expo CLI (${latest})`);
-		core.warning(
-			`If you run into issues, try upgrading your workflow to "${binaryName}-version: ${semver.major(latest)}.x"`
-		);
-	}
+  if (semver.diff(latest, current) === 'major') {
+    core.warning(`There is a new major version available of the Expo CLI (${latest})`);
+    core.warning(
+      `If you run into issues, try upgrading your workflow to "${binaryName}-version: ${semver.major(latest)}.x"`
+    );
+  }
 }
 
 /**
@@ -126,13 +126,13 @@ export async function maybeWarnForUpdate(name: PackageName): Promise<void> {
  * This mostly checks if the installed version is the latest version.
  */
 export async function handleError(name: PackageName, error: Error) {
-	try {
-		await maybeWarnForUpdate(name);
-	} catch {
-		// If this fails, ignore it
-	}
+  try {
+    await maybeWarnForUpdate(name);
+  } catch {
+    // If this fails, ignore it
+  }
 
-	core.setFailed(error);
+  core.setFailed(error);
 }
 
 /**
@@ -141,9 +141,9 @@ export async function handleError(name: PackageName, error: Error) {
  * The method can also be mocked.
  */
 export function performAction(action: () => Promise<void>) {
-	if (process.env.JEST_WORKER_ID) {
-		return Promise.resolve(null);
-	}
+  if (process.env.JEST_WORKER_ID) {
+    return Promise.resolve(null);
+  }
 
-	return action();
+  return action();
 }

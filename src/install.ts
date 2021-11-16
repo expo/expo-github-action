@@ -7,16 +7,16 @@ import { fromLocalCache, fromRemoteCache, toLocalCache, toRemoteCache } from './
 import { PackageName } from './tools';
 
 export type InstallConfig = {
-	/** The exact version to install */
-	version: string;
-	/** The name of the package to install */
-	package: PackageName;
-	/** The packager to install with, likely to be `yarn` or `npm` */
-	packager: string;
-	/** If remote caching is enabled or not */
-	cache?: boolean;
-	/** The custom remote cache key */
-	cacheKey?: string;
+  /** The exact version to install */
+  version: string;
+  /** The name of the package to install */
+  package: PackageName;
+  /** The packager to install with, likely to be `yarn` or `npm` */
+  packager: string;
+  /** If remote caching is enabled or not */
+  cache?: boolean;
+  /** The custom remote cache key */
+  cacheKey?: string;
 };
 
 /**
@@ -25,24 +25,24 @@ export type InstallConfig = {
  * It returns the path where Expo is installed.
  */
 export async function install(config: InstallConfig): Promise<string> {
-	let root: string | undefined = await fromLocalCache(config);
+  let root: string | undefined = await fromLocalCache(config);
 
-	if (!root && config.cache) {
-		root = await fromRemoteCache(config);
-	} else {
-		core.info('Skipping remote cache, not enabled...');
-	}
+  if (!root && config.cache) {
+    root = await fromRemoteCache(config);
+  } else {
+    core.info('Skipping remote cache, not enabled...');
+  }
 
-	if (!root) {
-		root = await fromPackager(config);
-		root = await toLocalCache(root, config);
+  if (!root) {
+    root = await fromPackager(config);
+    root = await toLocalCache(root, config);
 
-		if (config.cache) {
-			await toRemoteCache(root, config);
-		}
-	}
+    if (config.cache) {
+      await toRemoteCache(root, config);
+    }
+  }
 
-	return path.join(root, 'node_modules', '.bin');
+  return path.join(root, 'node_modules', '.bin');
 }
 
 /**
@@ -50,11 +50,11 @@ export async function install(config: InstallConfig): Promise<string> {
  * It creates a temporary directory to store all required files.
  */
 export async function fromPackager(config: InstallConfig): Promise<string> {
-	const root = process.env['RUNNER_TEMP'] || '';
-	const tool = await io.which(config.packager);
+  const root = process.env['RUNNER_TEMP'] || '';
+  const tool = await io.which(config.packager);
 
-	await io.mkdirP(root);
-	await cli.exec(tool, ['add', `${config.package}@${config.version}`], { cwd: root });
+  await io.mkdirP(root);
+  await cli.exec(tool, ['add', `${config.package}@${config.version}`], { cwd: root });
 
-	return root;
+  return root;
 }
