@@ -18,7 +18,7 @@ export type AuthenticateOptions = {
  * Get a boolean value from string, useful for GitHub Actions boolean inputs.
  */
 export function getBoolean(value: string, defaultValue = false): boolean {
-	return (value.toLowerCase() || (defaultValue ? 'true' : 'false')) === 'true';
+	return (value || String(defaultValue)).toLowerCase() === 'true';
 }
 
 /**
@@ -129,4 +129,17 @@ export async function handleError(name: PackageName, error: Error) {
 	}
 
 	core.setFailed(error);
+}
+
+/**
+ * Auto-execute the action if it's not running in a test environment.
+ * This is useful to test the action, without running it in tests.
+ * The method can also be mocked.
+ */
+export function performAction(action: () => Promise<void>) {
+	if (process.env.JEST_WORKER_ID) {
+		return Promise.resolve(null);
+	}
+
+	return action();
 }

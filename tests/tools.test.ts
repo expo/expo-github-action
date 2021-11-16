@@ -342,3 +342,23 @@ describe(tools.handleError, () => {
 		expect(core.setFailed).toBeCalledWith(error);
 	});
 });
+
+describe(tools.performAction, () => {
+	it('skips the test in a jest environment', async () => {
+		utils.setEnv('JEST_WORKER_ID', '69');
+		const action = jest.fn();
+		const result = await tools.performAction(action);
+		expect(result).toBeNull();
+		expect(action).not.toBeCalled();
+		utils.restoreEnv();
+	});
+
+	it('runs the test outside a jest environment', async () => {
+		utils.setEnv('JEST_WORKER_ID', '');
+		const action = jest.fn();
+		const result = await tools.performAction(action);
+		expect(result).toBeUndefined();
+		expect(action).toBeCalled();
+		utils.restoreEnv();
+	});
+});
