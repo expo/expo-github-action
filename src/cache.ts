@@ -15,7 +15,7 @@ export type CacheConfig = Omit<InstallConfig, 'cache'>;
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function fromLocalCache(config: CacheConfig): Promise<string | undefined> {
-	return toolCache.find(config.package, config.version);
+  return toolCache.find(config.package, config.version);
 }
 
 /**
@@ -25,7 +25,7 @@ export async function fromLocalCache(config: CacheConfig): Promise<string | unde
  * @see https://github.com/actions/toolkit/issues/47
  */
 export async function toLocalCache(root: string, config: CacheConfig): Promise<string> {
-	return toolCache.cacheDir(root, config.package, config.version);
+  return toolCache.cacheDir(root, config.package, config.version);
 }
 
 /**
@@ -33,21 +33,21 @@ export async function toLocalCache(root: string, config: CacheConfig): Promise<s
  * Note, this cache is shared between jobs.
  */
 export async function fromRemoteCache(config: CacheConfig): Promise<string | undefined> {
-	// see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
-	const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', config.package, config.version, os.arch());
-	const cacheKey = config.cacheKey || getRemoteKey(config);
+  // see: https://github.com/actions/toolkit/blob/8a4134761f09d0d97fb15f297705fd8644fef920/packages/tool-cache/src/tool-cache.ts#L401
+  const target = path.join(process.env['RUNNER_TOOL_CACHE'] || '', config.package, config.version, os.arch());
+  const cacheKey = config.cacheKey || getRemoteKey(config);
 
-	try {
-		// When running with nektos/act, or other custom environments, the cache might not be set up.
-		const hit = await restoreCache([target], cacheKey);
-		if (hit) {
-			return target;
-		}
-	} catch (error) {
-		if (!handleRemoteCacheError(error)) {
-			throw error;
-		}
-	}
+  try {
+    // When running with nektos/act, or other custom environments, the cache might not be set up.
+    const hit = await restoreCache([target], cacheKey);
+    if (hit) {
+      return target;
+    }
+  } catch (error) {
+    if (!handleRemoteCacheError(error)) {
+      throw error;
+    }
+  }
 }
 
 /**
@@ -55,22 +55,22 @@ export async function fromRemoteCache(config: CacheConfig): Promise<string | und
  * Note, this cache is shared between jobs.
  */
 export async function toRemoteCache(source: string, config: CacheConfig): Promise<void> {
-	const cacheKey = config.cacheKey || getRemoteKey(config);
+  const cacheKey = config.cacheKey || getRemoteKey(config);
 
-	try {
-		await saveCache([source], cacheKey);
-	} catch (error) {
-		if (!handleRemoteCacheError(error)) {
-			throw error;
-		}
-	}
+  try {
+    await saveCache([source], cacheKey);
+  } catch (error) {
+    if (!handleRemoteCacheError(error)) {
+      throw error;
+    }
+  }
 }
 
 /**
  * Get the cache key to use when (re)storing the Expo CLI from remote cache.
  */
 function getRemoteKey(config: Omit<CacheConfig, 'cacheKey'>): string {
-	return `${config.package}-${process.platform}-${os.arch()}-${config.packager}-${config.version}`;
+  return `${config.package}-${process.platform}-${os.arch()}-${config.packager}-${config.version}`;
 }
 
 /**
@@ -81,14 +81,14 @@ function getRemoteKey(config: Omit<CacheConfig, 'cacheKey'>): string {
  * @returns If the error was handled properly.
  */
 function handleRemoteCacheError(error: Error): boolean {
-	const isReserveCacheError = error instanceof ReserveCacheError;
-	const isCacheUnavailable = error.message.toLowerCase().includes('cache service url not found');
+  const isReserveCacheError = error instanceof ReserveCacheError;
+  const isCacheUnavailable = error.message.toLowerCase().includes('cache service url not found');
 
-	if (isReserveCacheError || isCacheUnavailable) {
-		core.warning('Skipping remote cache storage, encountered error:');
-		core.warning(error.message);
-		return true;
-	}
+  if (isReserveCacheError || isCacheUnavailable) {
+    core.warning('Skipping remote cache storage, encountered error:');
+    core.warning(error.message);
+    return true;
+  }
 
-	return false;
+  return false;
 }
