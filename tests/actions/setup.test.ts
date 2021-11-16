@@ -145,7 +145,6 @@ function mockInput(props: MockInputProps = {}) {
 				return props.expoCache || '';
 			case 'expo-cache-key':
 				return props.expoCacheKey || '';
-				``;
 			case 'eas-version':
 				return props.easVersion || '';
 			case 'eas-cache':
