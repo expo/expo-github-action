@@ -50,7 +50,7 @@ async function installCli(name: tools.PackageName): Promise<string | void> {
 		);
 
 		addPath(path);
-	} catch (error: any) {
+	} catch (error) {
 		tools.handleError(name, error);
 	}
 
