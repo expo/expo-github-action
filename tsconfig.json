@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"outDir": "./build",
 		"rootDir": "./src",
-		"noImplicitAny": false
+		"useUnknownInCatchVariables": false
 	},
 	"exclude": [
 		"build",

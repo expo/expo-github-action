@@ -14,14 +14,9 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 	],
 	rules: {
-		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/explicit-member-accessibility': [
 			'error', { 'accessibility': 'no-public' },
 		],
-		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/indent': ['error', 'tab'],
-		'@typescript-eslint/no-non-null-assertion': 'off',
-		'@typescript-eslint/no-use-before-define': 'off',
-		'@typescript-eslint/no-explicit-any': 'off',
 	},
 };

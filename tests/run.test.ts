@@ -1,7 +1,7 @@
 const core = {
 	addPath: jest.fn(),
 	getInput: jest.fn(),
-	group: (message: string, action: () => Promise<any>) => action(),
+	group: <T>(message: string, action: () => Promise<T>): Promise<T> => action(),
 	info: jest.fn(),
 };
 const exec = { exec: jest.fn() };

@@ -43,7 +43,7 @@ export async function fromRemoteCache(config: CacheConfig): Promise<string | und
 		if (hit) {
 			return target;
 		}
-	} catch (error: any) {
+	} catch (error) {
 		if (!handleRemoteCacheError(error)) {
 			throw error;
 		}
@@ -59,7 +59,7 @@ export async function toRemoteCache(source: string, config: CacheConfig): Promis
 
 	try {
 		await saveCache([source], cacheKey);
-	} catch (error: any) {
+	} catch (error) {
 		if (!handleRemoteCacheError(error)) {
 			throw error;
 		}
