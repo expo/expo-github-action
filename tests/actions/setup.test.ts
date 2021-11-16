@@ -1,3 +1,5 @@
+import { getToolsMock } from '../utils';
+
 const core = {
 	addPath: jest.fn(),
 	getInput: jest.fn(),
@@ -6,49 +8,43 @@ const core = {
 };
 const exec = { exec: jest.fn() };
 const install = { install: jest.fn() };
-const tools = {
-	getBoolean: jest.fn((v, d) => v ? v === 'true' : d),
-	getBinaryName: jest.fn(v => v.replace('-cli', '')),
-	resolveVersion: jest.fn((n, v) => v),
-	maybeAuthenticate: jest.fn(),
-	maybePatchWatchers: jest.fn(),
-};
+const tools = getToolsMock();
 
 jest.mock('@actions/core', () => core);
 jest.mock('@actions/exec', () => exec);
-jest.mock('../src/tools', () => tools);
-jest.mock('../src/install', () => install);
+jest.mock('../../src/tools', () => tools);
+jest.mock('../../src/install', () => install);
 
-import { run } from '../src/run';
+import { setupAction } from '../../src/actions/setup';
 
 describe('run', () => {
 	it('patches the system when set to true', async () => {
 		mockInput({ patchWatchers: 'true' });
-		await run();
+		await setupAction();
 		expect(tools.maybePatchWatchers).toHaveBeenCalled();
 	});
 
 	it('patches the system when not set', async () => {
 		mockInput({ patchWatchers: '' });
-		await run();
+		await setupAction();
 		expect(tools.maybePatchWatchers).toHaveBeenCalled();
 	});
 
 	it('skips the system patch when set to false', async () => {
 		mockInput({ patchWatchers: 'false' });
-		await run();
+		await setupAction();
 		expect(tools.maybePatchWatchers).not.toHaveBeenCalled();
 	});
 
 	it('authenticates with provided credentials', async () => {
 		mockInput({ username: 'bycedric', password: 'mypassword', patchWatchers: 'false' });
-		await run();
+		await setupAction();
 		expect(tools.maybeAuthenticate).toBeCalledWith({ username: 'bycedric', password: 'mypassword' });
 	});
 
 	it('authenticates with provided token', async () => {
 		mockInput({ token: 'ABC123', patchWatchers: 'false' });
-		await run();
+		await setupAction();
 		expect(tools.maybeAuthenticate).toBeCalledWith({ token: 'ABC123' });
 	});
 
@@ -58,13 +54,13 @@ describe('run', () => {
 		describe(packageName, () => {
 			it(`skips installation without \`${cliName}-version\``, async () => {
 				mockInput();
-				await run();
+				await setupAction();
 				expect(install.install).not.toBeCalledWith({ package: packageName });
 			});
 
 			it('installs with yarn by default', async () => {
 				mockInput({ [`${cliName}Version`]: 'latest' });
-				await run();
+				await setupAction();
 				expect(install.install).toBeCalledWith({
 					package:
 					packageName,
@@ -76,7 +72,7 @@ describe('run', () => {
 
 			it('installs provided version with npm', async () => {
 				mockInput({ [`${cliName}Version`]: '3.0.10', packager: 'npm' });
-				await run();
+				await setupAction();
 				expect(install.install).toBeCalledWith({
 					package: packageName,
 					version: '3.0.10',
@@ -91,7 +87,7 @@ describe('run', () => {
 					[`${cliName}Version`]: '4.2.0',
 					[`${cliName}Cache`]: 'true',
 				});
-				await run();
+				await setupAction();
 				expect(install.install).toBeCalledWith({
 					package: packageName,
 					version: '4.2.0',
@@ -107,7 +103,7 @@ describe('run', () => {
 					[`${cliName}Cache`]: 'true',
 					[`${cliName}CacheKey`]: 'custom-key'
 				});
-				await run();
+				await setupAction();
 				expect(install.install).toBeCalledWith({
 					package: packageName,
 					version: '4.2.0',
@@ -119,7 +115,7 @@ describe('run', () => {
 
 			it('installs path to global path', async () => {
 				install.install.mockResolvedValue(`/${cliName}/install/path`);
-				await run();
+				await setupAction();
 				expect(core.addPath).toBeCalledWith(`/${cliName}/install/path`);
 			});
 		});
@@ -149,7 +145,7 @@ function mockInput(props: MockInputProps = {}) {
 			case 'expo-cache':
 				return props.expoCache || '';
 			case 'expo-cache-key':
-				return props.expoCacheKey || '';
+				return props.expoCacheKey || '';``
 			case 'eas-version':
 				return props.easVersion || '';
 			case 'eas-cache':

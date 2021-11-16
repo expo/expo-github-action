@@ -1,9 +1,12 @@
 import { addPath, getInput, group, info } from '@actions/core';
 
-import { install } from './install';
-import * as tools from './tools';
+import { install } from '../install';
+import * as tools from '../tools';
 
-export async function run(): Promise<void> {
+// Auto-execute in GitHub actions
+tools.performAction(setupAction);
+
+export async function setupAction(): Promise<void> {
 	const expoVersion = await installCli('expo-cli');
 	const easVersion = await installCli('eas-cli');
 
