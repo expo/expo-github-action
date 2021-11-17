@@ -52,4 +52,7 @@ jobs:
         run: yarn build
       - name: Build up-to-date
         if: ${{ matrix.checkUpToDate }}
-        run: git diff --stat --exit-code build
+        run: |
+          echo "⚠️ If this step fails, the build is outdated."
+          echo "    > run 'yarn build' and commit changes"
+          git diff --stat --exit-code build
