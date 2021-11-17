@@ -1,4 +1,4 @@
-import { addPath, getInput, group, info } from '@actions/core';
+import { addPath, getBooleanInput, getInput, group, info } from '@actions/core';
 
 import { install } from '../install';
 import * as tools from '../tools';
@@ -19,7 +19,7 @@ export async function setupAction(): Promise<void> {
     })
   );
 
-  if (tools.getBoolean(getInput('patch-watchers'), true)) {
+  if (!getInput('patch-watchers') || getBooleanInput('patch-watchers') !== false) {
     await group('Patching system watchers for the `ENOSPC` error', () => tools.maybePatchWatchers());
   }
 }
@@ -34,7 +34,7 @@ async function installCli(name: tools.PackageName): Promise<string | void> {
   }
 
   const version = await tools.resolveVersion(name, inputVersion);
-  const cache = tools.getBoolean(getInput(`${shortName}-cache`), false);
+  const cache = getBooleanInput(`${shortName}-cache`);
 
   try {
     const path = await group(
