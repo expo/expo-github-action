@@ -1,5 +1,6 @@
 import { getInput, setFailed } from '@actions/core';
 import { exec } from '@actions/exec';
+import * as path from 'path';
 
 import * as tools from '../tools';
 
@@ -10,7 +11,11 @@ export async function expoPublishAction(): Promise<void> {
   await tools.assertInstalled('expo-cli');
 
   const { releaseChannel, workingDirectory } = getInputs();
-  const options = releaseChannel ? [`--release-channel=${releaseChannel}`] : [];
+  const options = ['publish'];
+
+  if (releaseChannel) {
+    options.push(`--release-channel=${releaseChannel}`);
+  }
 
   try {
     await exec(tools.getBinaryName('expo-cli'), options, { cwd: workingDirectory });
@@ -25,13 +30,15 @@ type Inputs = {
 };
 
 function getInputs(): Inputs {
-  const workingDirectory = getInput('working-directory') || process.env['GITHUB_WORKSPACE'];
-  if (!workingDirectory) {
-    throw new Error(`Environment variable 'GITHUB_WORKSPACE' and input 'working-directory' are both undefined.`);
+  const githubWorkspace = process.env['GITHUB_WORKSPACE'];
+  if (!githubWorkspace) {
+    throw new Error(`Environment variable 'GITHUB_WORKSPACE' is not set`);
   }
 
+  const workingDirectory = getInput('working-directory') || '.';
+
   return {
-    workingDirectory,
+    workingDirectory: path.resolve(githubWorkspace, workingDirectory),
     releaseChannel: getInput('release-channel') || undefined,
   };
 }
