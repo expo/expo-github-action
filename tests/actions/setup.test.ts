@@ -11,19 +11,19 @@ import { setupAction } from '../../src/actions/setup';
 describe(setupAction, () => {
   describe('patch watchers', () => {
     it('patches the system when set to true', async () => {
-      mockInput({ 'patch-watchers': 'true' }, true);
+      mockInput({ 'patch-watchers': 'true' });
       await setupAction();
       expect(tools.maybePatchWatchers).toHaveBeenCalled();
     });
 
     it('patches the system when not set', async () => {
-      mockInput({ 'patch-watchers': '' }, true);
+      mockInput({ 'patch-watchers': '' });
       await setupAction();
       expect(tools.maybePatchWatchers).toHaveBeenCalled();
     });
 
     it('skips the system patch when set to false', async () => {
-      mockInput({ 'patch-watchers': 'false' }, true);
+      mockInput({ 'patch-watchers': 'false' });
       await setupAction();
       expect(tools.maybePatchWatchers).not.toHaveBeenCalled();
     });

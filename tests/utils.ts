@@ -50,7 +50,10 @@ export function getToolsMock() {
   };
 }
 
-export function mockInput(inputs: Record<string, string> = {}, mockBooleanInput = false) {
+/**
+ * Mock both the input and boolean input methods from `@actions/core`.
+ */
+export function mockInput(inputs: Record<string, string> = {}) {
   jest.spyOn(core, 'getInput').mockImplementation(name => inputs[name]);
   jest.spyOn(core, 'getBooleanInput').mockImplementation(name => inputs[name] === 'true');
 }
