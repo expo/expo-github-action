@@ -1,0 +1,15 @@
+---
+name: 'Expo GitHub Action: Expo Publish'
+author: Cedric van Putten <me@bycedric.com>
+description: Publish a new update for your app
+branding:
+  icon: terminal
+  color: gray-dark
+runs:
+  using: node12
+  main: build/expo-publish/index.js
+inputs:
+  release-channel:
+    description: The release channel to publish to. (defaults to `default`)
+  working-directory:
+    description: The app folder within your repository. (defaults to workspace root)
