@@ -7,28 +7,6 @@ import * as cli from '@actions/exec';
 import * as tools from '../src/tools';
 import * as utils from './utils';
 
-describe(tools.getBoolean, () => {
-  it('rreturns false for empty strings by default', () => {
-    expect(tools.getBoolean('')).toBeFalsy();
-  });
-
-  it('returns true for empty strings with default set to true', () => {
-    expect(tools.getBoolean('', true)).toBeTruthy();
-  });
-
-  it('returns true for `true` strings by default', () => {
-    expect(tools.getBoolean('true')).toBeTruthy();
-  });
-
-  it('returns false for `false` strings with default set to false', () => {
-    expect(tools.getBoolean('false', false)).toBeFalsy();
-  });
-
-  it('returns false for `false` strings with default set to true', () => {
-    expect(tools.getBoolean('false', true)).toBeFalsy();
-  });
-});
-
 describe(tools.getBinaryName, () => {
   it('returns expo for `expo-cli`', () => {
     expect(tools.getBinaryName('expo-cli')).toBe('expo');

@@ -15,13 +15,6 @@ export type AuthenticateOptions = {
 };
 
 /**
- * Get a boolean value from string, useful for GitHub Actions boolean inputs.
- */
-export function getBoolean(value: string, defaultValue = false): boolean {
-  return (value || String(defaultValue)).toLowerCase() === 'true';
-}
-
-/**
  * Convert `expo-cli` or `eas-cli` to just their binary name.
  * For windows we have to use `<bin>.cmd`, toolkit will handle the Windows binary with that.
  */

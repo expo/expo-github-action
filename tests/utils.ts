@@ -1,3 +1,5 @@
+import * as core from '@actions/core';
+
 // keep track of the original one to revert the platform
 const originalPlatform = process.platform;
 
@@ -38,7 +40,6 @@ export function restoreEnv(): void {
  */
 export function getToolsMock() {
   return {
-    getBoolean: jest.fn((v, d) => (v ? v === 'true' : d)),
     getBinaryName: jest.fn(v => v.replace('-cli', '')),
     resolveVersion: jest.fn((n, v) => v),
     maybeAuthenticate: jest.fn(),
@@ -47,4 +48,12 @@ export function getToolsMock() {
     handleError: jest.fn(),
     performAction: jest.fn(),
   };
+}
+
+/**
+ * Mock both the input and boolean input methods from `@actions/core`.
+ */
+export function mockInput(inputs: Record<string, string> = {}) {
+  jest.spyOn(core, 'getInput').mockImplementation(name => inputs[name]);
+  jest.spyOn(core, 'getBooleanInput').mockImplementation(name => inputs[name] === 'true');
 }
