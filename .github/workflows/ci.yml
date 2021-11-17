@@ -18,9 +18,6 @@ jobs:
           - windows-latest
         include:
           - node: 14
-            os: macos-latest
-            checkUpToDate: true
-          - node: 14
             os: ubuntu-latest
             checkUpToDate: true
     steps:
