@@ -9,13 +9,13 @@ import { getAppFullName, getAppLinks } from '../expo';
 tools.performAction(commentQRAction);
 
 export async function commentQRAction(): Promise<void> {
-  const { githubToken, releaseChannel, projectRoot } = getInputs();
+  const { releaseChannel, projectRoot } = getInputs();
 
   const repoRef = getPullRef();
   const appName = getAppFullName(projectRoot);
   const appLink = getAppLinks(appName, releaseChannel);
 
-  await createPullCommentOnce(githubToken, repoRef, {
+  await createPullCommentOnce(repoRef, {
     id: makeCommitId(appName, releaseChannel),
     body: makeCommitBody(appLink),
   });
@@ -27,13 +27,7 @@ function getInputs() {
     throw new Error(`Environment variable 'GITHUB_WORKSPACE' is not set`);
   }
 
-  const githubToken = getInput('github-token');
-  if (!githubToken) {
-    throw new Error(`This action requires a valid 'github-token' to create comments.`);
-  }
-
   return {
-    githubToken,
     releaseChannel: getInput('release-channel') || undefined,
     projectRoot: path.resolve(githubWorkspace, getInput('project-root') || '.'),
   };

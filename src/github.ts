@@ -38,11 +38,23 @@ export function makeCommitBody(links: AppLinks) {
 }
 
 /**
+ * Retrieve the token from `GITHUB_TOKEN` environment variable.
+ */
+export function getToken() {
+  const githubToken = process.env['GITHUB_TOKEN'];
+  if (!githubToken) {
+    throw new Error(`This action requires a valid 'github-token' to create comments.`);
+  }
+
+  return githubToken;
+}
+
+/**
  * Determine if a comment exists on an issue or pull with the provided identifier.
  * This will iterate all comments received from GitHub, and try to exit early if it exists.
  */
-export async function hasPullComment(token: string, pull: IssueOrPullRef, comment: Pick<Comment, 'id'>) {
-  const github = getOctokit(token);
+export async function hasPullComment(pull: IssueOrPullRef, comment: Pick<Comment, 'id'>) {
+  const github = getOctokit(getToken());
   const iterator = github.paginate.iterator(github.rest.issues.listComments, {
     owner: pull.owner,
     repo: pull.repo,
@@ -64,8 +76,8 @@ export async function hasPullComment(token: string, pull: IssueOrPullRef, commen
  * Create a new comment on an existing issue or pull.
  * This includes a hidden identifier (markdown comment) to identify the comment later.
  */
-export async function createPullComment(token: string, pull: IssueOrPullRef, comment: Comment) {
-  const github = getOctokit(token);
+export async function createPullComment(pull: IssueOrPullRef, comment: Comment) {
+  const github = getOctokit(getToken());
   const body = `<!-- ${comment.id} --> ${comment.body}`;
 
   return github.rest.issues.createComment({
@@ -80,10 +92,10 @@ export async function createPullComment(token: string, pull: IssueOrPullRef, com
  * Only create a comment if there are no comments with the identifier.
  * This avoids spamming a pull multiple times by using a hidden identifier in the comment.
  */
-export async function createPullCommentOnce(token: string, pull: IssueOrPullRef, comment: Comment) {
-  const commentExists = await hasPullComment(token, pull, comment);
+export async function createPullCommentOnce(pull: IssueOrPullRef, comment: Comment) {
+  const commentExists = await hasPullComment(pull, comment);
   if (!commentExists) {
-    return createPullComment(token, pull, comment);
+    return createPullComment(pull, comment);
   }
 
   return null;

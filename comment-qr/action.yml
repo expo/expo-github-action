@@ -9,9 +9,7 @@ runs:
   using: node12
   main: ../build/comment-qr/index.js
 inputs:
-  github-token:
-    description: The GitHub authentication token for commenting on pull requests
-  release-channel:
-    description: The release channel to publish to. (defaults to `default`)
   project-root:
     description: The app folder within your repository. (defaults to workspace root)
+  release-channel:
+    description: The release channel to publish to. (defaults to `default`)
