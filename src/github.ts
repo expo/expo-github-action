@@ -43,7 +43,7 @@ export function makeCommentBody(links: AppLinks) {
 export function getToken() {
   const githubToken = process.env['GITHUB_TOKEN'];
   if (!githubToken) {
-    throw new Error(`This action requires a 'GITHUB_TOKEN' environment variable to create comments.`);
+    throw new Error(`This step requires a 'GITHUB_TOKEN' environment variable to create comments.`);
   }
 
   return githubToken;
@@ -78,7 +78,7 @@ export async function hasPullComment(pull: IssueOrPullRef, comment: Pick<Comment
  */
 export async function createPullComment(pull: IssueOrPullRef, comment: Comment) {
   const github = getOctokit(getToken());
-  const body = `<!-- ${comment.id} --> ${comment.body}`;
+  const body = `${comment.body}\n\n<!-- ${comment.id} -->`;
 
   return github.rest.issues.createComment({
     owner: pull.owner,
