@@ -29,11 +29,11 @@ export function getPullRef(): IssueOrPullRef {
   return context.issue;
 }
 
-export function makeCommitId(appName: string, releaseChannel?: string) {
+export function makeCommentId(appName: string, releaseChannel?: string) {
   return `app:${appName} channel:${releaseChannel || 'default'}`;
 }
 
-export function makeCommitBody(links: AppLinks) {
+export function makeCommentBody(links: AppLinks) {
   return `Here is a [preview link](${links.url}).<br><br><a href="${links.url}"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${links.manifest}" height="200px" width="200px"></a>`;
 }
 

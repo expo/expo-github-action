@@ -2,7 +2,7 @@ import { getInput } from '@actions/core';
 import * as path from 'path';
 
 import * as tools from '../tools';
-import { createPullCommentOnce, getPullRef, makeCommitBody, makeCommitId } from '../github';
+import { createPullCommentOnce, getPullRef, makeCommentBody, makeCommentId } from '../github';
 import { getAppFullName, getAppLinks } from '../expo';
 
 // Auto-execute in GitHub actions
@@ -16,8 +16,8 @@ export async function commentQRAction(): Promise<void> {
   const appLink = getAppLinks(appName, releaseChannel);
 
   await createPullCommentOnce(repoRef, {
-    id: makeCommitId(appName, releaseChannel),
-    body: makeCommitBody(appLink),
+    id: makeCommentId(appName, releaseChannel),
+    body: makeCommentBody(appLink),
   });
 }
 
