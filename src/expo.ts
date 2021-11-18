@@ -8,7 +8,7 @@ export type AppLinks = {
 /**
  * Get the full name of the Expo app.
  * This executes `expo config --type public` to determine the app owner and name.
- * 
+ *
  * @todo Resolve the owner from the token if omitted. Right now it just fails, but user-tokens should be allowed.
  */
 export function getAppFullName(projectRoot: string): string {

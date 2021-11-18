@@ -139,7 +139,10 @@ export function performAction(action: () => Promise<void>) {
     return Promise.resolve(null);
   }
 
-  return action();
+  return action().catch(error => {
+    core.setFailed(error);
+    return error;
+  });
 }
 
 /**
