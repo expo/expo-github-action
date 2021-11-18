@@ -43,7 +43,7 @@ export function makeCommentBody(links: AppLinks) {
 export function getToken() {
   const githubToken = process.env['GITHUB_TOKEN'];
   if (!githubToken) {
-    throw new Error(`This action requires a valid 'github-token' to create comments.`);
+    throw new Error(`This action requires a 'GITHUB_TOKEN' environment variable to create comments.`);
   }
 
   return githubToken;
