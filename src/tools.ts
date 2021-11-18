@@ -140,7 +140,7 @@ export function performAction(action: () => Promise<void>) {
   }
 
   return action().catch(error => {
-    core.setFailed(error);
+    core.setFailed(error.message || error);
     return error;
   });
 }
