@@ -34,7 +34,7 @@ export function getAppFullName(projectRoot: string): string {
 export function getAppLinks(fullName: string, releaseChannel?: string): AppLinks {
   let app = `${fullName}`;
   if (releaseChannel) {
-    app += `release-channel=${releaseChannel}`;
+    app += `?release-channel=${releaseChannel}`;
   }
 
   return {
