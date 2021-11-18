@@ -8,6 +8,8 @@ export type AppLinks = {
 /**
  * Get the full name of the Expo app.
  * This executes `expo config --type public` to determine the app owner and name.
+ * 
+ * @todo Resolve the owner from the token if omitted. Right now it just fails, but user-tokens should be allowed.
  */
 export function getAppFullName(projectRoot: string): string {
   const { exp: app } = getConfig(projectRoot, {
@@ -16,7 +18,8 @@ export function getAppFullName(projectRoot: string): string {
     isPublicConfig: true,
   });
 
-  if (!app.currentFullName) {
+  // TODO(cedric): resolve the owner from token if not specified in the config
+  if (!app.currentFullName || app.currentFullName.startsWith('@anonymous/')) {
     throw new Error(
       `Can't resolve the app name and owner. If you use a robot, make sure to add 'owner' in your app manifest.`
     );
