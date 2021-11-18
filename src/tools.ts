@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
+import * as io from '@actions/io';
 import semver from 'semver';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -139,4 +140,16 @@ export function performAction(action: () => Promise<void>) {
   }
 
   return action();
+}
+
+/**
+ * Validate if the CLI is installed.
+ * If it's not, this will throw a helpful error message.
+ */
+export async function assertInstalled(name: PackageName): Promise<void> {
+  try {
+    await io.which(getBinaryName(name, process.platform === 'win32'), true);
+  } catch {
+    throw new Error(`Could not find ${name}. Make sure you set up ${name} before running this step.`);
+  }
 }

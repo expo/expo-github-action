@@ -1,0 +1,17 @@
+---
+name: 'Expo GitHub Action: Comment QR'
+author: Cedric van Putten <me@bycedric.com>
+description: Add an Expo QR code to your pull requests
+branding:
+  icon: terminal
+  color: gray-dark
+runs:
+  using: node12
+  main: ../build/comment-qr/index.js
+inputs:
+  github-token:
+    description: The GitHub authentication token for commenting on pull requests
+  release-channel:
+    description: The release channel to publish to. (defaults to `default`)
+  project-root:
+    description: The app folder within your repository. (defaults to workspace root)
