@@ -6,7 +6,7 @@ branding:
   icon: terminal
   color: gray-dark
 runs:
-  using: node12
+  using: node16
   main: build/setup/index.js
 inputs:
   expo-version:

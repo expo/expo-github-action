@@ -1,5 +1,5 @@
 {
-	"extends": "./node_modules/@tsconfig/node14/tsconfig.json",
+	"extends": "./node_modules/@tsconfig/node16/tsconfig.json",
 	"compilerOptions": {
 		"outDir": "./build",
 		"rootDir": "./src",
