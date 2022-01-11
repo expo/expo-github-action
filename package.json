@@ -32,9 +32,9 @@
 	"devDependencies": {
 		"@semantic-release/changelog": "^5.0.1",
 		"@semantic-release/git": "^9.0.0",
-		"@tsconfig/node14": "^1.0.1",
+		"@tsconfig/node16": "^1.0.2",
 		"@types/jest": "^27.0.2",
-		"@types/node": "^14.17.3",
+		"@types/node": "^16.11.19",
 		"@types/semver": "^7.3.6",
 		"@typescript-eslint/eslint-plugin": "^5.4.0",
 		"@typescript-eslint/parser": "^5.4.0",
