@@ -46,7 +46,7 @@ jobs:
       - name: 👷 Build code
         run: yarn build
 
-      - name: 🕵️ Build validate
+      - name: 🕵️ Validate code
         if: ${{ matrix.checkBuild }}
         run: |
           echo "⚠️ If this step fails, the build is outdated."
