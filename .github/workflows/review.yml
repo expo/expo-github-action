@@ -1,0 +1,54 @@
+name: review
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        node: [16.x]
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        include:
+          - node: 16.x
+            os: ubuntu-latest
+            checkBuild: true
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile --check-files
+
+      - name: ✅ Lint code
+        run: yarn lint
+
+      - name: 🧪 Test code
+        run: yarn test
+
+      - name: 👷 Build code
+        run: yarn build
+
+      - name: 🕵️ Validate code
+        if: ${{ matrix.checkBuild }}
+        run: |
+          echo "⚠️ If this step fails, the build is outdated."
+          echo "    > run 'yarn build' and commit changes"
+          git diff --stat --exit-code build
