@@ -264,17 +264,13 @@ describe(tools.maybeWarnForUpdate, () => {
   });
 
   it('is silent when major version is up to date', async () => {
-    spy.resolveVersion
-      .mockResolvedValueOnce('4.1.0')
-      .mockResolvedValueOnce('4.0.1');
+    spy.resolveVersion.mockResolvedValueOnce('4.1.0').mockResolvedValueOnce('4.0.1');
     await tools.maybeWarnForUpdate('eas-cli');
     expect(spy.warning).not.toBeCalled();
   });
 
   it('warns when major version is outdated', async () => {
-    spy.resolveVersion
-      .mockResolvedValueOnce('4.1.0')
-      .mockResolvedValueOnce('3.0.1');
+    spy.resolveVersion.mockResolvedValueOnce('4.1.0').mockResolvedValueOnce('3.0.1');
     await tools.maybeWarnForUpdate('expo-cli');
     expect(spy.warning).toBeCalledWith('There is a new major version available of the Expo CLI (4.1.0)');
     expect(spy.warning).toBeCalledWith('If you run into issues, try upgrading your workflow to "expo-version: 4.x"');
