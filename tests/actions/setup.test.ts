@@ -1,6 +1,9 @@
 import { getToolsMock, mockInput } from '../utils';
 
 jest.mock('../../src/tools', () => getToolsMock());
+jest.mock('../../src/packager', () => ({
+  async resolveVersion(_: string, version: string) { return version },
+}));
 
 import * as core from '@actions/core';
 

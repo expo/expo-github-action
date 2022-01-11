@@ -19,7 +19,7 @@ describe(resolveVersion, () => {
     expect(validVersion(version)).not.toBeNull();
   });
 
-  it('rejects donotpublishthispackageoryouwillbefired with', async () => {
+  it('rejects donotpublishthispackageoryouwillbefired with proper error', async () => {
     await expect(resolveVersion('donotpublishthispackageoryouwillbefired', 'latest')).rejects.toThrow(
       'Could not resolve version "latest" of "donotpublishthispackageoryouwillbefired"'
     );
