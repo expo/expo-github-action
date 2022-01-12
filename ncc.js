@@ -8,7 +8,8 @@ async function build() {
   const actionsDir = path.resolve(__dirname, 'src/actions');
   const buildDir = path.resolve(__dirname, 'build');
 
-  const actions = fs.readdirSync(actionsDir, { withFileTypes: true })
+  const actions = fs
+    .readdirSync(actionsDir, { withFileTypes: true })
     .filter(entity => entity.isFile())
     .map(entity => ({
       name: path.basename(entity.name, path.extname(entity.name)),
@@ -21,7 +22,7 @@ async function build() {
 
     console.log(`✓ ${path.relative(__dirname, action.file)}`);
   }
-};
+}
 
 async function compile(entry) {
   const { code, map, assets } = await ncc(entry, {
@@ -44,7 +45,7 @@ function write(files, dir) {
     }
 
     const filePath = path.resolve(dir, fileName);
-    
+
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, files[fileName].source, { encoding: 'utf-8' });
   }
