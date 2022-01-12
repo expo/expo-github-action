@@ -41,7 +41,6 @@ export function restoreEnv(): void {
 export function getToolsMock() {
   return {
     getBinaryName: jest.fn(v => v.replace('-cli', '')),
-    resolveVersion: jest.fn((n, v) => v),
     maybeAuthenticate: jest.fn(),
     maybePatchWatchers: jest.fn(),
     maybeWarnForUpdate: jest.fn(),

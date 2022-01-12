@@ -1,6 +1,7 @@
 import { addPath, getBooleanInput, getInput, group, info } from '@actions/core';
 
 import { install } from '../install';
+import { resolveVersion } from '../packager';
 import * as tools from '../tools';
 
 // Auto-execute in GitHub actions
@@ -33,7 +34,7 @@ async function installCli(name: tools.PackageName): Promise<string | void> {
     return info(`Skipping installation of ${name}, \`${shortName}-version\` not provided.`);
   }
 
-  const version = await tools.resolveVersion(name, inputVersion);
+  const version = await resolveVersion(name, inputVersion);
   const cache = getBooleanInput(`${shortName}-cache`);
 
   try {

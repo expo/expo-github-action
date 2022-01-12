@@ -2,8 +2,7 @@ import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 import semver from 'semver';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const registry = require('libnpm');
+import { resolveVersion } from './packager';
 
 export type PackageName = 'expo-cli' | 'eas-cli';
 
@@ -21,15 +20,6 @@ export type AuthenticateOptions = {
 export function getBinaryName(name: PackageName, forWindows = false): string {
   const bin = name.toLowerCase().replace('-cli', '');
   return forWindows ? `${bin}.cmd` : bin;
-}
-
-/**
- * Resolve the provided semver to exact version of `expo-cli`.
- * This uses the npm registry and accepts latest, dist-tags or version ranges.
- * It's used to determine the cached version of `expo-cli`.
- */
-export async function resolveVersion(name: PackageName, version: string): Promise<string> {
-  return (await registry.manifest(`${name}@${version}`)).version;
 }
 
 /**

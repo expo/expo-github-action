@@ -1,10 +1,8 @@
-const registry = { manifest: jest.fn() };
-jest.mock('libnpm', () => registry);
-
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 
 import * as tools from '../src/tools';
+import * as packager from '../src/packager';
 import * as utils from './utils';
 
 describe(tools.getBinaryName, () => {
@@ -18,20 +16,6 @@ describe(tools.getBinaryName, () => {
 
   it('returns eas.cmd for `eas-cli` for windows', () => {
     expect(tools.getBinaryName('eas-cli', true)).toBe('eas.cmd');
-  });
-});
-
-describe(tools.resolveVersion, () => {
-  it('fetches exact version of expo-cli', async () => {
-    registry.manifest.mockResolvedValue({ version: '3.0.10' });
-    expect(await tools.resolveVersion('expo-cli', 'latest')).toBe('3.0.10');
-    expect(registry.manifest).toBeCalledWith('expo-cli@latest');
-  });
-
-  it('fetches exact version of eas-cli', async () => {
-    registry.manifest.mockResolvedValue({ version: '4.2.0' });
-    expect(await tools.resolveVersion('eas-cli', 'latest')).toBe('4.2.0');
-    expect(registry.manifest).toBeCalledWith('eas-cli@latest');
   });
 });
 
@@ -268,21 +252,25 @@ describe(tools.maybeWarnForUpdate, () => {
   let spy: { [key: string]: jest.SpyInstance } = {};
 
   beforeEach(() => {
-    spy = { warning: jest.spyOn(core, 'warning').mockImplementation() };
+    spy = {
+      warning: jest.spyOn(core, 'warning').mockImplementation(),
+      resolveVersion: jest.spyOn(packager, 'resolveVersion').mockImplementation(),
+    };
   });
 
   afterAll(() => {
     spy.warning.mockRestore();
+    spy.resolveVersion.mockRestore();
   });
 
   it('is silent when major version is up to date', async () => {
-    registry.manifest.mockResolvedValueOnce({ version: '4.1.0' }).mockResolvedValueOnce({ version: '4.0.1' });
+    spy.resolveVersion.mockResolvedValueOnce('4.1.0').mockResolvedValueOnce('4.0.1');
     await tools.maybeWarnForUpdate('eas-cli');
     expect(spy.warning).not.toBeCalled();
   });
 
   it('warns when major version is outdated', async () => {
-    registry.manifest.mockResolvedValueOnce({ version: '4.1.0' }).mockResolvedValueOnce({ version: '3.0.1' });
+    spy.resolveVersion.mockResolvedValueOnce('4.1.0').mockResolvedValueOnce('3.0.1');
     await tools.maybeWarnForUpdate('expo-cli');
     expect(spy.warning).toBeCalledWith('There is a new major version available of the Expo CLI (4.1.0)');
     expect(spy.warning).toBeCalledWith('If you run into issues, try upgrading your workflow to "expo-version: 4.x"');
@@ -293,23 +281,27 @@ describe(tools.handleError, () => {
   let spy: { [key: string]: jest.SpyInstance } = {};
 
   beforeEach(() => {
-    spy = { setFailed: jest.spyOn(core, 'setFailed').mockImplementation() };
+    spy = {
+      setFailed: jest.spyOn(core, 'setFailed').mockImplementation(),
+      resolveVersion: jest.spyOn(packager, 'resolveVersion').mockImplementation(),
+    };
   });
 
   afterAll(() => {
     spy.setFailed.mockRestore();
+    spy.resolveVersion.mockRestore();
   });
 
   it('marks the job as failed with expo-cli', async () => {
     const error = new Error('test');
-    registry.manifest.mockResolvedValue('4.0.0');
+    spy.resolveVersion.mockResolvedValue('4.0.0');
     await tools.handleError('expo-cli', error);
     expect(core.setFailed).toBeCalledWith(error);
   });
 
   it('fails with original error when update warning failed', async () => {
     const error = new Error('test');
-    registry.manifest.mockRejectedValue(new Error('npm issue'));
+    spy.resolveVersion.mockRejectedValue(new Error('npm issue'));
     await tools.handleError('eas-cli', error);
     expect(core.setFailed).toBeCalledWith(error);
   });
