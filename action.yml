@@ -7,7 +7,7 @@ branding:
   color: gray-dark
 runs:
   using: node16
-  main: build/setup/index.js
+  main: build/setup.js
 inputs:
   expo-version:
     description: The Expo CLI version to install (use any semver/dist-tag available).
