@@ -1,8 +1,8 @@
 import { ReserveCacheError, restoreCache, saveCache } from '@actions/cache';
 import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
-import path from 'path';
 import os from 'os';
+import path from 'path';
 
 import type { InstallConfig } from './install';
 

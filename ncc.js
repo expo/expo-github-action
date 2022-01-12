@@ -1,6 +1,6 @@
+const ncc = require('@vercel/ncc');
 const fs = require('fs');
 const path = require('path');
-const ncc = require('@vercel/ncc');
 
 build();
 

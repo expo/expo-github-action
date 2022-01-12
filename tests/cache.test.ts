@@ -1,8 +1,8 @@
-import os from 'os';
-import { join } from 'path';
 import * as remoteCache from '@actions/cache';
 import * as core from '@actions/core';
 import * as toolCache from '@actions/tool-cache';
+import os from 'os';
+import { join } from 'path';
 
 import * as cache from '../src/cache';
 import * as utils from './utils';

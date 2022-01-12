@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
 import * as cli from '@actions/exec';
 
-import * as tools from '../src/tools';
 import * as packager from '../src/packager';
+import * as tools from '../src/tools';
 import * as utils from './utils';
 
 describe(tools.getBinaryName, () => {
