@@ -1,0 +1,44 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Expo
+        uses: ./
+        with:
+          eas-version: latest
+          eas-cache: true
+          expo-version: latest
+          expo-cache: true
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: 🧪 EAS installed
+        run: eas --version
+
+      - name: 🧪 EAS authenticated
+        run: eas whoami
+
+      - name: 🧪 Expo installed
+        run: expo --version
+
+      - name: 🧪 Expo authenticated
+        run: expo whoami
+
