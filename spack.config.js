@@ -29,13 +29,12 @@ function actions(dir) {
 
 /**
  * Get all external modules that should not be bundled.
- * Ignoring the packages in the `dependencies` list should keep them up to date.
  *
- * Note, currently `@actions/cache` can't be bundled by SWC due to modules issues in `@azure/core-http`:
+ * Note, currently `@actions/cache` can't be bundled by SWC due to modules issues in `@azure/*`:
  *   > internal error: entered unreachable code: module item found but is_es6 is false
  *
  * @see https://github.com/expo/expo-github-action/pull/62
  */
 function externals() {
-  return Object.keys(require('./package.json').dependencies);
+  return ['@azure/storage-blob', '@azure/ms-rest-js'];
 }
