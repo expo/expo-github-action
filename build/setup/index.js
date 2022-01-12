@@ -67770,8 +67770,8 @@ exports.toRemoteCache = exports.fromRemoteCache = exports.toLocalCache = exports
 const cache_1 = __nccwpck_require__(7799);
 const core = __importStar(__nccwpck_require__(2186));
 const toolCache = __importStar(__nccwpck_require__(7784));
-const path_1 = __importDefault(__nccwpck_require__(1017));
 const os_1 = __importDefault(__nccwpck_require__(2037));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 /**
  * Get the path to the `expo-cli` from cache, if any.
  * Note, this cache is **NOT** shared between jobs.
