@@ -15,15 +15,7 @@ jobs:
     strategy:
       matrix:
         node: [16.x]
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-        include:
-          - node: 16.x
-            os: ubuntu-latest
-            checkBuild: true
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
@@ -47,8 +39,17 @@ jobs:
         run: yarn build
 
       - name: 🕵️ Validate code
-        if: ${{ matrix.checkBuild }}
+        id: diff
         run: |
-          echo "⚠️ If this step fails, the build is outdated."
-          echo "    > run 'yarn build' and commit changes"
-          git diff --stat --exit-code build
+          if [ "$(git diff --ignore-space-at-eol build/ | wc -l)" -gt "0" ]; then
+            echo "⚠️ Build is outdated, run `yarn build` and commit changes. Found:"
+            git diff
+            exit 1
+          fi
+      
+      - name: 🗂 Uploading build
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: build
+          path: build/
