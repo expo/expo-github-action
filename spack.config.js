@@ -2,8 +2,6 @@ const { config } = require('@swc/core/spack');
 const { readdirSync } = require('fs');
 const { resolve, basename, extname } = require('path');
 
-const { dependencies } = require('./package.json');
-
 module.exports = config({
   target: 'node',
   entry: actions(
@@ -12,9 +10,13 @@ module.exports = config({
   output: {
     path: resolve(__dirname, './build'),
   },
-  externalModules: Object.keys(dependencies),
+  externalModules: externals(),
 });
 
+/**
+ * Get all action entry points, in src/actions.
+ * This returns them as `{ [name]: absolutePath }`.
+ */
 function actions(dir) {
   return Object.fromEntries(
     readdirSync(dir, { withFileTypes: true })
@@ -24,4 +26,17 @@ function actions(dir) {
         resolve(dir, entity.name),
       ])
   );
+}
+
+/**
+ * Get all external modules that should not be bundled.
+ * Ignoring the packages in the `dependencies` list should keep them up to date.
+ * 
+ * Note, currently `@actions/cache` can't be bundled by SWC due to modules issues in `@azure/core-http`:
+ *   > internal error: entered unreachable code: module item found but is_es6 is false
+ * 
+ * @see https://github.com/expo/expo-github-action/pull/62
+ */
+function externals() {
+  return Object.keys(require('./package.json').dependencies);
 }
