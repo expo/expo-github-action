@@ -1,4 +1,5 @@
 import { valid as validVersion } from 'semver';
+
 import { resolveVersion } from '../src/packager';
 
 describe(resolveVersion, () => {

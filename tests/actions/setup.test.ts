@@ -1,3 +1,4 @@
+/* eslint-disable import/order,import/first */
 import { getToolsMock, mockInput } from '../utils';
 
 jest.mock('../../src/tools', () => getToolsMock());

@@ -1,3 +1,4 @@
+/* eslint-disable import/order,import/first */
 const cli = { exec: jest.fn() };
 const io = { mkdirP: jest.fn(), which: jest.fn() };
 const cache = {

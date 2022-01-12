@@ -16,12 +16,12 @@
   "homepage": "https://github.com/expo/expo-github-action#readme",
   "scripts": {
     "test": "jest",
-    "lint": "tsc --noEmit && eslint .",
+    "lint": "eslint .",
     "build": "node ncc.js",
     "clean": "rimraf build"
   },
   "dependencies": {
-    "@actions/cache": "^1.0.7",
+    "@actions/cache": "^1.0.8",
     "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
     "@actions/io": "^1.1.1",
@@ -29,26 +29,23 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^5.0.1",
-    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/git": "^10.0.1",
     "@tsconfig/node16": "^1.0.2",
-    "@types/jest": "^27.0.2",
+    "@types/jest": "^27.4.0",
     "@types/node": "^16.11.19",
-    "@types/semver": "^7.3.6",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
+    "@types/semver": "^7.3.9",
+    "@typescript-eslint/eslint-plugin": "^5.9.1",
+    "@typescript-eslint/parser": "^5.9.1",
     "@vercel/ncc": "^0.33.1",
-    "conventional-changelog-conventionalcommits": "^4.6.0",
-    "eslint": "^8.2.0",
-    "eslint-plugin-jest": "^25.2.4",
-    "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^27.3.1",
-    "jest-circus": "^27.3.1",
-    "prettier": "^2.4.1",
-    "regenerator-runtime": "^0.13.9",
+    "conventional-changelog-conventionalcommits": "^4.6.3",
+    "eslint": "^8.6.0",
+    "eslint-config-universe": "^10.0.0",
+    "jest": "^27.4.7",
+    "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
-    "semantic-release": "^17.4.4",
-    "ts-jest": "^27.0.7",
-    "typescript": "^4.4.4"
+    "semantic-release": "^18.0.1",
+    "ts-jest": "^27.1.2",
+    "typescript": "^4.5.4"
   }
 }
