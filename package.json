@@ -17,8 +17,8 @@
   "scripts": {
     "test": "jest",
     "lint": "tsc --noEmit && eslint .",
-    "build": "spack && rimraf build/*.map",
-    "clean": "rimraf build .swc"
+    "build": "node ncc.js",
+    "clean": "rimraf build"
   },
   "dependencies": {
     "@actions/cache": "^1.0.7",
@@ -31,14 +31,13 @@
   "devDependencies": {
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/git": "^9.0.0",
-    "@swc/cli": "^0.1.55",
-    "@swc/core": "^1.2.128",
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.19",
     "@types/semver": "^7.3.6",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
+    "@vercel/ncc": "^0.33.1",
     "conventional-changelog-conventionalcommits": "^4.6.0",
     "eslint": "^8.2.0",
     "eslint-plugin-jest": "^25.2.4",
