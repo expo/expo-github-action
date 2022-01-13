@@ -36,12 +36,12 @@ Here is a summary of all the variables that you can use and their purpose.
 
 | variable         | default | description                                                                          |
 | ---------------- | ------- | ------------------------------------------------------------------------------------ |
-| `expo-version`   | `''`    | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted. |
+| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted. |
 | `expo-cache`     | `true`  | If it should use the [GitHub actions cache](#using-the-built-in-cache).              |
-| `eas-version`    | `''`    | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted.   |
+| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted.   |
 | `eas-cache`      | `true`  | If it should use the [GitHub actions cache](#using-the-built-in-cache).              |
 | `packager`       | `yarn`  | The package manager to use. _(e.g. `yarn` or `npm`)_                                 |
-| `token`          | `''`    | The token of your Expo account                                                       |
+| `token`          | -       | The token of your Expo account                                                       |
 | `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).              |
 
 > Never hardcode `expo-token` in your workflow, use [secrets][link-actions-secrets] to store them.
@@ -190,9 +190,9 @@ This action can export the `EXPO_TOKEN` variable to access it in every step.
 
 ### Using the built-in cache
 
-Caching is enabled by default to speed up consecutive CLI installs, but you can still opt-out to this.
-Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore the CLI installation.
-This action generates a unique cache key for the OS, used packager, and exact version of the CLI.
+You can opt-in to caching the installation, making it a lot faster.
+Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore the Expo CLI installation.
+This action generates a unique cache key for the OS, used packager, and exact version of the Expo CLI.
 
 > Note, this cache will count towards your [repo cache limit][link-actions-cache-limit]. The Expo and EAS CLI are stored in different caches.
 
