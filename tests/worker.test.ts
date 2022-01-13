@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
+import * as io from '@actions/io';
 import os from 'os';
 import path from 'path';
 
@@ -15,6 +16,7 @@ import { resetEnv, setEnv, setPlatform, resetPlatform } from './utils';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
+jest.mock('@actions/io');
 
 describe(tempPath, () => {
   afterEach(resetEnv);
@@ -93,15 +95,19 @@ describe(expoAuthenticate, () => {
   });
 
   it('validates EXPO_TOKEN with expo-cli', async () => {
+    jest.mocked(io.which).mockResolvedValue('expo');
     await expoAuthenticate('faketoken', 'expo');
-    expect(exec.exec).toBeCalledWith('npx --no-install', ['expo', 'whoami'], {
+    expect(io.which).toBeCalledWith('expo');
+    expect(exec.exec).toBeCalledWith('expo', ['whoami'], {
       env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
     });
   });
 
   it('validates EXPO_TOKEN with eas-cli', async () => {
+    jest.mocked(io.which).mockResolvedValue('eas');
     await expoAuthenticate('faketoken', 'eas');
-    expect(exec.exec).toBeCalledWith('npx --no-install', ['eas', 'whoami'], {
+    expect(io.which).toBeCalledWith('eas');
+    expect(exec.exec).toBeCalledWith('eas', ['whoami'], {
       env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
     });
   });
