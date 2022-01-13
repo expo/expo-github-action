@@ -2,14 +2,22 @@ import { saveCache, restoreCache, ReserveCacheError } from '@actions/cache';
 import { warning } from '@actions/core';
 import os from 'os';
 
-import { findTool } from './worker';
+import { toolPath } from './worker';
+
+/**
+ * Get the exact cache key for the package.
+ * We can prefix this when there are breaking changes in this action.
+ */
+export function cacheKey(name: string, version: string, manager: string): string {
+  return `${name}-${process.platform}-${os.arch()}-${manager}-${version}`;
+}
 
 /**
  * Restore a tool from the remote cache.
  * This will install the tool back into the local tool cache.
  */
 export async function restoreFromCache(name: string, version: string, manager: string) {
-  const dir = findTool(name, version)!;
+  const dir = toolPath(name, version)!;
   try {
     if (await restoreCache([dir], cacheKey(name, version, manager))) {
       return dir;
@@ -25,14 +33,10 @@ export async function restoreFromCache(name: string, version: string, manager: s
  */
 export async function saveToCache(name: string, version: string, manager: string) {
   try {
-    await saveCache([findTool(name, version)!], cacheKey(name, version, manager));
+    await saveCache([toolPath(name, version)], cacheKey(name, version, manager));
   } catch (error) {
     handleCacheError(error);
   }
-}
-
-export function cacheKey(name: string, version: string, manager: string): string {
-  return `${name}-${process.platform}-${os.arch()}-${manager}-${version}`;
 }
 
 /**

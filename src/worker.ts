@@ -67,12 +67,11 @@ export async function patchWatchers(): Promise<void> {
  * This method tries to invoke 'whoami' to validate if the token is valid.
  * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
  */
-export async function expoAuthenticate(token: string, cli?: 'expo-cli' | 'eas-cli'): Promise<void> {
+export async function expoAuthenticate(token: string, cli?: 'expo' | 'eas'): Promise<void> {
   if (!cli) {
     info(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
   } else {
-    const cliName = process.platform === 'win32' ? `${cli}.cmd` : cli;
-    await exec(cliName, ['whoami'], {
+    await exec('npx --no-install', [cli, 'whoami'], {
       env: { ...process.env, EXPO_TOKEN: token },
     });
   }

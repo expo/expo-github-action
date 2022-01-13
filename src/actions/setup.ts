@@ -7,21 +7,21 @@ import { executeAction, expoAuthenticate, findTool, installToolFromPackage, patc
 // Auto-execute in GitHub actions
 executeAction(setupAction);
 
+export type SetupInput = ReturnType<typeof setupInput>;
+
 export function setupInput() {
   return {
-    expoVersion: getInput('expo-cli'),
-    expoCache: getBooleanInput('expo-cache'),
-    easVersion: getInput('eas-cli'),
     easCache: getBooleanInput('eas-cache'),
-    token: getInput('token'),
-    patchWatchers: !getInput('patch-watchers') || getBooleanInput('patch-watchers'),
+    easVersion: getInput('eas-version'),
+    expoCache: getBooleanInput('expo-cache'),
+    expoVersion: getInput('expo-version'),
     packager: getInput('packager') || 'yarn',
+    patchWatchers: !getInput('patch-watchers') || getBooleanInput('patch-watchers'),
+    token: getInput('token'),
   };
 }
 
-export async function setupAction(): Promise<void> {
-  const input = setupInput();
-
+export async function setupAction(input: SetupInput = setupInput()): Promise<void> {
   if (!input.expoVersion) {
     info(`Skipped installing expo-cli: 'expo-version' not provided.`);
   } else {
@@ -48,7 +48,7 @@ export async function setupAction(): Promise<void> {
     info(`Skipped authentication: 'token' not provided.`);
   } else {
     await group('Validating authenticated account', () =>
-      expoAuthenticate(input.token, input.easVersion ? 'eas-cli' : input.expoVersion ? 'expo-cli' : undefined)
+      expoAuthenticate(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined)
     );
   }
 
