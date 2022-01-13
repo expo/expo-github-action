@@ -14,9 +14,9 @@ jest.mock('../../src/worker');
 describe(setupInput, () => {
   it('returns object with correct defaults', () => {
     expect(setupInput()).toMatchObject({
-      easCache: undefined,
+      easCache: true,
       easVersion: undefined,
-      expoCache: undefined,
+      expoCache: true,
       expoVersion: undefined,
       packager: 'yarn',
       patchWatchers: true,
@@ -72,7 +72,7 @@ describe(setupAction, () => {
 
     it(`installs ${cliName} using npm`, async () => {
       jest.mocked(packager.resolvePackage).mockResolvedValue('5.0.3');
-      await setupAction({ ...input, [cliVersion]: '5.x', packager: 'npm' });
+      await setupAction({ ...input, [cliVersion]: '5.x', [cliCache]: false, packager: 'npm' });
       expect(packager.installPackage).toBeCalledWith(cliName, '5.0.3', 'npm');
       expect(worker.installToolFromPackage).toBeCalled();
     });
