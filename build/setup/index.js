@@ -65134,9 +65134,9 @@ const worker_1 = __nccwpck_require__(8912);
 (0, worker_1.executeAction)(setupAction);
 function setupInput() {
     return {
-        easCache: (0, core_1.getBooleanInput)('eas-cache'),
+        easCache: !(0, core_1.getInput)('eas-cache') || (0, core_1.getBooleanInput)('eas-cache'),
         easVersion: (0, core_1.getInput)('eas-version'),
-        expoCache: (0, core_1.getBooleanInput)('expo-cache'),
+        expoCache: !(0, core_1.getInput)('expo-cache') || (0, core_1.getBooleanInput)('expo-cache'),
         expoVersion: (0, core_1.getInput)('expo-version'),
         packager: (0, core_1.getInput)('packager') || 'yarn',
         patchWatchers: !(0, core_1.getInput)('patch-watchers') || (0, core_1.getBooleanInput)('patch-watchers'),
