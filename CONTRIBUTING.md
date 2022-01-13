@@ -10,16 +10,16 @@
 
 ## 🏎️ Running a custom version
 
-To try out your changed with GitHub Action, you have [to reference your fork and/or branch or commit reference](https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#using-release-management-for-your-custom-actions) in the workflow you want to try. After that, you have two options:
+To try out your changes with GitHub Action, you have [to reference your fork and/or branch or commit reference](https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#using-release-management-for-your-custom-actions) in the workflow you want to try. After that, you have two options:
 
 1. Run the workflow in GitHub Actions itself by triggering your workflow.
 2. Run the workflow locally with [nektos/act](https://github.com/nektos/act).
 
-## ✅ Testing
+## 🧪 Testing
 
 Testing is done using [Jest](https://jestjs.io/https://jestjs.io/). Run `yarn test` to run Jest.
 
-In CI we are running tests on multiple Node versions using Windows, Linux, and MacOS. Make sure they are passing for your PR.
+If your PR is ready, run the **test** workflow to test the workflows on all supported OS system.
 
 ## 📝 Writing a Commit Message
 
