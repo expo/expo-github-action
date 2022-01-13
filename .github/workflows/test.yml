@@ -17,6 +17,9 @@ jobs:
           - macos-latest
           - ubuntu-latest
           - windows-latest
+        cache:
+          - true
+          - false
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🏗 Setup repo
@@ -26,9 +29,9 @@ jobs:
         uses: ./
         with:
           eas-version: latest
-          eas-cache: true
+          eas-cache: ${{ matrix.cache }}
           expo-version: latest
-          expo-cache: true
+          expo-cache: ${{ matrix.cache }}
           token: ${{ secrets.EXPO_TOKEN }}
       
       - name: 🧪 EAS installed
