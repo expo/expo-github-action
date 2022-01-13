@@ -13,12 +13,12 @@ inputs:
     description: Expo CLI version to install
   expo-cache:
     description: If Expo CLI should be cached to speed up installation
-    default: false
+    default: true
   eas-version:
     description: EAS CLI version to install
   eas-cache:
     description: If EAS CLI should be cached to speed up installation
-    default: false
+    default: true
   packager:
     description: The package manager used to install the CLIs
     default: yarn

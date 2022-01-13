@@ -11,9 +11,9 @@ export type SetupInput = ReturnType<typeof setupInput>;
 
 export function setupInput() {
   return {
-    easCache: getBooleanInput('eas-cache'),
+    easCache: !getInput('eas-cache') || getBooleanInput('eas-cache'),
     easVersion: getInput('eas-version'),
-    expoCache: getBooleanInput('expo-cache'),
+    expoCache: !getInput('expo-cache') || getBooleanInput('expo-cache'),
     expoVersion: getInput('expo-version'),
     packager: getInput('packager') || 'yarn',
     patchWatchers: !getInput('patch-watchers') || getBooleanInput('patch-watchers'),
