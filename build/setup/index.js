@@ -64755,6 +64755,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.executeAction = exports.expoAuthenticate = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
@@ -64825,7 +64826,7 @@ async function expoAuthenticate(token, cli) {
         (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
     }
     else {
-        await (0, exec_1.exec)('npx --no-install', [cli, 'whoami'], {
+        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
             env: { ...process.env, EXPO_TOKEN: token },
         });
     }

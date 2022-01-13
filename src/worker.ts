@@ -1,5 +1,6 @@
 import { addPath, exportVariable, info, setFailed, warning } from '@actions/core';
 import { exec } from '@actions/exec';
+import { which } from '@actions/io';
 import os from 'os';
 import path from 'path';
 
@@ -71,7 +72,7 @@ export async function expoAuthenticate(token: string, cli?: 'expo' | 'eas'): Pro
   if (!cli) {
     info(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
   } else {
-    await exec('npx --no-install', [cli, 'whoami'], {
+    await exec(await which(cli), ['whoami'], {
       env: { ...process.env, EXPO_TOKEN: token },
     });
   }
