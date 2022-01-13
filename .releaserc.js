@@ -34,9 +34,10 @@ module.exports = {
     }],
     '@semantic-release/changelog',
     ['@semantic-release/npm', { npmPublish: false }],
+    ["@semantic-release/exec", { publishCmd: 'yarn build' }],
     ['@semantic-release/git', {
       message: 'chore: create new release ${nextRelease.version}\n\n${nextRelease.notes}',
-      assets: ['package.json', 'CHANGELOG.md'],
+      assets: ['package.json', 'CHANGELOG.md', 'build/*'],
     }],
     '@semantic-release/github',
   ],

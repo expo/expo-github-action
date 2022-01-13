@@ -11,9 +11,6 @@ concurrency:
   group: release
   cancel-in-progress: true
 
-env:
-  release: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -31,13 +28,13 @@ jobs:
         run: yarn install --frozen-lockfile --check-files
 
       - name: 📋 Dry-running release
-        if: ${{ !env.release }}
+        if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
         run: yarn semantic-release --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📋 Release code
-        if: ${{ env.release }}
+        if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
