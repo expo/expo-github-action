@@ -64622,17 +64622,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.handleCacheError = exports.cacheKey = exports.saveToCache = exports.restoreFromCache = void 0;
+exports.handleCacheError = exports.saveToCache = exports.restoreFromCache = exports.cacheKey = void 0;
 const cache_1 = __nccwpck_require__(7799);
 const core_1 = __nccwpck_require__(2186);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const worker_1 = __nccwpck_require__(8912);
 /**
+ * Get the exact cache key for the package.
+ * We can prefix this when there are breaking changes in this action.
+ */
+function cacheKey(name, version, manager) {
+    return `${name}-${process.platform}-${os_1.default.arch()}-${manager}-${version}`;
+}
+exports.cacheKey = cacheKey;
+/**
  * Restore a tool from the remote cache.
  * This will install the tool back into the local tool cache.
  */
 async function restoreFromCache(name, version, manager) {
-    const dir = (0, worker_1.findTool)(name, version);
+    const dir = (0, worker_1.toolPath)(name, version);
     try {
         if (await (0, cache_1.restoreCache)([dir], cacheKey(name, version, manager))) {
             return dir;
@@ -64649,17 +64657,13 @@ exports.restoreFromCache = restoreFromCache;
  */
 async function saveToCache(name, version, manager) {
     try {
-        await (0, cache_1.saveCache)([(0, worker_1.findTool)(name, version)], cacheKey(name, version, manager));
+        await (0, cache_1.saveCache)([(0, worker_1.toolPath)(name, version)], cacheKey(name, version, manager));
     }
     catch (error) {
         handleCacheError(error);
     }
 }
 exports.saveToCache = saveToCache;
-function cacheKey(name, version, manager) {
-    return `${name}-${process.platform}-${os_1.default.arch()}-${manager}-${version}`;
-}
-exports.cacheKey = cacheKey;
 /**
  * Try to handle incoming cache errors.
  * Because workers can operate in environments without cache configured,
@@ -64821,8 +64825,7 @@ async function expoAuthenticate(token, cli) {
         (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
     }
     else {
-        const cliName = process.platform === 'win32' ? `${cli}.cmd` : cli;
-        await (0, exec_1.exec)(cliName, ['whoami'], {
+        await (0, exec_1.exec)('npx --no-install', [cli, 'whoami'], {
             env: { ...process.env, EXPO_TOKEN: token },
         });
     }
@@ -65130,18 +65133,17 @@ const worker_1 = __nccwpck_require__(8912);
 (0, worker_1.executeAction)(setupAction);
 function setupInput() {
     return {
-        expoVersion: (0, core_1.getInput)('expo-cli'),
-        expoCache: (0, core_1.getBooleanInput)('expo-cache'),
-        easVersion: (0, core_1.getInput)('eas-cli'),
         easCache: (0, core_1.getBooleanInput)('eas-cache'),
-        token: (0, core_1.getInput)('token'),
-        patchWatchers: !(0, core_1.getInput)('patch-watchers') || (0, core_1.getBooleanInput)('patch-watchers'),
+        easVersion: (0, core_1.getInput)('eas-version'),
+        expoCache: (0, core_1.getBooleanInput)('expo-cache'),
+        expoVersion: (0, core_1.getInput)('expo-version'),
         packager: (0, core_1.getInput)('packager') || 'yarn',
+        patchWatchers: !(0, core_1.getInput)('patch-watchers') || (0, core_1.getBooleanInput)('patch-watchers'),
+        token: (0, core_1.getInput)('token'),
     };
 }
 exports.setupInput = setupInput;
-async function setupAction() {
-    const input = setupInput();
+async function setupAction(input = setupInput()) {
     if (!input.expoVersion) {
         (0, core_1.info)(`Skipped installing expo-cli: 'expo-version' not provided.`);
     }
@@ -65166,7 +65168,7 @@ async function setupAction() {
         (0, core_1.info)(`Skipped authentication: 'token' not provided.`);
     }
     else {
-        await (0, core_1.group)('Validating authenticated account', () => (0, worker_1.expoAuthenticate)(input.token, input.easVersion ? 'eas-cli' : input.expoVersion ? 'expo-cli' : undefined));
+        await (0, core_1.group)('Validating authenticated account', () => (0, worker_1.expoAuthenticate)(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined));
     }
     if (!input.patchWatchers) {
         (0, core_1.info)(`Skipped patching watchers: 'patch-watchers' disabled.`);

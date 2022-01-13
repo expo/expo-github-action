@@ -18,6 +18,8 @@ describe(resolvePackage, () => {
   });
 
   it('rejects donotpublishthispackageoryouwillbefired with proper error', async () => {
-    await expect(resolvePackage('donotpublishthispackageoryouwillbefired', 'latest')).rejects.toThrow('Could not resolve');
+    await expect(resolvePackage('donotpublishthispackageoryouwillbefired', 'latest')).rejects.toThrow(
+      'Could not resolve'
+    );
   });
 });
