@@ -14,7 +14,7 @@ export function setPlatform(platform: NodeJS.Platform): void {
 /**
  * Revert the platform to the original one.
  */
-export function restorePlatform(): void {
+export function resetPlatform(): void {
   setPlatform(originalPlatform);
 }
 
@@ -31,28 +31,14 @@ export function setEnv(name: string, value: string): void {
 /**
  * Revert the environment variable changes.
  */
-export function restoreEnv(): void {
+export function resetEnv(): void {
   process.env = originalEnv;
-}
-
-/**
- * Get a mocked version of the tools.
- */
-export function getToolsMock() {
-  return {
-    getBinaryName: jest.fn(v => v.replace('-cli', '')),
-    maybeAuthenticate: jest.fn(),
-    maybePatchWatchers: jest.fn(),
-    maybeWarnForUpdate: jest.fn(),
-    handleError: jest.fn(),
-    performAction: jest.fn(),
-  };
 }
 
 /**
  * Mock both the input and boolean input methods from `@actions/core`.
  */
 export function mockInput(inputs: Record<string, string> = {}) {
-  jest.spyOn(core, 'getInput').mockImplementation(name => inputs[name]);
-  jest.spyOn(core, 'getBooleanInput').mockImplementation(name => inputs[name] === 'true');
+  jest.mocked(core.getInput).mockImplementation(name => inputs[name]);
+  jest.mocked(core.getBooleanInput).mockImplementation(name => inputs[name] === 'true');
 }

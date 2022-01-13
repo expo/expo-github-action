@@ -1,133 +1,108 @@
-/* eslint-disable import/order,import/first */
-import { getToolsMock, mockInput } from '../utils';
-
-jest.mock('../../src/tools', () => getToolsMock());
-jest.mock('../../src/packager', () => ({
-  async resolveVersion(_: string, version: string) {
-    return version;
-  },
-}));
-
 import * as core from '@actions/core';
 
-import * as install from '../../src/install';
-import * as tools from '../../src/tools';
-import { setupAction } from '../../src/actions/setup';
+import { SetupInput, setupInput, setupAction } from '../../src/actions/setup';
+import * as cacher from '../../src/cacher';
+import * as packager from '../../src/packager';
+import * as worker from '../../src/worker';
+import { mockInput } from '../utils';
+
+jest.mock('@actions/core');
+jest.mock('../../src/cacher');
+jest.mock('../../src/packager');
+jest.mock('../../src/worker');
+
+describe(setupInput, () => {
+  it('returns object with correct defaults', () => {
+    expect(setupInput()).toMatchObject({
+      easCache: undefined,
+      easVersion: undefined,
+      expoCache: undefined,
+      expoVersion: undefined,
+      packager: 'yarn',
+      patchWatchers: true,
+      token: undefined,
+    });
+  });
+
+  it('returns expo version and cache', () => {
+    mockInput({ 'expo-version': '5.x', 'expo-cache': 'true' });
+    expect(setupInput()).toMatchObject({ expoVersion: '5.x', expoCache: true });
+  });
+
+  it('returns eas version and cache', () => {
+    mockInput({ 'eas-version': 'latest', 'eas-cache': 'true' });
+    expect(setupInput()).toMatchObject({ easVersion: 'latest', easCache: true });
+  });
+
+  it('returns different packager', () => {
+    mockInput({ packager: 'npm' });
+    expect(setupInput()).toMatchObject({ packager: 'npm' });
+  });
+
+  it('returns disabled patch watchers', () => {
+    mockInput({ 'patch-watchers': 'false' });
+    expect(setupInput()).toMatchObject({ patchWatchers: false });
+  });
+
+  it('returns token', () => {
+    mockInput({ token: 'faketoken' });
+    expect(setupInput()).toMatchObject({ token: 'faketoken' });
+  });
+});
 
 describe(setupAction, () => {
-  describe('patch watchers', () => {
-    it('patches the system when set to true', async () => {
-      mockInput({ 'patch-watchers': 'true' });
-      await setupAction();
-      expect(tools.maybePatchWatchers).toHaveBeenCalled();
+  const input: SetupInput = {
+    easCache: false,
+    easVersion: '',
+    expoCache: false,
+    expoVersion: '',
+    packager: 'yarn',
+    patchWatchers: true,
+    token: '',
+  };
+
+  beforeAll(() => {
+    jest.mocked(core.group).mockImplementation((_, action) => action());
+  });
+
+  ['expo', 'eas'].forEach(cli => {
+    const cliName = `${cli}-cli`;
+    const cliVersion = `${cli}Version`;
+    const cliCache = `${cli}Cache`;
+
+    it(`installs ${cliName} using npm`, async () => {
+      jest.mocked(packager.resolvePackage).mockResolvedValue('5.0.3');
+      await setupAction({ ...input, [cliVersion]: '5.x', packager: 'npm' });
+      expect(packager.installPackage).toBeCalledWith(cliName, '5.0.3', 'npm');
+      expect(worker.installToolFromPackage).toBeCalled();
     });
 
-    it('patches the system when not set', async () => {
-      mockInput({ 'patch-watchers': '' });
-      await setupAction();
-      expect(tools.maybePatchWatchers).toHaveBeenCalled();
-    });
-
-    it('skips the system patch when set to false', async () => {
-      mockInput({ 'patch-watchers': 'false' });
-      await setupAction();
-      expect(tools.maybePatchWatchers).not.toHaveBeenCalled();
+    it(`installs ${cliName} from cache`, async () => {
+      jest.mocked(packager.resolvePackage).mockResolvedValue('5.0.3');
+      jest.mocked(cacher.restoreFromCache).mockResolvedValue('fake/path');
+      await setupAction({ ...input, [cliVersion]: 'latest', [cliCache]: true });
+      expect(packager.installPackage).not.toBeCalled();
+      expect(worker.installToolFromPackage).toBeCalledWith('fake/path');
     });
   });
 
-  describe('authentication', () => {
-    it('authenticates with provided credentials', async () => {
-      mockInput({ username: 'bycedric', password: 'mypassword' });
-      await setupAction();
-      expect(tools.maybeAuthenticate).toBeCalledWith({ username: 'bycedric', password: 'mypassword' });
-    });
-
-    it('authenticates with provided token', async () => {
-      mockInput({ token: 'ABC123' });
-      await setupAction();
-      expect(tools.maybeAuthenticate).toBeCalledWith({ token: 'ABC123' });
-    });
+  it('authenticates token with eas-cli by default', async () => {
+    await setupAction({ ...input, expoVersion: 'latest', easVersion: 'latest', token: 'faketoken' });
+    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', 'eas');
   });
 
-  ['expo', 'eas'].forEach(cliName => {
-    const packageName = `${cliName}-cli`;
-    let installMock: jest.SpyInstance;
+  it('authenticates token with expo-cli without eas-cli', async () => {
+    await setupAction({ ...input, expoVersion: 'latest', token: 'faketoken' });
+    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', 'expo');
+  });
 
-    beforeEach(() => {
-      installMock = jest.spyOn(install, 'install').mockImplementation();
-    });
+  it('authenticates token without any cli', async () => {
+    await setupAction({ ...input, token: 'faketoken' });
+    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', undefined);
+  });
 
-    afterEach(() => {
-      installMock.mockRestore();
-    });
-
-    describe(packageName, () => {
-      it(`skips installation without \`${cliName}-version\``, async () => {
-        mockInput();
-        await setupAction();
-        expect(installMock).not.toBeCalledWith({ package: packageName });
-      });
-
-      it('installs with yarn by default', async () => {
-        mockInput({ [`${cliName}-version`]: 'latest' });
-        await setupAction();
-        expect(installMock).toBeCalledWith({
-          package: packageName,
-          version: 'latest',
-          packager: 'yarn',
-          cache: false,
-        });
-      });
-
-      it('installs provided version with npm', async () => {
-        mockInput({ [`${cliName}-version`]: '3.0.10', packager: 'npm' });
-        await setupAction();
-        expect(installMock).toBeCalledWith({
-          package: packageName,
-          version: '3.0.10',
-          packager: 'npm',
-          cache: false,
-        });
-      });
-
-      it('installs with yarn and cache enabled', async () => {
-        mockInput({
-          packager: 'yarn',
-          [`${cliName}-version`]: '4.2.0',
-          [`${cliName}-cache`]: 'true',
-        });
-        await setupAction();
-        expect(installMock).toBeCalledWith({
-          package: packageName,
-          version: '4.2.0',
-          packager: 'yarn',
-          cache: true,
-        });
-      });
-
-      it('installs with yarn and custom cache key', async () => {
-        mockInput({
-          packager: 'yarn',
-          [`${cliName}-version`]: '4.2.0',
-          [`${cliName}-cache`]: 'true',
-          [`${cliName}-cache-key`]: 'custom-key',
-        });
-        await setupAction();
-        expect(installMock).toBeCalledWith({
-          package: packageName,
-          version: '4.2.0',
-          packager: 'yarn',
-          cache: true,
-          cacheKey: 'custom-key',
-        });
-      });
-
-      it('installs path to global path', async () => {
-        installMock.mockResolvedValue(`/${cliName}/install/path`);
-        const addPathSpy = jest.spyOn(core, 'addPath').mockImplementation();
-        await setupAction();
-        expect(addPathSpy).toBeCalledWith(`/${cliName}/install/path`);
-      });
-    });
+  it('patches watchers', async () => {
+    await setupAction({ ...input, patchWatchers: true });
+    expect(worker.patchWatchers).toBeCalled();
   });
 });
