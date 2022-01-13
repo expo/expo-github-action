@@ -1,7 +1,7 @@
 ---
 name: Expo GitHub Action
 author: Cedric van Putten <me@bycedric.com>
-description: Expo CLI in your GitHub Actions workflow.
+description: Expo and EAS in GitHub Actions
 branding:
   icon: terminal
   color: gray-dark
@@ -10,28 +10,33 @@ runs:
   main: build/setup/index.js
 inputs:
   expo-version:
-    description: The Expo CLI version to install (use any semver/dist-tag available).
+    description: Expo CLI version to install
   expo-cache:
-    description: If Expo CLI should be stored in the GitHub Actions cache.
+    description: If Expo CLI should be cached to speed up installation
     default: false
-  expo-cache-key:
-    description: A custom remote cache key to use for Expo CLI.
   eas-version:
-    description: The EAS CLI version to install (use any semver/dist-tag available).
+    description: EAS CLI version to install
   eas-cache:
-    description: If EAS CLI should be stored in the GitHub Actions cache.
+    description: If EAS CLI should be cached to speed up installation
     default: false
-  eas-cache-key:
-    description: A custom remote cache key to use for EAS CLI.
-  username:
-    description: Your Expo username, for authentication.
-  token:
-    description: Your Expo token, for authentication. (use with secrets)
-  password:
-    description: Your Expo password, for authentication. (use with secrets)
   packager:
-    description: The package manager used to install the Expo CLI. (can be yarn or npm)
+    description: The package manager used to install the CLIs
     default: yarn
   patch-watchers:
-    description: If Expo should fix the default watchers limit, helps with ENOSPC errors. (can be true or false)
+    description: If the action should patch the ENOSPC errors
     default: true
+  token:
+    description: Your Expo token, for authentication. (use with secrets)
+  # Below are deprecated and won't be supported anymore
+  eas-cache-key:
+    description: A custom remote cache key to use for EAS CLI.
+    deprecationMessage: Custom cache keys are deprecated and not used anymore.
+  expo-cache-key:
+    description: A custom remote cache key to use for Expo CLI.
+    deprecationMessage: Custom cache keys are deprecated and not used anymore.
+  username:
+    description: Your Expo username, for authentication.
+    deprecationMessage: Username/password authentication is deprecated, use a token instead.
+  password:
+    description: Your Expo password, for authentication. (use with secrets)
+    deprecationMessage: Username/password authentication is deprecated, use a token instead.
