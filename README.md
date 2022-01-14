@@ -34,19 +34,15 @@ There are some additional features included to make the usage of this action as 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-| variable         | default | description                                                                          |
-| ---------------- | ------- | ------------------------------------------------------------------------------------ |
-| `expo-version`   | -       | [Expo CLI](https://github.com/expo/expo-cli) version to install, skips when omitted. |
-| `expo-cache`     | `true`  | If it should use the [GitHub actions cache](#using-the-built-in-cache).              |
-| `eas-version`    | -       | [EAS CLI](https://github.com/expo/eas-cli) version to install, skips when omitted.   |
-| `eas-cache`      | `true`  | If it should use the [GitHub actions cache](#using-the-built-in-cache).              |
-| `packager`       | `yarn`  | The package manager to use. _(e.g. `yarn` or `npm`)_                                 |
-| `token`          | -       | The token of your Expo account                                                       |
-| `patch-watchers` | `true`  | If it should [patch the `fs.inotify.` limits](#enospc-errors-on-linux).              |
-
-> Never hardcode `expo-token` in your workflow, use [secrets][link-actions-secrets] to store them.
-
-> Using `latest` for `eas-version` is recommened, you should always have the latest version of this CLI installed.
+| variable           | default | description                                                                                   |
+| ------------------ | ------- | --------------------------------------------------------------------------------------------- |
+| **expo-version**   | -       | Expo CLI version to install _(skips when omitted)_                                            |
+| **expo-cache**     | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
+| **eas-version**    | -       | EAS CLI version to install _(skips when omitted)_                                             |
+| **eas-cache**      | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
+| **packager**       | `yarn`  | Package manager to use _(e.g. `yarn` or `npm`)_                                               |
+| **token**          | -       | Token of your Expo account _(only use with [secrets][link-actions-secrets])_                  |
+| **patch-watchers** | `true`  | If it should patch the `fs.inotify.*` limits on Ubuntu ([read more](#enospc-errors-on-linux)) |
 
 ## Example workflows
 
@@ -62,6 +58,8 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 This workflow listens to the **push** event on the **main** branch.
 It sets up all required components to publish the app, including authentication with a token.
 
+> Always use [secrets][link-actions-secrets] when using tokens.
+
 ```yml
 on:
   push:
@@ -85,7 +83,7 @@ jobs:
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      
+
       - name: 📦 Install dependencies
         run: yarn install
 
@@ -99,7 +97,7 @@ You can also install [EAS](https://docs.expo.dev/eas/) CLI with this GitHub Acti
 To do this, add the **eas-version** and it will install the EAS CLI too.
 The **token** is shared for both Expo and EAS CLI.
 
-> We recommend using `latest` for `eas-version` to always have the most up-to-date version.
+> We recommend using `latest` for **eas-version** to always have the most up-to-date version.
 
 ```yml
 on:
@@ -112,23 +110,23 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
-      
+
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      
+
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
         with:
           eas-version: latest
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      
+
       - name: 📦 Install dependencies
         run: yarn install
-      
+
       - name: 🚀 Build app
         run: eas build
 ```
@@ -139,7 +137,7 @@ Reviewing pull requests can take some time if you have to read every line of cod
 To make this easier, you can publish the PR using a [release channel][link-expo-release-channels].
 This workflow first publishes the changes to the **pr-N** channel, and adds a comment for the reviewers.
 
-> See the [preview-comment docs](./preview-comment)
+> See the [preview-comment docs](./preview-comment).
 
 ```yml
 on: [pull_request]
@@ -149,25 +147,25 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
-      
+
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      
+
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      
+
       - name: 📦 Install dependencies
         run: yarn install
-      
+
       - name: 🚀 Publish preview
         run: expo publish --release-channel=pr-${{ github.event.number }}
-      
+
       - name: 💬 Comment preview
         uses: expo/expo-github-action/preview-comment@v7
         env:
