@@ -13574,7 +13574,7 @@ exports.authenticate = authenticate;
 async function projectOwner(cli = 'expo') {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami']));
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
     }
     catch (error) {
         throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
@@ -13805,7 +13805,7 @@ async function executeAction(action) {
     if (process.env.JEST_WORKER_ID) {
         return Promise.resolve(null);
     }
-    return action().catch(core_1.setFailed);
+    return action().catch(error => (0, core_1.setFailed)(error.message || error));
 }
 exports.executeAction = executeAction;
 
@@ -14072,9 +14072,9 @@ const github_1 = __nccwpck_require__(978);
 const worker_1 = __nccwpck_require__(8912);
 const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE = `This pull request was automatically deployed using [GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
-    `\n- **Project owner**: {projectOwner}` +
-    `\n- **Project name**: {projectName}` +
-    `\n- **Release channel**: {releaseChannel}` +
+    `\n- Project owner: **{projectOwner}**` +
+    `\n- Project name: **{projectName}**` +
+    `\n- Release channel: **{releaseChannel}**` +
     `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 function commentInput() {
     return {

@@ -9,9 +9,9 @@ export type CommentInput = ReturnType<typeof commentInput>;
 const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE =
   `This pull request was automatically deployed using [GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
-  `\n- **Project owner**: {projectOwner}` +
-  `\n- **Project name**: {projectName}` +
-  `\n- **Release channel**: {releaseChannel}` +
+  `\n- Project owner: **{projectOwner}**` +
+  `\n- Project name: **{projectName}**` +
+  `\n- Release channel: **{releaseChannel}**` +
   `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 
 export function commentInput() {
