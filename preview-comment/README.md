@@ -58,7 +58,8 @@ There a few ouput and template variables available for both `message` and `messa
 | **projectLink**  | `{projectLink}`  | The expo.dev project link, including release channel |
 | **projectQR**    | `{projectQR}`    | The QR code to load the project in Expo Go           |
 | -                | `{channel}`      | The release channel that was used                    |
-| **message**      | -                | The resolved message template                        |
+| **message**      | -                | The resolved message content                         |
+| **messageId**    | -                | The resolved message id content                      |
 
 ## Example workflows
 
