@@ -137,7 +137,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
         with:
           channel-id: deployments
-          slack-message: 'New deployment is ready! ${{ steps.preview.projectQR }}'
+          slack-message: 'New deployment is ready! ${{ steps.preview.outputs.projectQR }}'
 ```
 
 <div align="center">
