@@ -8,7 +8,7 @@ export type CommentInput = ReturnType<typeof commentInput>;
 
 const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE =
-  `This pull request was automatically deployed using [GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
+  `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
   `\n- Project owner: **{projectOwner}**` +
   `\n- Project name: **{projectName}**` +
   `\n- Release channel: **{releaseChannel}**` +
