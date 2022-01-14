@@ -1,4 +1,4 @@
-import { exec } from '@actions/exec';
+import { exec, getExecOutput } from '@actions/exec';
 import { which, mkdirP } from '@actions/io';
 
 import { cacheTool, tempPath } from './worker';
@@ -12,14 +12,7 @@ export async function resolvePackage(name: string, range: string): Promise<strin
   let stdout = '';
 
   try {
-    await exec('npm', ['info', `${name}@${range}`, 'version', '--json'], {
-      silent: true,
-      listeners: {
-        stdout(data) {
-          stdout += data.toString();
-        },
-      },
-    });
+    ({ stdout } = await getExecOutput('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
   } catch (error) {
     throw new Error(`Could not resolve ${name}@${range}, reason:\n${error.message || error}`);
   }

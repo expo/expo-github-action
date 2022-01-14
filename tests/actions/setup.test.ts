@@ -2,12 +2,14 @@ import * as core from '@actions/core';
 
 import { SetupInput, setupInput, setupAction } from '../../src/actions/setup';
 import * as cacher from '../../src/cacher';
+import * as expo from '../../src/expo';
 import * as packager from '../../src/packager';
 import * as worker from '../../src/worker';
 import { mockInput } from '../utils';
 
 jest.mock('@actions/core');
 jest.mock('../../src/cacher');
+jest.mock('../../src/expo');
 jest.mock('../../src/packager');
 jest.mock('../../src/worker');
 
@@ -88,17 +90,17 @@ describe(setupAction, () => {
 
   it('authenticates token with eas-cli by default', async () => {
     await setupAction({ ...input, expoVersion: 'latest', easVersion: 'latest', token: 'faketoken' });
-    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', 'eas');
+    expect(expo.authenticate).toBeCalledWith('faketoken', 'eas');
   });
 
   it('authenticates token with expo-cli without eas-cli', async () => {
     await setupAction({ ...input, expoVersion: 'latest', token: 'faketoken' });
-    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', 'expo');
+    expect(expo.authenticate).toBeCalledWith('faketoken', 'expo');
   });
 
   it('authenticates token without any cli', async () => {
     await setupAction({ ...input, token: 'faketoken' });
-    expect(worker.expoAuthenticate).toBeCalledWith('faketoken', undefined);
+    expect(expo.authenticate).toBeCalledWith('faketoken', undefined);
   });
 
   it('patches watchers', async () => {

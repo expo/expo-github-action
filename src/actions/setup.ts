@@ -1,8 +1,9 @@
 import { getBooleanInput, getInput, group, info } from '@actions/core';
 
 import { restoreFromCache, saveToCache } from '../cacher';
+import { authenticate } from '../expo';
 import { installPackage, resolvePackage } from '../packager';
-import { executeAction, expoAuthenticate, findTool, installToolFromPackage, patchWatchers } from '../worker';
+import { executeAction, findTool, installToolFromPackage, patchWatchers } from '../worker';
 
 // Auto-execute in GitHub actions
 executeAction(setupAction);
@@ -21,7 +22,7 @@ export function setupInput() {
   };
 }
 
-export async function setupAction(input: SetupInput = setupInput()): Promise<void> {
+export async function setupAction(input: SetupInput = setupInput()) {
   if (!input.expoVersion) {
     info(`Skipped installing expo-cli: 'expo-version' not provided.`);
   } else {
@@ -48,7 +49,7 @@ export async function setupAction(input: SetupInput = setupInput()): Promise<voi
     info(`Skipped authentication: 'token' not provided.`);
   } else {
     await group('Validating authenticated account', () =>
-      expoAuthenticate(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined)
+      authenticate(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined)
     );
   }
 

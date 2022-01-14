@@ -14,7 +14,6 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
           - windows-latest
         cache:
@@ -45,4 +44,33 @@ jobs:
 
       - name: 🧪 Expo authenticated
         run: expo whoami
+  
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Expo
+        uses: ./
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: 🏗 Setup project
+        run: expo init -t blank ./temp
+
+      - name: 🥸 Fake event payload
+        run: echo '{"pull_request":123}' > ./temp/event-payload
+
+      - name: 🧪 Comment on PR
+        uses: ./comment
+        env:
+          GITHUB_EVENT_PATH: ./temp/event-payload
+          GITHUB_EVENT_NAME: pull_request
+        with:
+          project: ./temp
+          channel: test
+
 

@@ -1,6 +1,5 @@
-import { addPath, exportVariable, info, setFailed, warning } from '@actions/core';
+import { addPath, info, setFailed, warning } from '@actions/core';
 import { exec } from '@actions/exec';
-import { which } from '@actions/io';
 import os from 'os';
 import path from 'path';
 
@@ -61,23 +60,6 @@ export async function patchWatchers(): Promise<void> {
     warning('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
     warning(error.message);
   }
-}
-
-/**
- * Try to authenticate the user using either Expo or EAS CLI.
- * This method tries to invoke 'whoami' to validate if the token is valid.
- * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
- */
-export async function expoAuthenticate(token: string, cli?: 'expo' | 'eas'): Promise<void> {
-  if (!cli) {
-    info(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
-  } else {
-    await exec(await which(cli), ['whoami'], {
-      env: { ...process.env, EXPO_TOKEN: token },
-    });
-  }
-
-  exportVariable('EXPO_TOKEN', token);
 }
 
 /**

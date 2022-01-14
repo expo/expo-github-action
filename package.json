@@ -24,6 +24,7 @@
     "@actions/cache": "^1.0.8",
     "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
+    "@actions/github": "^5.0.0",
     "@actions/io": "^1.1.1",
     "@actions/tool-cache": "^1.7.1"
   },
@@ -40,6 +41,7 @@
     "conventional-changelog-conventionalcommits": "^4.6.3",
     "eslint": "^8.6.0",
     "eslint-config-universe": "^10.0.0",
+    "execa": "^5",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
