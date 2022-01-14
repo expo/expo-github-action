@@ -93,7 +93,7 @@ jobs:
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v6
+        uses: expo/expo-github-action@v7
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
@@ -138,7 +138,7 @@ jobs:
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v6
+        uses: expo/expo-github-action@v7
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
