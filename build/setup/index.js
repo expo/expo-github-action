@@ -64689,6 +64689,106 @@ exports.handleCacheError = handleCacheError;
 
 /***/ }),
 
+/***/ 2489:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const url_1 = __nccwpck_require__(7310);
+/**
+ * Try to authenticate the user using either Expo or EAS CLI.
+ * This method tries to invoke 'whoami' to validate if the token is valid.
+ * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
+ */
+async function authenticate(token, cli = 'expo') {
+    if (!cli) {
+        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
+    }
+    else {
+        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
+            env: { ...process.env, EXPO_TOKEN: token },
+        });
+    }
+    (0, core_1.exportVariable)('EXPO_TOKEN', token);
+}
+exports.authenticate = authenticate;
+/**
+ * Try to resolve the project owner, by running 'eas|expo whoami'.
+ */
+async function projectOwner(cli = 'expo') {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami']));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
+    }
+    if (!stdout) {
+        throw new Error(`Could not fetch the project owner, not authenticated`);
+    }
+    else if (stdout.endsWith(' (robot)')) {
+        throw new Error(`Could not fetch the project owner, used robot account`);
+    }
+    return stdout;
+}
+exports.projectOwner = projectOwner;
+/**
+ * Try to resolve the project info, by running 'expo config --type prebuild'.
+ */
+async function projectInfo(dir) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
+            cwd: dir,
+            silent: true,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${error.message || error}`);
+    }
+    const { name, slug, owner } = JSON.parse(stdout);
+    return { name, slug, owner };
+}
+exports.projectInfo = projectInfo;
+/**
+ * Create a QR code for an update on project, with an optional release channel.
+ */
+function projectQR(project, channel) {
+    if (!project.owner) {
+        throw new Error('Could not create a QR code for project without owner');
+    }
+    const url = new url_1.URL('https://qr.expo.dev/expo-go');
+    url.searchParams.append('owner', project.owner);
+    url.searchParams.append('slug', project.slug);
+    if (channel) {
+        url.searchParams.append('releaseChannel', channel);
+    }
+    return url.toString();
+}
+exports.projectQR = projectQR;
+/**
+ * Create a link for the project in Expo.
+ */
+function projectLink(project, channel) {
+    if (!project.owner) {
+        throw new Error('Could not create a project link without owner');
+    }
+    const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectLink = projectLink;
+
+
+/***/ }),
+
 /***/ 6466:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -64707,14 +64807,7 @@ const worker_1 = __nccwpck_require__(8912);
 async function resolvePackage(name, range) {
     let stdout = '';
     try {
-        await (0, exec_1.exec)('npm', ['info', `${name}@${range}`, 'version', '--json'], {
-            silent: true,
-            listeners: {
-                stdout(data) {
-                    stdout += data.toString();
-                },
-            },
-        });
+        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
     }
     catch (error) {
         throw new Error(`Could not resolve ${name}@${range}, reason:\n${error.message || error}`);
@@ -64752,10 +64845,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeAction = exports.expoAuthenticate = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
+exports.executeAction = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
-const io_1 = __nccwpck_require__(7436);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
@@ -64816,23 +64908,6 @@ async function patchWatchers() {
     }
 }
 exports.patchWatchers = patchWatchers;
-/**
- * Try to authenticate the user using either Expo or EAS CLI.
- * This method tries to invoke 'whoami' to validate if the token is valid.
- * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
- */
-async function expoAuthenticate(token, cli) {
-    if (!cli) {
-        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
-    }
-    else {
-        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
-            env: { ...process.env, EXPO_TOKEN: token },
-        });
-    }
-    (0, core_1.exportVariable)('EXPO_TOKEN', token);
-}
-exports.expoAuthenticate = expoAuthenticate;
 /**
  * Auto-execute the action if it's not running in a test environment.
  * This also propagate possible errors to GitHub actions, with setFailed.
@@ -65128,6 +65203,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setupAction = exports.setupInput = void 0;
 const core_1 = __nccwpck_require__(2186);
 const cacher_1 = __nccwpck_require__(331);
+const expo_1 = __nccwpck_require__(2489);
 const packager_1 = __nccwpck_require__(6466);
 const worker_1 = __nccwpck_require__(8912);
 // Auto-execute in GitHub actions
@@ -65169,7 +65245,7 @@ async function setupAction(input = setupInput()) {
         (0, core_1.info)(`Skipped authentication: 'token' not provided.`);
     }
     else {
-        await (0, core_1.group)('Validating authenticated account', () => (0, worker_1.expoAuthenticate)(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined));
+        await (0, core_1.group)('Validating authenticated account', () => (0, expo_1.authenticate)(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined));
     }
     if (!input.patchWatchers) {
         (0, core_1.info)(`Skipped patching watchers: 'patch-watchers' disabled.`);

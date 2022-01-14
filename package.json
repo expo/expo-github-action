@@ -41,7 +41,6 @@
     "conventional-changelog-conventionalcommits": "^4.6.3",
     "eslint": "^8.6.0",
     "eslint-config-universe": "^10.0.0",
-    "execa": "^5",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
