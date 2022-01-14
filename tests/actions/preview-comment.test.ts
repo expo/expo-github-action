@@ -91,16 +91,42 @@ describe(commentAction, () => {
     expect(message![1]).not.toMatch(DEFAULT_MESSAGE);
   });
 
-  it('sets all outputs', async () => {
-    jest.mocked(expo.projectLink).mockReturnValue('https://expo.dev/@fakeuser/fakeslug');
-    jest.mocked(expo.projectQR).mockReturnValue('https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
-    await commentAction({ ...input });
-    expect(core.setOutput).toBeCalledWith('projectLink', expect.stringMatching('expo.dev'));
-    expect(core.setOutput).toBeCalledWith('projectName', expect.stringMatching('fakename'));
-    expect(core.setOutput).toBeCalledWith('projectOwner', expect.stringMatching('fakeuser'));
-    expect(core.setOutput).toBeCalledWith('projectQR', expect.stringMatching('qr.expo.dev'));
-    expect(core.setOutput).toBeCalledWith('projectSlug', expect.stringMatching('fakeslug'));
-    expect(core.setOutput).toBeCalledWith('message', expect.any(String));
-    expect(core.setOutput).toBeCalledWith('messageId', expect.any(String));
+  describe('outputs', () => {
+    it('sets projectOwner', async () => {
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('projectOwner', 'fakeuser');
+    });
+
+    it('sets projectName', async () => {
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('projectName', 'fakename');
+    });
+
+    it('sets projectSlug', async () => {
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('projectSlug', 'fakeslug');
+    });
+
+    it('sets projectLink', async () => {
+      jest.mocked(expo.projectLink).mockReturnValue('https://expo.dev/@fakeuser/fakeslug');
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('projectLink', 'https://expo.dev/@fakeuser/fakeslug');
+    });
+
+    it('sets projectQR', async () => {
+      jest.mocked(expo.projectQR).mockReturnValue('https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('projectQR', 'https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
+    });
+
+    it('sets message', async () => {
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('message', expect.any(String));
+    });
+
+    it('sets messageId', async () => {
+      await commentAction({ ...input });
+      expect(core.setOutput).toBeCalledWith('messageId', expect.any(String));
+    });
   });
 });
