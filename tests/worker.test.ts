@@ -80,23 +80,13 @@ describe(patchWatchers, () => {
 });
 
 describe(executeAction, () => {
-  afterEach(resetEnv);
-
-  it('skips executing action in jest', async () => {
-    const action = jest.fn(() => Promise.resolve());
-    await executeAction(action);
-    expect(action).not.toBeCalled();
-  });
-
-  it('executes action outside jest', async () => {
-    setEnv('JEST_WORKER_ID', '');
+  it('executes action', async () => {
     const action = jest.fn(() => Promise.resolve());
     await executeAction(action);
     expect(action).toBeCalled();
   });
 
   it('handles action errors', async () => {
-    setEnv('JEST_WORKER_ID', '');
     const error = new Error('fake error');
     const action = jest.fn(() => Promise.reject(error));
     await expect(executeAction(action)).resolves.not.toThrow();

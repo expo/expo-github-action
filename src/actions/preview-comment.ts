@@ -1,5 +1,4 @@
-import { getBooleanInput, getInput, setOutput } from '@actions/core';
-import { info } from 'console';
+import { getBooleanInput, getInput, setOutput, info } from '@actions/core';
 
 import { projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
@@ -7,8 +6,8 @@ import { executeAction } from '../worker';
 
 export type CommentInput = ReturnType<typeof commentInput>;
 
-const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
-const DEFAULT_MESSAGE =
+export const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
+export const DEFAULT_MESSAGE =
   `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
   `\n- Project: **@{projectOwner}/{projectSlug}**` +
   `\n- Channel: **{channel}**` +
