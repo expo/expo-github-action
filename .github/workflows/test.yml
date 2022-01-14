@@ -64,6 +64,7 @@ jobs:
       - name: 🧪 Comment on PR
         uses: ./comment
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EXPO_TEST_GITHUB_PULL: 149
         with:
           project: ./temp
