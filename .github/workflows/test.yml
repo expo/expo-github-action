@@ -62,7 +62,7 @@ jobs:
         run: expo init -t blank ./temp
 
       - name: 🥸 Fake event payload
-        run: echo '{"pull_request":123}' > ./temp/event-payload
+        run: echo '{"pull_request":149}' > ./temp/event-payload
 
       - name: 🧪 Comment on PR
         uses: ./comment
