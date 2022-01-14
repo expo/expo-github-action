@@ -13566,7 +13566,6 @@ function commentInput() {
     };
 }
 exports.commentInput = commentInput;
-// Auto-execute in GitHub actions
 (0, worker_1.executeAction)(commentAction);
 async function commentAction(input = commentInput()) {
     const project = await (0, expo_1.projectInfo)(input.project);

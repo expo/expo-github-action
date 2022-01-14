@@ -65202,8 +65202,6 @@ const cacher_1 = __nccwpck_require__(331);
 const expo_1 = __nccwpck_require__(2489);
 const packager_1 = __nccwpck_require__(6466);
 const worker_1 = __nccwpck_require__(8912);
-// Auto-execute in GitHub actions
-(0, worker_1.executeAction)(setupAction);
 function setupInput() {
     return {
         easCache: !(0, core_1.getInput)('eas-cache') || (0, core_1.getBooleanInput)('eas-cache'),
@@ -65216,6 +65214,7 @@ function setupInput() {
     };
 }
 exports.setupInput = setupInput;
+(0, worker_1.executeAction)(setupAction);
 async function setupAction(input = setupInput()) {
     if (!input.expoVersion) {
         (0, core_1.info)(`Skipped installing expo-cli: 'expo-version' not provided.`);

@@ -23,7 +23,6 @@ export function commentInput() {
   };
 }
 
-// Auto-execute in GitHub actions
 executeAction(commentAction);
 
 export async function commentAction(input: CommentInput = commentInput()) {

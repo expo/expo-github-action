@@ -5,9 +5,6 @@ import { authenticate } from '../expo';
 import { installPackage, resolvePackage } from '../packager';
 import { executeAction, findTool, installToolFromPackage, patchWatchers } from '../worker';
 
-// Auto-execute in GitHub actions
-executeAction(setupAction);
-
 export type SetupInput = ReturnType<typeof setupInput>;
 
 export function setupInput() {
@@ -21,6 +18,8 @@ export function setupInput() {
     token: getInput('token'),
   };
 }
+
+executeAction(setupAction);
 
 export async function setupAction(input: SetupInput = setupInput()) {
   if (!input.expoVersion) {
