@@ -64845,7 +64845,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeAction = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
+exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const os_1 = __importDefault(__nccwpck_require__(2037));
@@ -64853,23 +64853,13 @@ const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
 Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function () { return tool_cache_1.find; } }));
 Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
-function tempPath(name, version) {
-    const temp = process.env['RUNNER_TEMP'] || '';
-    if (!temp) {
-        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-    }
-    return path_1.default.join(temp, name, version, os_1.default.arch());
+/**
+ * Auto-execute the action and pass errors to 'core.setFailed'.
+ */
+async function executeAction(action) {
+    return action().catch(error => (0, core_1.setFailed)(error.message || error));
 }
-exports.tempPath = tempPath;
-function toolPath(name, version) {
-    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-    if (!toolCache) {
-        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-    }
-    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-    return path_1.default.join(toolCache, name, version, os_1.default.arch());
-}
-exports.toolPath = toolPath;
+exports.executeAction = executeAction;
 /**
  * Install a "tool" from a node package.
  * This will add the folder, containing the `node_modules`, to the global path.
@@ -64908,17 +64898,23 @@ async function patchWatchers() {
     }
 }
 exports.patchWatchers = patchWatchers;
-/**
- * Auto-execute the action if it's not running in a test environment.
- * This also propagate possible errors to GitHub actions, with setFailed.
- */
-async function executeAction(action) {
-    if (process.env.JEST_WORKER_ID) {
-        return Promise.resolve(null);
+function tempPath(name, version) {
+    const temp = process.env['RUNNER_TEMP'] || '';
+    if (!temp) {
+        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
     }
-    return action().catch(error => (0, core_1.setFailed)(error.message || error));
+    return path_1.default.join(temp, name, version, os_1.default.arch());
 }
-exports.executeAction = executeAction;
+exports.tempPath = tempPath;
+function toolPath(name, version) {
+    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
+    if (!toolCache) {
+        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
+    }
+    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+    return path_1.default.join(toolCache, name, version, os_1.default.arch());
+}
+exports.toolPath = toolPath;
 
 
 /***/ }),

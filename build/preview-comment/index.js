@@ -13540,6 +13540,76 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 4478:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commentAction = exports.commentInput = exports.DEFAULT_MESSAGE = exports.DEFAULT_ID = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const worker_1 = __nccwpck_require__(8912);
+exports.DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
+exports.DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
+    `\n- Project: **@{projectOwner}/{projectSlug}**` +
+    `\n- Channel: **{channel}**` +
+    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
+function commentInput() {
+    return {
+        channel: (0, core_1.getInput)('channel') || 'default',
+        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
+        message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE,
+        messageId: (0, core_1.getInput)('message-id') || exports.DEFAULT_ID,
+        project: (0, core_1.getInput)('project'),
+    };
+}
+exports.commentInput = commentInput;
+// Auto-execute in GitHub actions
+(0, worker_1.executeAction)(commentAction);
+async function commentAction(input = commentInput()) {
+    const project = await (0, expo_1.projectInfo)(input.project);
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    const variables = {
+        projectLink: (0, expo_1.projectLink)(project, input.channel),
+        projectName: project.name,
+        projectOwner: project.owner || '',
+        projectQR: (0, expo_1.projectQR)(project, input.channel),
+        projectSlug: project.slug,
+        channel: input.channel,
+    };
+    const messageId = template(input.messageId, variables);
+    const messageBody = template(input.message, variables);
+    if (!input.comment) {
+        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
+    }
+    else {
+        await (0, github_1.createIssueComment)((0, github_1.pullContext)(), {
+            id: messageId,
+            body: messageBody,
+        });
+    }
+    for (const name in variables) {
+        (0, core_1.setOutput)(name, variables[name]);
+    }
+    (0, core_1.setOutput)('messageId', messageId);
+    (0, core_1.setOutput)('message', messageBody);
+}
+exports.commentAction = commentAction;
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+
+
+/***/ }),
+
 /***/ 2489:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -13734,7 +13804,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeAction = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
+exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const os_1 = __importDefault(__nccwpck_require__(2037));
@@ -13742,23 +13812,13 @@ const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
 Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function () { return tool_cache_1.find; } }));
 Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
-function tempPath(name, version) {
-    const temp = process.env['RUNNER_TEMP'] || '';
-    if (!temp) {
-        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-    }
-    return path_1.default.join(temp, name, version, os_1.default.arch());
+/**
+ * Auto-execute the action and pass errors to 'core.setFailed'.
+ */
+async function executeAction(action) {
+    return action().catch(error => (0, core_1.setFailed)(error.message || error));
 }
-exports.tempPath = tempPath;
-function toolPath(name, version) {
-    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-    if (!toolCache) {
-        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-    }
-    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-    return path_1.default.join(toolCache, name, version, os_1.default.arch());
-}
-exports.toolPath = toolPath;
+exports.executeAction = executeAction;
 /**
  * Install a "tool" from a node package.
  * This will add the folder, containing the `node_modules`, to the global path.
@@ -13797,17 +13857,23 @@ async function patchWatchers() {
     }
 }
 exports.patchWatchers = patchWatchers;
-/**
- * Auto-execute the action if it's not running in a test environment.
- * This also propagate possible errors to GitHub actions, with setFailed.
- */
-async function executeAction(action) {
-    if (process.env.JEST_WORKER_ID) {
-        return Promise.resolve(null);
+function tempPath(name, version) {
+    const temp = process.env['RUNNER_TEMP'] || '';
+    if (!temp) {
+        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
     }
-    return action().catch(error => (0, core_1.setFailed)(error.message || error));
+    return path_1.default.join(temp, name, version, os_1.default.arch());
 }
-exports.executeAction = executeAction;
+exports.tempPath = tempPath;
+function toolPath(name, version) {
+    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
+    if (!toolCache) {
+        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
+    }
+    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+    return path_1.default.join(toolCache, name, version, os_1.default.arch());
+}
+exports.toolPath = toolPath;
 
 
 /***/ }),
@@ -13833,14 +13899,6 @@ module.exports = require("buffer");
 
 "use strict";
 module.exports = require("child_process");
-
-/***/ }),
-
-/***/ 6206:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("console");
 
 /***/ }),
 
@@ -14066,77 +14124,12 @@ module.exports = JSON.parse('[["0","\\u0000",128],["a1","｡",62],["8140","　�
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commentAction = exports.commentInput = void 0;
-const core_1 = __nccwpck_require__(2186);
-const console_1 = __nccwpck_require__(6206);
-const expo_1 = __nccwpck_require__(2489);
-const github_1 = __nccwpck_require__(978);
-const worker_1 = __nccwpck_require__(8912);
-const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
-const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
-    `\n- Project: **@{projectOwner}/{projectSlug}**` +
-    `\n- Channel: **{channel}**` +
-    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
-function commentInput() {
-    return {
-        channel: (0, core_1.getInput)('channel') || 'default',
-        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
-        message: (0, core_1.getInput)('message') || DEFAULT_MESSAGE,
-        messageId: (0, core_1.getInput)('message-id') || DEFAULT_ID,
-        project: (0, core_1.getInput)('project'),
-    };
-}
-exports.commentInput = commentInput;
-// Auto-execute in GitHub actions
-(0, worker_1.executeAction)(commentAction);
-async function commentAction(input = commentInput()) {
-    const project = await (0, expo_1.projectInfo)(input.project);
-    if (!project.owner) {
-        project.owner = await (0, expo_1.projectOwner)();
-    }
-    const variables = {
-        projectLink: (0, expo_1.projectLink)(project, input.channel),
-        projectName: project.name,
-        projectOwner: project.owner || '',
-        projectQR: (0, expo_1.projectQR)(project, input.channel),
-        projectSlug: project.slug,
-        channel: input.channel,
-    };
-    const messageId = template(input.messageId, variables);
-    const messageBody = template(input.message, variables);
-    if (!input.comment) {
-        (0, console_1.info)(`Skipped comment: 'comment' is disabled`);
-    }
-    else {
-        await (0, github_1.createIssueComment)((0, github_1.pullContext)(), {
-            id: messageId,
-            body: messageBody,
-        });
-    }
-    for (const name in variables) {
-        (0, core_1.setOutput)(name, variables[name]);
-    }
-    (0, core_1.setOutput)('messageId', messageId);
-    (0, core_1.setOutput)('message', messageBody);
-}
-exports.commentAction = commentAction;
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
-}
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(4478);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
