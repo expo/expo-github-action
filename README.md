@@ -13,13 +13,13 @@
     </a>
   </p>
   <p align="center">
-    <a href="https://github.com/expo/expo-github-action#configuration-options"><b>Usage</b></a>
+    <a href="#configuration-options"><b>Usage</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="https://github.com/expo/expo-github-action#example-workflows"><b>Examples</b></a>
+    <a href="#example-workflows"><b>Examples</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="https://github.com/expo/expo-github-action#things-to-know"><b>Caveats</b></a>
+    <a href="#things-to-know"><b>Caveats</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+    <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
   </p>
 </div>
 
@@ -55,14 +55,12 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 1. [Publish on any push to main](#publish-on-any-push-to-main)
 2. [Creating a new EAS build](#creating-a-new-eas-build)
-3. [Test PRs and publish a review version](#test-prs-and-publish-a-review-version)
-4. [Test PRs on multiple nodes and systems](#test-prs-on-multiple-node-versions-and-systems)
+3. [Publish a preview from PR](#publish-a-preview-from-PR)
 
 ### Publish on any push to main
 
-Below you can see the example configuration to publish whenever the main branch is updated.
-The workflow listens to the `push` event and sets up Node 14 using the [Setup Node Action][link-actions-node].
-It also auto-authenticates when the `token` is provided.
+This workflow listens to the **push** event on the **main** branch.
+It sets up all required components to publish the app, including authentication with a token.
 
 ```yml
 on:
@@ -73,24 +71,33 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      - uses: expo/expo-github-action@v6
+
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: yarn install
-      - run: expo publish
+      
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: 🚀 Publish app
+        run: expo publish
 ```
 
 ### Creating a new EAS build
 
 You can also install [EAS](https://docs.expo.dev/eas/) CLI with this GitHub Action.
-Below we've swapped `expo-version` with `eas-version`, but you can also use them together.
-Both the `token` and `username`/`password` is shared between both Expo and EAS CLI.
+To do this, add the **eas-version** and it will install the EAS CLI too.
+The **token** is shared for both Expo and EAS CLI.
 
 > We recommend using `latest` for `eas-version` to always have the most up-to-date version.
 
@@ -103,80 +110,70 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+      
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      - uses: expo/expo-github-action@v6
+      
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
         with:
           eas-version: latest
+          expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: yarn install
-      - run: eas build
+      
+      - name: 📦 Install dependencies
+        run: yarn install
+      
+      - name: 🚀 Build app
+        run: eas build
 ```
 
-### Test PRs and publish a review version
+### Publish a preview from PR
 
 Reviewing pull requests can take some time if you have to read every line of code.
-To make this easier, you can publish the edited version of the PR using a [release channel][link-expo-release-channels].
-Below you can see an example of a workflow that publishes and comments on te PR when the app is published.
+To make this easier, you can publish the PR using a [release channel][link-expo-release-channels].
+This workflow first publishes the changes to the **pr-N** channel, and adds a comment for the reviewers.
+
+> See the [preview-comment docs](./preview-comment)
 
 ```yml
 on: [pull_request]
-env:
-  projectOwner: bycedric
-  projectSlug: use-expo
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+      
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      - uses: expo/expo-github-action@v6
+      
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: yarn install
-      - run: expo publish --release-channel=pr-${{ github.event.number }}
-      - uses: unsplash/comment-on-pr@v1.1.1
+      
+      - name: 📦 Install dependencies
+        run: yarn install
+      
+      - name: 🚀 Publish preview
+        run: expo publish --release-channel=pr-${{ github.event.number }}
+      
+      - name: 💬 Comment preview
+        uses: expo/expo-github-action/preview-comment@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: App is ready for review, you can [see it here](https://expo.dev/@${{ env.projectOwner }}/${{ env.projectSlug }}?release-channel=pr-${{ github.event.number }}).\n\n<img src="https://qr.expo.dev/expo-go?owner=${{ env.projectOwner }}&slug=${{ env.projectSlug }}&releaseChannel=pr-${{ github.event.number }}" height="200px" width="200px"></a>
-```
-
-### Test PRs on multiple node versions and systems
-
-With GitHub Actions, it's reasonably easy to set up a matrix build and test the app on multiple environments.
-These matrixes can help to make sure your app runs smoothly on a broad set of different development machines.
-
-> If you don't need automatic authentication, you can omit the `token` variables.
-
-```yml
-on: [pull_request]
-jobs:
-  ci:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-        node: [14.x, 16.x]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
-      - uses: expo/expo-github-action@v6
-        with:
-          expo-version: 5.x
-      - run: yarn install
-      - run: yarn test
-      - run: expo doctor
+          channel: pr-${{ github.event.number }}
 ```
 
 ## Things to know
@@ -214,8 +211,8 @@ You can disable this patch by setting the `patch-watchers` to `false`.
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
 [link-actions-cache-limit]: https://github.com/actions/cache#cache-limits
 [link-actions-cache-package]: https://github.com/actions/toolkit/tree/main/packages/cache
-[link-actions-node]: https://github.com/actions/setup-node
 [link-actions-secrets]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
 [link-expo-cli]: https://docs.expo.dev/workflow/expo-cli/
 [link-expo-release-channels]: https://docs.expo.dev/distribution/release-channels/
 [link-eas-cli]: https://github.com/expo/eas-cli#readme
+[link-preview-comment]: https://github.com/expo/expo-github-action/pull/149#issuecomment-1013184520

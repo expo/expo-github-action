@@ -146,7 +146,7 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Publish to Expo
+      - name: 🚀 Publish preview
         run: expo publish --release-channel=production
 
       - name: 👷 Create preview comment
