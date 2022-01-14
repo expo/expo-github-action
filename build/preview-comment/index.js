@@ -13675,7 +13675,7 @@ exports.fetchIssueComment = fetchIssueComment;
  */
 async function createIssueComment(issue, comment) {
     const github = githubApi();
-    const body = `${comment.body}\n\n<!-- ${comment.id} -->`;
+    const body = `<!-- ${comment.id} -->\n${comment.body}`;
     const existing = await fetchIssueComment(issue, comment.id);
     if (existing) {
         return github.rest.issues.updateComment({

@@ -37,7 +37,7 @@ export async function fetchIssueComment(issue: IssueContext, commentId: Comment[
  */
 export async function createIssueComment(issue: IssueContext, comment: Comment) {
   const github = githubApi();
-  const body = `${comment.body}\n\n<!-- ${comment.id} -->`;
+  const body = `<!-- ${comment.id} -->\n${comment.body}`;
   const existing = await fetchIssueComment(issue, comment.id);
 
   if (existing) {
