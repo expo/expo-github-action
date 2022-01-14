@@ -13585,7 +13585,7 @@ async function projectOwner(cli = 'expo') {
     else if (stdout.endsWith(' (robot)')) {
         throw new Error(`Could not fetch the project owner, used robot account`);
     }
-    return stdout;
+    return stdout.trim();
 }
 exports.projectOwner = projectOwner;
 /**
@@ -14074,7 +14074,7 @@ const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
     `\n- Project owner: **{projectOwner}**` +
     `\n- Project name: **{projectName}**` +
-    `\n- Release channel: **{releaseChannel}**` +
+    `\n- Channel: **{releaseChannel}**` +
     `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 function commentInput() {
     return {

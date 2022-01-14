@@ -46,7 +46,7 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
     throw new Error(`Could not fetch the project owner, used robot account`);
   }
 
-  return stdout;
+  return stdout.trim();
 }
 
 /**

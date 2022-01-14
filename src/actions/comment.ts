@@ -11,7 +11,7 @@ const DEFAULT_MESSAGE =
   `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
   `\n- Project owner: **{projectOwner}**` +
   `\n- Project name: **{projectName}**` +
-  `\n- Release channel: **{releaseChannel}**` +
+  `\n- Channel: **{releaseChannel}**` +
   `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 
 export function commentInput() {

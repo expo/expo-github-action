@@ -64734,7 +64734,7 @@ async function projectOwner(cli = 'expo') {
     else if (stdout.endsWith(' (robot)')) {
         throw new Error(`Could not fetch the project owner, used robot account`);
     }
-    return stdout;
+    return stdout.trim();
 }
 exports.projectOwner = projectOwner;
 /**
