@@ -13836,6 +13836,14 @@ module.exports = require("child_process");
 
 /***/ }),
 
+/***/ 6206:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("console");
+
+/***/ }),
+
 /***/ 6113:
 /***/ ((module) => {
 
@@ -14067,41 +14075,33 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.commentAction = exports.commentInput = void 0;
 const core_1 = __nccwpck_require__(2186);
+const console_1 = __nccwpck_require__(6206);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const worker_1 = __nccwpck_require__(8912);
 const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
-    `\n- Project owner: **{projectOwner}**` +
-    `\n- Project name: **{projectName}**` +
+    `\n- Project: [**@{projectOwner}/{projectSlug}**]({projectLink})` +
     `\n- Channel: **{releaseChannel}**` +
-    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
+    `\n\n<a href="{projectQR}" target="_blank"><img src="{projectQR}" height="200px" width="200px"></a>`;
 function commentInput() {
     return {
-        project: (0, core_1.getInput)('project'),
         channel: (0, core_1.getInput)('channel') || 'default',
+        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
         message: (0, core_1.getInput)('message') || DEFAULT_MESSAGE,
         messageId: (0, core_1.getInput)('message-id') || DEFAULT_ID,
+        project: (0, core_1.getInput)('project'),
     };
 }
 exports.commentInput = commentInput;
 // Auto-execute in GitHub actions
 (0, worker_1.executeAction)(commentAction);
 async function commentAction(input = commentInput()) {
-    const pull = (0, github_1.pullContext)();
     const project = await (0, expo_1.projectInfo)(input.project);
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();
     }
-    await (0, github_1.createIssueComment)(pull, {
-        id: makeTemplate(input.messageId, project, input),
-        body: makeTemplate(input.message, project, input),
-    });
-}
-exports.commentAction = commentAction;
-function makeTemplate(template, project, input) {
-    let result = template;
-    const replacements = {
+    const variables = {
         projectLink: (0, expo_1.projectLink)(project, input.channel),
         projectName: project.name,
         projectOwner: project.owner || '',
@@ -14109,6 +14109,26 @@ function makeTemplate(template, project, input) {
         projectSlug: project.slug,
         releaseChannel: input.channel,
     };
+    const messageId = template(input.messageId, variables);
+    const messageBody = template(input.message, variables);
+    if (!input.comment) {
+        (0, console_1.info)(`Skipped comment: 'comment' is disabled`);
+    }
+    else {
+        await (0, github_1.createIssueComment)((0, github_1.pullContext)(), {
+            id: messageId,
+            body: messageBody,
+        });
+    }
+    for (const name in variables) {
+        (0, core_1.setOutput)(name, variables[name]);
+    }
+    (0, core_1.setOutput)('messageId', messageId);
+    (0, core_1.setOutput)('message', messageBody);
+}
+exports.commentAction = commentAction;
+function template(template, replacements) {
+    let result = template;
     for (const name in replacements) {
         result = result.replaceAll(`{${name}}`, replacements[name]);
     }

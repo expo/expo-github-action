@@ -1,0 +1,42 @@
+---
+name: Expo GitHub Action - Preview comment
+author: Cedric van Putten <me@bycedric.com>
+description: Add Expo preview comments to pull requests
+branding:
+  icon: message-circle
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/preview-comment/index.js
+inputs:
+  project:
+    description: Path to the Expo project, relative from the workspace
+    required: false
+  channel:
+    description: Release channel to preview
+    required: false
+  comment:
+    description: If the action should comment on a PR
+    required: false
+    default: true
+  message:
+    description: Pull request comment template
+    required: false
+  message-id:
+    description: A unique identifier to prevent multiple comments on the same pull request
+    required: false
+outputs:
+  projectOwner:
+    description: The resolved project owner
+  projectName:
+    description: The resolved project name
+  projectSlug:
+    description: The resolved project slug
+  projectQR:
+    description: The absolute URL to the QR code
+  projectLink:
+    description: The absolute link to the project on expo.dev
+  messageId:
+    description: The resolved message id
+  message:
+    description: The resolved message content

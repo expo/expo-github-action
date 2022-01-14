@@ -45,7 +45,7 @@ jobs:
       - name: 🧪 Expo authenticated
         run: expo whoami
   
-  comment:
+  preview-comment:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -62,7 +62,7 @@ jobs:
         run: expo init -t blank ./temp
 
       - name: 🧪 Comment on PR
-        uses: ./comment
+        uses: ./preview-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EXPO_TEST_GITHUB_PULL: 149
