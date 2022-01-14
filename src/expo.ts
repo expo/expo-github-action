@@ -35,7 +35,7 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which(cli), ['whoami']));
+    ({ stdout } = await getExecOutput(await which(cli), ['whoami'], { silent: true }));
   } catch (error) {
     throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
   }
