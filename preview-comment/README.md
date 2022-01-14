@@ -30,6 +30,9 @@ It helps speeding up the review process by presenting a QR code for your publish
 
 > This action only creates the comment, you still have to publish the project.
 
+To prevent duplicate comments on a PR after publishing multiple times, it also has a unique message id.
+This unique message id is added as HTML comment and should not be visible.
+
 ## Configuration options
 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
