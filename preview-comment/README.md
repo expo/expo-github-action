@@ -56,7 +56,7 @@ There a few ouput and template variables available for both `message` and `messa
 | **projectSlug**  | `{projectSlug}`  | The resolved slug of the project                     |
 | **projectName**  | `{projectName}`  | The resolved name of the project                     |
 | **projectLink**  | `{projectLink}`  | The expo.dev project link, including release channel |
-| **projectQR**    | `{projectQR}`    | The QR code to load the project in Expo Go           |
+| **projectQR**    | `{projectQR}`    | The QR code link, to load the project in Expo Go     |
 | -                | `{channel}`      | The release channel that was used                    |
 | **message**      | -                | The resolved message content                         |
 | **messageId**    | -                | The resolved message id content                      |
@@ -83,18 +83,29 @@ jobs:
   preview:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      - uses: expo/expo-github-action@v6
+
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v6
         with:
           expo-version: 5.x
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: yarn install
-      - run: expo publish --release-channel=pr-${{ github.event.number }}
-      - uses: expo/expo-github-action/preview-comment@v6
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: 🚀 Publish to Expo
+        run: expo publish --release-channel=pr-${{ github.event.number }}
+
+      - name: 💬 Comment in preview
+        uses: expo/expo-github-action/preview-comment@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -117,28 +128,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-      - uses: expo/expo-github-action@v6
+
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v6
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: yarn install
-      - run: expo publish --release-channel=production
-      - uses: expo/expo-github-action/preview-comment@v6
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: 🚀 Publish to Expo
+        run: expo publish --release-channel=production
+
+      - name: 👷 Create preview comment
+        uses: expo/expo-github-action/preview-comment@v6
         id: preview
         with:
           comment: false
           channel: production
-      - uses: slackapi/slack-github-action@v1.17.0
+
+      - name: 💬 Comment in Slack
+        uses: slackapi/slack-github-action@v1.17.0
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
         with:
           channel-id: deployments
-          slack-message: 'New deployment is ready! ${{ steps.preview.outputs.projectQR }}'
+          slack-message: 'New deployment is ready!\n- Preview: ${{ steps.preview.outputs.projectQR }}'
 ```
 
 <div align="center">
