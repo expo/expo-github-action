@@ -72,8 +72,14 @@ export function githubApi(): ReturnType<typeof getOctokit> {
 /**
  * Validate and extract the pull reference from context.
  * If it's not a supported event, e.g. not a pull, it will throw an error.
+ * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
  */
 export function pullContext(): IssueContext {
+  // see .github/workflows/test.yml in 'comment'
+  if (process.env['EXPO_TEST_GITHUB_PULL']) {
+    return { ...context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
+  }
+
   if (context.eventName !== 'pull_request') {
     throw new Error(`Could not find the pull context, make sure to run this from a pull request.`);
   }

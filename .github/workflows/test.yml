@@ -61,14 +61,10 @@ jobs:
       - name: 🏗 Setup project
         run: expo init -t blank ./temp
 
-      - name: 🥸 Fake event payload
-        run: echo '{"pull_request":149}' > ./temp/event-payload
-
       - name: 🧪 Comment on PR
         uses: ./comment
         env:
-          GITHUB_EVENT_PATH: ./temp/event-payload
-          GITHUB_EVENT_NAME: pull_request
+          EXPO_TEST_GITHUB_PULL: 149
         with:
           project: ./temp
           channel: test

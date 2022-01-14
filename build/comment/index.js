@@ -13708,8 +13708,13 @@ exports.githubApi = githubApi;
 /**
  * Validate and extract the pull reference from context.
  * If it's not a supported event, e.g. not a pull, it will throw an error.
+ * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
  */
 function pullContext() {
+    // see .github/workflows/test.yml in 'comment'
+    if (process.env['EXPO_TEST_GITHUB_PULL']) {
+        return { ...github_1.context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
+    }
     if (github_1.context.eventName !== 'pull_request') {
         throw new Error(`Could not find the pull context, make sure to run this from a pull request.`);
     }
