@@ -100,6 +100,6 @@ describe(executeAction, () => {
     const error = new Error('fake error');
     const action = jest.fn(() => Promise.reject(error));
     await expect(executeAction(action)).resolves.not.toThrow();
-    expect(core.setFailed).toBeCalledWith(error);
+    expect(core.setFailed).toBeCalledWith(error.message);
   });
 });
