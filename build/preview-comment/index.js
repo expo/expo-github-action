@@ -14081,9 +14081,9 @@ const github_1 = __nccwpck_require__(978);
 const worker_1 = __nccwpck_require__(8912);
 const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
 const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
-    `\n- Project: [**@{projectOwner}/{projectSlug}**]({projectLink})` +
+    `\n- Project: **@{projectOwner}/{projectSlug}**` +
     `\n- Channel: **{releaseChannel}**` +
-    `\n\n<a href="{projectQR}" target="_blank"><img src="{projectQR}" height="200px" width="200px"></a>`;
+    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 function commentInput() {
     return {
         channel: (0, core_1.getInput)('channel') || 'default',
