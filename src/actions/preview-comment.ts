@@ -7,11 +7,11 @@ import { executeAction } from '../worker';
 
 export type CommentInput = ReturnType<typeof commentInput>;
 
-const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
+const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
 const DEFAULT_MESSAGE =
-  `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
+  `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
   `\n- Project: **@{projectOwner}/{projectSlug}**` +
-  `\n- Channel: **{releaseChannel}**` +
+  `\n- Channel: **{channel}**` +
   `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 
 export function commentInput() {
@@ -39,7 +39,7 @@ export async function commentAction(input: CommentInput = commentInput()) {
     projectOwner: project.owner || '',
     projectQR: projectQR(project, input.channel),
     projectSlug: project.slug,
-    releaseChannel: input.channel,
+    channel: input.channel,
   };
 
   const messageId = template(input.messageId, variables);

@@ -14079,10 +14079,10 @@ const console_1 = __nccwpck_require__(6206);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const worker_1 = __nccwpck_require__(8912);
-const DEFAULT_ID = `app:{projectSlug} channel:{releaseChannel}`;
-const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action)!\n` +
+const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
+const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
     `\n- Project: **@{projectOwner}/{projectSlug}**` +
-    `\n- Channel: **{releaseChannel}**` +
+    `\n- Channel: **{channel}**` +
     `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
 function commentInput() {
     return {
@@ -14107,7 +14107,7 @@ async function commentAction(input = commentInput()) {
         projectOwner: project.owner || '',
         projectQR: (0, expo_1.projectQR)(project, input.channel),
         projectSlug: project.slug,
-        releaseChannel: input.channel,
+        channel: input.channel,
     };
     const messageId = template(input.messageId, variables);
     const messageBody = template(input.message, variables);
