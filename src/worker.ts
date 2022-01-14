@@ -71,5 +71,5 @@ export async function executeAction(action: () => Promise<void>) {
     return Promise.resolve(null);
   }
 
-  return action().catch(setFailed);
+  return action().catch(error => setFailed(error.message || error));
 }
