@@ -15,9 +15,11 @@
   <p align="center">
     <a href="#configuration-options"><b>Usage</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="#available-variables"><b>Variables</b></a>
+    <a href="#available-outputs"><b>Outputs</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
     <a href="#example-workflows"><b>Examples</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="#things-to-know"><b>Caveats</b></a>
     &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
     <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
   </p>
@@ -25,28 +27,25 @@
 
 ## What's inside?
 
-This subaction allows you to create Expo preview comments on pull requests.
-It helps speeding up the review process by presenting a QR code for your published project.
+This subaction allows you to create comments on pull requests, containing Expo QR codes.
+It can help speeding up the review process by letting the reviewer load the app directly on their phone.
 
 > This action only creates the comment, you still have to publish the project.
-
-To prevent duplicate comments on a PR after publishing multiple times, it also has a unique message id.
-This unique message id is added as HTML comment and should not be visible.
 
 ## Configuration options
 
 This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
 Here is a summary of all the variables that you can use and their purpose.
 
-| variable     | default                     | description                                        |
-| ------------ | --------------------------- | -------------------------------------------------- |
-| `project`    | -                           | The relative path to the Expo project              |
-| `channel`    | `default`                   | On what channel the project was published          |
-| `comment`    | `true`                      | If this action should comment on a PR              |
-| `message`    | _[see code][code-defaults]_ | The message template                               |
-| `message-id` | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments |
+| variable       | default                     | description                                                                                      |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| **project**    | -                           | The relative path to the Expo project                                                            |
+| **channel**    | `default`                   | On what channel the project was published                                                        |
+| **comment**    | `true`                      | If this action should comment on a PR                                                            |
+| **message**    | _[see code][code-defaults]_ | The message template                                                                             |
+| **message-id** | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
 
-## Available variables
+## Available ouputs
 
 There a few ouput and template variables available for both `message` and `message-id`.
 
@@ -164,6 +163,14 @@ jobs:
           channel-id: deployments
           slack-message: 'New deployment is ready!\n- Preview: ${{ steps.preview.outputs.projectQR }}'
 ```
+
+## Things to know
+
+### Preventing duplicate comments
+
+When automating comments, you have to be careful not to spam a pull request with new comments.
+In every comment this action creates, we include a hidden **message-id**.
+We use this ID to identify previously made comments to avoid spamming.
 
 <div align="center">
   <br />
