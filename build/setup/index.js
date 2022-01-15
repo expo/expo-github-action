@@ -64689,6 +64689,106 @@ exports.handleCacheError = handleCacheError;
 
 /***/ }),
 
+/***/ 2489:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const url_1 = __nccwpck_require__(7310);
+/**
+ * Try to authenticate the user using either Expo or EAS CLI.
+ * This method tries to invoke 'whoami' to validate if the token is valid.
+ * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
+ */
+async function authenticate(token, cli = 'expo') {
+    if (!cli) {
+        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
+    }
+    else {
+        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
+            env: { ...process.env, EXPO_TOKEN: token },
+        });
+    }
+    (0, core_1.exportVariable)('EXPO_TOKEN', token);
+}
+exports.authenticate = authenticate;
+/**
+ * Try to resolve the project owner, by running 'eas|expo whoami'.
+ */
+async function projectOwner(cli = 'expo') {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
+    }
+    if (!stdout) {
+        throw new Error(`Could not fetch the project owner, not authenticated`);
+    }
+    else if (stdout.endsWith(' (robot)')) {
+        throw new Error(`Could not fetch the project owner, used robot account`);
+    }
+    return stdout.trim();
+}
+exports.projectOwner = projectOwner;
+/**
+ * Try to resolve the project info, by running 'expo config --type prebuild'.
+ */
+async function projectInfo(dir) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
+            cwd: dir,
+            silent: true,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${error.message || error}`);
+    }
+    const { name, slug, owner } = JSON.parse(stdout);
+    return { name, slug, owner };
+}
+exports.projectInfo = projectInfo;
+/**
+ * Create a QR code for an update on project, with an optional release channel.
+ */
+function projectQR(project, channel) {
+    if (!project.owner) {
+        throw new Error('Could not create a QR code for project without owner');
+    }
+    const url = new url_1.URL('https://qr.expo.dev/expo-go');
+    url.searchParams.append('owner', project.owner);
+    url.searchParams.append('slug', project.slug);
+    if (channel) {
+        url.searchParams.append('releaseChannel', channel);
+    }
+    return url.toString();
+}
+exports.projectQR = projectQR;
+/**
+ * Create a link for the project in Expo.
+ */
+function projectLink(project, channel) {
+    if (!project.owner) {
+        throw new Error('Could not create a project link without owner');
+    }
+    const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectLink = projectLink;
+
+
+/***/ }),
+
 /***/ 6466:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -64707,14 +64807,7 @@ const worker_1 = __nccwpck_require__(8912);
 async function resolvePackage(name, range) {
     let stdout = '';
     try {
-        await (0, exec_1.exec)('npm', ['info', `${name}@${range}`, 'version', '--json'], {
-            silent: true,
-            listeners: {
-                stdout(data) {
-                    stdout += data.toString();
-                },
-            },
-        });
+        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
     }
     catch (error) {
         throw new Error(`Could not resolve ${name}@${range}, reason:\n${error.message || error}`);
@@ -64752,32 +64845,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeAction = exports.expoAuthenticate = exports.patchWatchers = exports.installToolFromPackage = exports.toolPath = exports.tempPath = exports.cacheTool = exports.findTool = void 0;
+exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
-const io_1 = __nccwpck_require__(7436);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
 Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function () { return tool_cache_1.find; } }));
 Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
-function tempPath(name, version) {
-    const temp = process.env['RUNNER_TEMP'] || '';
-    if (!temp) {
-        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-    }
-    return path_1.default.join(temp, name, version, os_1.default.arch());
+/**
+ * Auto-execute the action and pass errors to 'core.setFailed'.
+ */
+async function executeAction(action) {
+    return action().catch(error => (0, core_1.setFailed)(error.message || error));
 }
-exports.tempPath = tempPath;
-function toolPath(name, version) {
-    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-    if (!toolCache) {
-        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-    }
-    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-    return path_1.default.join(toolCache, name, version, os_1.default.arch());
-}
-exports.toolPath = toolPath;
+exports.executeAction = executeAction;
 /**
  * Install a "tool" from a node package.
  * This will add the folder, containing the `node_modules`, to the global path.
@@ -64816,34 +64898,23 @@ async function patchWatchers() {
     }
 }
 exports.patchWatchers = patchWatchers;
-/**
- * Try to authenticate the user using either Expo or EAS CLI.
- * This method tries to invoke 'whoami' to validate if the token is valid.
- * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
- */
-async function expoAuthenticate(token, cli) {
-    if (!cli) {
-        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
+function tempPath(name, version) {
+    const temp = process.env['RUNNER_TEMP'] || '';
+    if (!temp) {
+        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
     }
-    else {
-        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
-            env: { ...process.env, EXPO_TOKEN: token },
-        });
-    }
-    (0, core_1.exportVariable)('EXPO_TOKEN', token);
+    return path_1.default.join(temp, name, version, os_1.default.arch());
 }
-exports.expoAuthenticate = expoAuthenticate;
-/**
- * Auto-execute the action if it's not running in a test environment.
- * This also propagate possible errors to GitHub actions, with setFailed.
- */
-async function executeAction(action) {
-    if (process.env.JEST_WORKER_ID) {
-        return Promise.resolve(null);
+exports.tempPath = tempPath;
+function toolPath(name, version) {
+    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
+    if (!toolCache) {
+        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
     }
-    return action().catch(core_1.setFailed);
+    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+    return path_1.default.join(toolCache, name, version, os_1.default.arch());
 }
-exports.executeAction = executeAction;
+exports.toolPath = toolPath;
 
 
 /***/ }),
@@ -65128,10 +65199,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setupAction = exports.setupInput = void 0;
 const core_1 = __nccwpck_require__(2186);
 const cacher_1 = __nccwpck_require__(331);
+const expo_1 = __nccwpck_require__(2489);
 const packager_1 = __nccwpck_require__(6466);
 const worker_1 = __nccwpck_require__(8912);
-// Auto-execute in GitHub actions
-(0, worker_1.executeAction)(setupAction);
 function setupInput() {
     return {
         easCache: !(0, core_1.getInput)('eas-cache') || (0, core_1.getBooleanInput)('eas-cache'),
@@ -65144,6 +65214,7 @@ function setupInput() {
     };
 }
 exports.setupInput = setupInput;
+(0, worker_1.executeAction)(setupAction);
 async function setupAction(input = setupInput()) {
     if (!input.expoVersion) {
         (0, core_1.info)(`Skipped installing expo-cli: 'expo-version' not provided.`);
@@ -65169,7 +65240,7 @@ async function setupAction(input = setupInput()) {
         (0, core_1.info)(`Skipped authentication: 'token' not provided.`);
     }
     else {
-        await (0, core_1.group)('Validating authenticated account', () => (0, worker_1.expoAuthenticate)(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined));
+        await (0, core_1.group)('Validating authenticated account', () => (0, expo_1.authenticate)(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined));
     }
     if (!input.patchWatchers) {
         (0, core_1.info)(`Skipped patching watchers: 'patch-watchers' disabled.`);

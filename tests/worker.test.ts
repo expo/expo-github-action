@@ -1,22 +1,13 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
-import * as io from '@actions/io';
 import os from 'os';
 import path from 'path';
 
-import {
-  tempPath,
-  toolPath,
-  installToolFromPackage,
-  patchWatchers,
-  expoAuthenticate,
-  executeAction,
-} from '../src/worker';
+import { tempPath, toolPath, installToolFromPackage, patchWatchers, executeAction } from '../src/worker';
 import { resetEnv, setEnv, setPlatform, resetPlatform } from './utils';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
-jest.mock('@actions/io');
 
 describe(tempPath, () => {
   afterEach(resetEnv);
@@ -88,52 +79,17 @@ describe(patchWatchers, () => {
   });
 });
 
-describe(expoAuthenticate, () => {
-  it('exports EXPO_TOKEN variable', async () => {
-    await expoAuthenticate('faketoken', undefined);
-    expect(core.exportVariable).toBeCalledWith('EXPO_TOKEN', 'faketoken');
-  });
-
-  it('validates EXPO_TOKEN with expo-cli', async () => {
-    jest.mocked(io.which).mockResolvedValue('expo');
-    await expoAuthenticate('faketoken', 'expo');
-    expect(io.which).toBeCalledWith('expo');
-    expect(exec.exec).toBeCalledWith('expo', ['whoami'], {
-      env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
-    });
-  });
-
-  it('validates EXPO_TOKEN with eas-cli', async () => {
-    jest.mocked(io.which).mockResolvedValue('eas');
-    await expoAuthenticate('faketoken', 'eas');
-    expect(io.which).toBeCalledWith('eas');
-    expect(exec.exec).toBeCalledWith('eas', ['whoami'], {
-      env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
-    });
-  });
-});
-
 describe(executeAction, () => {
-  afterEach(resetEnv);
-
-  it('skips executing action in jest', async () => {
-    const action = jest.fn(() => Promise.resolve());
-    await executeAction(action);
-    expect(action).not.toBeCalled();
-  });
-
-  it('executes action outside jest', async () => {
-    setEnv('JEST_WORKER_ID', '');
+  it('executes action', async () => {
     const action = jest.fn(() => Promise.resolve());
     await executeAction(action);
     expect(action).toBeCalled();
   });
 
   it('handles action errors', async () => {
-    setEnv('JEST_WORKER_ID', '');
     const error = new Error('fake error');
     const action = jest.fn(() => Promise.reject(error));
     await expect(executeAction(action)).resolves.not.toThrow();
-    expect(core.setFailed).toBeCalledWith(error);
+    expect(core.setFailed).toBeCalledWith(error.message);
   });
 });

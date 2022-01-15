@@ -14,12 +14,11 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
           - windows-latest
         cache:
-          - true
-          - false
+          - with-cache
+          - without-cache
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🏗 Setup repo
@@ -29,9 +28,9 @@ jobs:
         uses: ./
         with:
           eas-version: latest
-          eas-cache: ${{ matrix.cache }}
+          eas-cache: ${{ matrix.cache == 'with-cache' }}
           expo-version: latest
-          expo-cache: ${{ matrix.cache }}
+          expo-cache: ${{ matrix.cache == 'with-cache' }}
           token: ${{ secrets.EXPO_TOKEN }}
       
       - name: 🧪 EAS installed
@@ -45,4 +44,44 @@ jobs:
 
       - name: 🧪 Expo authenticated
         run: expo whoami
+  
+  preview-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Expo
+        uses: ./
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      
+      - name: 🏗 Setup project
+        run: expo init -t blank ./temp
+      
+      - name: 🧪 Without commenting
+        uses: ./preview-comment
+        id: preview
+        with:
+          project: ./temp
+          comment: false
+
+      - name: 🧪 Output has content
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const message = `${{ steps.preview.outputs.message }}`
+            if (!message) throw new Error('Message output is empty')
+
+      - name: 🧪 Comment on PR
+        uses: ./preview-comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPO_TEST_GITHUB_PULL: 149
+        with:
+          project: ./temp
+          channel: test
+
 
