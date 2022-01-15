@@ -13551,7 +13551,7 @@ const core_1 = __nccwpck_require__(2186);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const worker_1 = __nccwpck_require__(8912);
-exports.DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
+exports.DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
 exports.DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
     `\n- Project: **@{projectOwner}/{projectSlug}**` +
     `\n- Channel: **{channel}**` +

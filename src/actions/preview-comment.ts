@@ -6,7 +6,7 @@ import { executeAction } from '../worker';
 
 export type CommentInput = ReturnType<typeof commentInput>;
 
-export const DEFAULT_ID = `app:{projectSlug} channel:{channel}`;
+export const DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
 export const DEFAULT_MESSAGE =
   `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
   `\n- Project: **@{projectOwner}/{projectSlug}**` +
