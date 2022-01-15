@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>expo github action - preview comment</h1>
+  <h1>expo-github-action/preview-comment</h1>
   <p>Add <a href="https://github.com/expo/expo">Expo</a> preview comments to pull requests</p>
   <p>
     <a href="https://github.com/expo/expo-github-action/releases">

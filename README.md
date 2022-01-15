@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>expo github action</h1>
+  <h1>expo-github-action</h1>
   <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with GitHub Actions!</p>
   <p>
     <a href="https://github.com/expo/expo-github-action/releases">
