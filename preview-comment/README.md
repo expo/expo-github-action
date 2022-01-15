@@ -171,5 +171,5 @@ jobs:
   <br />
 </div>
 
-[code-defaults]: https://github.com/expo/expo-github-action/blob/main/src/actions/preview-comment.ts
+[code-defaults]: ../src/actions/preview-comment.ts
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
