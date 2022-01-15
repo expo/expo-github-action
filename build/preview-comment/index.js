@@ -13619,6 +13619,7 @@ exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectO
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
+const assert_1 = __nccwpck_require__(9491);
 const url_1 = __nccwpck_require__(7310);
 /**
  * Try to authenticate the user using either Expo or EAS CLI.
@@ -13679,9 +13680,7 @@ exports.projectInfo = projectInfo;
  * Create a QR code for an update on project, with an optional release channel.
  */
 function projectQR(project, channel) {
-    if (!project.owner) {
-        throw new Error('Could not create a QR code for project without owner');
-    }
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
     const url = new url_1.URL('https://qr.expo.dev/expo-go');
     url.searchParams.append('owner', project.owner);
     url.searchParams.append('slug', project.slug);
@@ -13695,9 +13694,7 @@ exports.projectQR = projectQR;
  * Create a link for the project in Expo.
  */
 function projectLink(project, channel) {
-    if (!project.owner) {
-        throw new Error('Could not create a project link without owner');
-    }
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
     const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
     if (channel) {
         url.searchParams.append('release-channel', channel);
@@ -13717,6 +13714,7 @@ exports.projectLink = projectLink;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
+const assert_1 = __nccwpck_require__(9491);
 /**
  * Determine if a comment exists on an issue or pull with the provided identifier.
  * This will iterate all comments received from GitHub, and try to exit early if it exists.
@@ -13767,11 +13765,8 @@ exports.createIssueComment = createIssueComment;
  * This uses the 'GITHUB_TOKEN' environment variable.
  */
 function githubApi() {
-    const githubToken = process.env['GITHUB_TOKEN'];
-    if (!githubToken) {
-        throw new Error(`This step requires a 'GITHUB_TOKEN' environment variable to create comments.`);
-    }
-    return (0, github_1.getOctokit)(githubToken);
+    (0, assert_1.ok)(process.env['GITHUB_TOKEN'], 'This step requires a GITHUB_TOKEN environment variable to create comments');
+    return (0, github_1.getOctokit)(process.env['GITHUB_TOKEN']);
 }
 exports.githubApi = githubApi;
 /**
@@ -13784,9 +13779,7 @@ function pullContext() {
     if (process.env['EXPO_TEST_GITHUB_PULL']) {
         return { ...github_1.context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
     }
-    if (github_1.context.eventName !== 'pull_request') {
-        throw new Error(`Could not find the pull context, make sure to run this from a pull request.`);
-    }
+    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
     return github_1.context.issue;
 }
 exports.pullContext = pullContext;
@@ -13806,6 +13799,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
+const assert_1 = __nccwpck_require__(9491);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
@@ -13857,20 +13851,18 @@ async function patchWatchers() {
 }
 exports.patchWatchers = patchWatchers;
 function tempPath(name, version) {
-    const temp = process.env['RUNNER_TEMP'] || '';
-    if (!temp) {
-        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-    }
-    return path_1.default.join(temp, name, version, os_1.default.arch());
+    (0, assert_1.ok)(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
+    return path_1.default.join(process.env['RUNNER_TEMP'], name, version, os_1.default.arch());
 }
 exports.tempPath = tempPath;
+/**
+ * Get the package path to the tool cache.
+ *
+ * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+ */
 function toolPath(name, version) {
-    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-    if (!toolCache) {
-        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-    }
-    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-    return path_1.default.join(toolCache, name, version, os_1.default.arch());
+    (0, assert_1.ok)(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+    return path_1.default.join(process.env['RUNNER_TOOL_CACHE'], name, version, os_1.default.arch());
 }
 exports.toolPath = toolPath;
 

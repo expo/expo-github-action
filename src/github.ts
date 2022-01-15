@@ -1,4 +1,5 @@
 import { getOctokit, context } from '@actions/github';
+import { ok as assert } from 'assert';
 
 type IssueContext = typeof context['issue'];
 
@@ -62,11 +63,8 @@ export async function createIssueComment(issue: IssueContext, comment: Comment) 
  * This uses the 'GITHUB_TOKEN' environment variable.
  */
 export function githubApi(): ReturnType<typeof getOctokit> {
-  const githubToken = process.env['GITHUB_TOKEN'];
-  if (!githubToken) {
-    throw new Error(`This step requires a 'GITHUB_TOKEN' environment variable to create comments.`);
-  }
-  return getOctokit(githubToken);
+  assert(process.env['GITHUB_TOKEN'], 'This step requires a GITHUB_TOKEN environment variable to create comments');
+  return getOctokit(process.env['GITHUB_TOKEN']);
 }
 
 /**
@@ -80,8 +78,9 @@ export function pullContext(): IssueContext {
     return { ...context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
   }
 
-  if (context.eventName !== 'pull_request') {
-    throw new Error(`Could not find the pull context, make sure to run this from a pull request.`);
-  }
+  assert(
+    context.eventName === 'pull_request',
+    'Could not find the pull request context, make sure to run this from a pull_request triggered workflow'
+  );
   return context.issue;
 }

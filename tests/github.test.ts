@@ -10,7 +10,7 @@ describe(githubApi, () => {
 
   it('throws when GITHUB_TOKEN is undefined', () => {
     setEnv('GITHUB_TOKEN', '');
-    expect(() => githubApi()).toThrow(`requires a 'GITHUB_TOKEN'`);
+    expect(() => githubApi()).toThrow(`requires a GITHUB_TOKEN`);
   });
 
   it('returns an octokit instance', () => {
@@ -25,7 +25,7 @@ describe(githubApi, () => {
 describe(pullContext, () => {
   it('throws when github context event is not a pull request', () => {
     jest.mocked(github.context).eventName = 'push';
-    expect(() => pullContext()).toThrow('Could not find the pull context');
+    expect(() => pullContext()).toThrow('Could not find the pull request context');
   });
 
   it('returns pull request context', () => {
