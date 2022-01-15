@@ -1,3 +1,71 @@
+## [7.0.0](https://github.com/expo/expo-github-action/compare/6.0.0...7.0.0) (2022-01-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* some input options are deprecated
+  - Username and password authentication is dropped in favor of tokens
+  - Custom cache keys are dropped
+  - Custom install error handler is dropped
+
+### New features
+
+* add comment qr code subaction ([#149](https://github.com/expo/expo-github-action/issues/149)) ([4648212](https://github.com/expo/expo-github-action/commit/464821230fc5d4c4d848dcf20c5146bf99fd38ce))
+
+
+### Bug fixes
+
+* use which instead of npx to authenticate ([#147](https://github.com/expo/expo-github-action/issues/147)) ([c5d2c0f](https://github.com/expo/expo-github-action/commit/c5d2c0f8c034b625147bc4b2ccd6d14a29412a1d))
+
+
+### Code changes
+
+* allow multiple entrypoints for different sub-actions ([#121](https://github.com/expo/expo-github-action/issues/121)) ([8a7306a](https://github.com/expo/expo-github-action/commit/8a7306a97854f9b2853a614d3302061922471a8f))
+* clean up setup action ([#146](https://github.com/expo/expo-github-action/issues/146)) ([439ff4c](https://github.com/expo/expo-github-action/commit/439ff4c9aa508ea6f38364859109267d8f26fcf1))
+* enable caches by default ([#148](https://github.com/expo/expo-github-action/issues/148)) ([72d4067](https://github.com/expo/expo-github-action/commit/72d406754f3b10aeff9b54a2b3e3e833d4cd3c9f))
+* replace libnpm with npm cli ([#139](https://github.com/expo/expo-github-action/issues/139)) ([4f28493](https://github.com/expo/expo-github-action/commit/4f28493708de28b8eebd418702ec8eb93660927d))
+* roll back to ncc because of swc bundling issues ([#144](https://github.com/expo/expo-github-action/issues/144)) ([3007741](https://github.com/expo/expo-github-action/commit/3007741466570f1bf8f3cf7417e56c7aab50b60a))
+* update the outdated workflows and use node 16 ([#138](https://github.com/expo/expo-github-action/issues/138)) ([3134e26](https://github.com/expo/expo-github-action/commit/3134e26b3a41fcc058c60c0f34f87c8d44189d3c))
+* upgrade to node 16 github actions runtime ([#137](https://github.com/expo/expo-github-action/issues/137)) ([3bf9181](https://github.com/expo/expo-github-action/commit/3bf9181edb0df2dcaf9112b50c9d2a9996db8a32))
+* use assert instead of if statements ([#150](https://github.com/expo/expo-github-action/issues/150)) ([e4ef6e6](https://github.com/expo/expo-github-action/commit/e4ef6e6950f602a6277c6e35dbd36ca3fa8ccb8e))
+* use boolean input instead of manual conversion ([#127](https://github.com/expo/expo-github-action/issues/127)) ([f1fe877](https://github.com/expo/expo-github-action/commit/f1fe8775927c95727008dfe31f580c122913a745))
+* use spaces for indentation ([#126](https://github.com/expo/expo-github-action/issues/126)) ([ff2ff0f](https://github.com/expo/expo-github-action/commit/ff2ff0f980f70d0047d10637dd5ef915128199ec))
+* use swc pack instead of ncc ([#140](https://github.com/expo/expo-github-action/issues/140)) ([3f9e947](https://github.com/expo/expo-github-action/commit/3f9e9479631f03a941ecfebdcd0351ef57f59a2e))
+
+
+### Other chores
+
+* add basic e2e test workflow for main action ([#141](https://github.com/expo/expo-github-action/issues/141)) ([414c169](https://github.com/expo/expo-github-action/commit/414c1693e6183ad92723fca4517181b21f93eaf0))
+* add manual trigger to the tests ([4908a48](https://github.com/expo/expo-github-action/commit/4908a48f1b5e1ccff9589c0fcaafe4223d53bee1))
+* always use lf for build files ([#122](https://github.com/expo/expo-github-action/issues/122)) ([a9b9cfe](https://github.com/expo/expo-github-action/commit/a9b9cfef50ba2c1d38fff1a679c554eb52edc25e))
+* bump semver-regex from 3.1.2 to 3.1.3 ([#114](https://github.com/expo/expo-github-action/issues/114)) ([50c0ef9](https://github.com/expo/expo-github-action/commit/50c0ef9028d51bd25197c54102438f494c265438))
+* bump tar from 4.4.13 to 4.4.19 ([#112](https://github.com/expo/expo-github-action/issues/112)) ([5f5673b](https://github.com/expo/expo-github-action/commit/5f5673ba7744a05d9c499fbca7b4e503aabef5a1))
+* bump tmpl from 1.0.4 to 1.0.5 ([#115](https://github.com/expo/expo-github-action/issues/115)) ([92ec93f](https://github.com/expo/expo-github-action/commit/92ec93fa37744783ec10149e7d755d7181649f8a))
+* clean up dependencies and eslint rules ([#145](https://github.com/expo/expo-github-action/issues/145)) ([3ae7999](https://github.com/expo/expo-github-action/commit/3ae799926e78cfecd54e965c77d1c1fb49cac45b))
+* clean up master references in release and workflows ([#104](https://github.com/expo/expo-github-action/issues/104)) ([a2d9b1c](https://github.com/expo/expo-github-action/commit/a2d9b1cadf463af1e6b4025af3edc99cf7f4b5a0))
+* clean up tsconfig and eslint rules ([#123](https://github.com/expo/expo-github-action/issues/123)) ([c20146f](https://github.com/expo/expo-github-action/commit/c20146f3b7513ae3a3df3dead651d2a2dea988af))
+* lint root files with prettier and eslint ([#125](https://github.com/expo/expo-github-action/issues/125)) ([1cfa7bb](https://github.com/expo/expo-github-action/commit/1cfa7bbd9ed623e2e40406addab4bff2c9a7b2fd))
+* rebuild project ([45b79a0](https://github.com/expo/expo-github-action/commit/45b79a05ef7496339d33d03fdd7755ef76c7038b))
+* rebuild project after dependency bumps ([b099f17](https://github.com/expo/expo-github-action/commit/b099f17d588e23df069b60d39ca1e21327066a4f))
+* remove husky and improve ci build message ([#128](https://github.com/expo/expo-github-action/issues/128)) ([39b0d36](https://github.com/expo/expo-github-action/commit/39b0d361f7d97ef1a71a02495463d1e93a72093a))
+* simplify review and update build detection ([#142](https://github.com/expo/expo-github-action/issues/142)) ([ee415b0](https://github.com/expo/expo-github-action/commit/ee415b027afce4c15cabcc6fa2f8368530a36c08))
+* update `setup-node` action to `v2` release ([#119](https://github.com/expo/expo-github-action/issues/119)) ([3b3e6b8](https://github.com/expo/expo-github-action/commit/3b3e6b8031b898cdf0bc59488d541d90748954b9))
+* update semantic release to update the build ([354dc08](https://github.com/expo/expo-github-action/commit/354dc0891761b8d1fc092ec5e9bb3b5ca1922090))
+* update the action manifest ([633cdf0](https://github.com/expo/expo-github-action/commit/633cdf0ac9f283f5a7010fef11bfda9174278054))
+* upgrade dev dependencies and rebuild action ([#120](https://github.com/expo/expo-github-action/issues/120)) ([186ef00](https://github.com/expo/expo-github-action/commit/186ef0011a259a7b2c745f8cf2743358ca112530))
+
+
+### Documentation changes
+
+* fix broken sup element in readme ([0b1822a](https://github.com/expo/expo-github-action/commit/0b1822a93580171a0582013a0cf7848cf3503ed7))
+* fix github capitalization ([#116](https://github.com/expo/expo-github-action/issues/116)) ([b602469](https://github.com/expo/expo-github-action/commit/b60246939fba50e600b11596b4b1029091017b7c))
+* fix unsplash comment on pr branch reference ([#110](https://github.com/expo/expo-github-action/issues/110)) ([f14253e](https://github.com/expo/expo-github-action/commit/f14253ea9c17296e843610c7b8fad4e13c7abda0))
+* update default values in readme ([c2f11d2](https://github.com/expo/expo-github-action/commit/c2f11d2d513b75ec0a00c6bf60e5d0e275c3a8af))
+* update expo.io links to expo.dev ([#111](https://github.com/expo/expo-github-action/issues/111)) ([1c8e5a2](https://github.com/expo/expo-github-action/commit/1c8e5a21e9689cedd8fbcf61e50a3f4700b6bc41))
+* update node version reference in readme ([#107](https://github.com/expo/expo-github-action/issues/107)) ([3ba667b](https://github.com/expo/expo-github-action/commit/3ba667b43f1e103a1c64e92a60d7c36bd0ad10b2))
+* update readme and contributing guides ([521de72](https://github.com/expo/expo-github-action/commit/521de724fcb79235773c077e870d7c2293ab51cb))
+* use `main` branch to update `v{major}` tag ([#103](https://github.com/expo/expo-github-action/issues/103)) ([def44e2](https://github.com/expo/expo-github-action/commit/def44e2c77a39f5bd48dbb07adec509137afcf67))
+
 ## [6.0.0](https://github.com/expo/expo-github-action/compare/5.5.1...6.0.0) (2021-06-22)
 
 
