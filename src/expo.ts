@@ -1,6 +1,7 @@
 import { info, exportVariable } from '@actions/core';
 import { exec, getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
+import { ok as assert } from 'assert';
 import { URL } from 'url';
 
 export type CliName = 'expo' | 'eas';
@@ -72,9 +73,7 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
  * Create a QR code for an update on project, with an optional release channel.
  */
 export function projectQR(project: ProjectInfo, channel?: string): string {
-  if (!project.owner) {
-    throw new Error('Could not create a QR code for project without owner');
-  }
+  assert(project.owner, 'Could not create a QR code for project without owner');
 
   const url = new URL('https://qr.expo.dev/expo-go');
   url.searchParams.append('owner', project.owner);
@@ -90,9 +89,7 @@ export function projectQR(project: ProjectInfo, channel?: string): string {
  * Create a link for the project in Expo.
  */
 export function projectLink(project: ProjectInfo, channel?: string): string {
-  if (!project.owner) {
-    throw new Error('Could not create a project link without owner');
-  }
+  assert(project.owner, 'Could not create a QR code for project without owner');
 
   const url = new URL(`https://expo.dev/@${project.owner}/${project.slug}`);
   if (channel) {

@@ -14,7 +14,7 @@ describe(tempPath, () => {
 
   it('throws when RUNNER_TEMP is undefined', () => {
     setEnv('RUNNER_TEMP', '');
-    expect(tempPath).toThrow(`'RUNNER_TEMP' not defined`);
+    expect(tempPath).toThrow(`RUNNER_TEMP not defined`);
   });
 
   it('returns path with name, version, and arch type', () => {
@@ -28,7 +28,7 @@ describe(toolPath, () => {
 
   it('throws when RUNNER_TOOL_CACHE is undefined', () => {
     setEnv('RUNNER_TOOL_CACHE', '');
-    expect(toolPath).toThrow(`'RUNNER_TOOL_CACHE' not defined`);
+    expect(toolPath).toThrow(`RUNNER_TOOL_CACHE not defined`);
   });
 
   it('returns path with name, version, and arch type', () => {

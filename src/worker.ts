@@ -1,5 +1,6 @@
 import { addPath, info, setFailed, warning } from '@actions/core';
 import { exec } from '@actions/exec';
+import { ok as assert } from 'assert';
 import os from 'os';
 import path from 'path';
 
@@ -51,20 +52,16 @@ export async function patchWatchers(): Promise<void> {
 }
 
 export function tempPath(name: string, version: string): string {
-  const temp = process.env['RUNNER_TEMP'] || '';
-  if (!temp) {
-    throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-  }
-
-  return path.join(temp, name, version, os.arch());
+  assert(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
+  return path.join(process.env['RUNNER_TEMP'], name, version, os.arch());
 }
 
+/**
+ * Get the package path to the tool cache.
+ *
+ * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+ */
 export function toolPath(name: string, version: string): string {
-  const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-  if (!toolCache) {
-    throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-  }
-
-  // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-  return path.join(toolCache, name, version, os.arch());
+  assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+  return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
 }
