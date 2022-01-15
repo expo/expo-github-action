@@ -26,13 +26,13 @@
 ## What's inside?
 
 With this Expo action, you have full access to [Expo CLI][link-expo-cli] and [EAS CLI][link-eas-cli].
-It allows you to fully automate the `expo publish` or `eas build` process, leaving you with more time available for your project.
-There are some additional features included to make the usage of this action as simple as possible, like caching and authentication.
+It lets you automate the `expo publish` or `eas build` commands, leaving you with more time to work on your project.
+Some additional features are included to make the usage of this action as simple as possible, like caching and authentication.
 
 ## Configuration options
 
-This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
-Here is a summary of all the variables that you can use and their purpose.
+This action is customizable through variables defined in the [`action.yml`](action.yml).
+Here is a summary of all the input options you can use.
 
 | variable           | default | description                                                                                   |
 | ------------------ | ------- | --------------------------------------------------------------------------------------------- |
@@ -46,7 +46,7 @@ Here is a summary of all the variables that you can use and their purpose.
 
 ## Example workflows
 
-Before you dive into the workflow examples, you should know the basics of GitHub Actions.
+Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
 1. [Publish on any push to main](#publish-on-any-push-to-main)
@@ -55,7 +55,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 ### Publish on any push to main
 
-This workflow listens to the **push** event on the **main** branch.
+This workflow listens to the `push` event on the `main` branch.
 It sets up all required components to publish the app, including authentication with a token.
 
 > Always use [secrets][link-actions-secrets] when using tokens.
@@ -93,11 +93,11 @@ jobs:
 
 ### Creating a new EAS build
 
-You can also install [EAS](https://docs.expo.dev/eas/) CLI with this GitHub Action.
-To do this, add the **eas-version** and it will install the EAS CLI too.
-The **token** is shared for both Expo and EAS CLI.
+This action also allows you to install the EAS CLI.
+To do this, add the **eas-version** property, and the action will install it.
+We recommend using `latest` for the EAS CLI.
 
-> We recommend using `latest` for **eas-version** to always have the most up-to-date version.
+> The **token** is shared for both Expo and EAS CLI.
 
 ```yml
 on:
@@ -133,9 +133,11 @@ jobs:
 
 ### Publish a preview from PR
 
-Reviewing pull requests can take some time if you have to read every line of code.
-To make this easier, you can publish the PR using a [release channel][link-expo-release-channels].
-This workflow first publishes the changes to the **pr-N** channel, and adds a comment for the reviewers.
+Reviewing pull requests can take some time. 
+The reviewer needs to check out the branch, install the changes, and run the bundler to review the results.
+You can also automatically publish the project for the reviewer to skip those manual steps.
+
+This workflow publishes the changes on the `pr-#` [release channel][link-expo-release-channels] and adds a comment to the pull request once it's ready for review.
 
 > See the [preview-comment docs](./preview-comment).
 
@@ -178,27 +180,25 @@ jobs:
 
 ### Automatic Expo login
 
-You need to authenticate for some Expo commands like `expo publish` and `expo build`.
-This action can export the `EXPO_TOKEN` variable to access it in every step.
+Some Expo commands, like `expo publish` and `eas build`, require you to be authenticated. 
+This action exports the **token** to ensure you are authenticated in every workflow step.
 
-> Note, this action does not store the token anywhere. For every seperate job, you need to setup the token.
+> Note, this action does not store the token anywhere. Each separate workflow job needs to set up the **token** individually.
 
 ### Using the built-in cache
 
-You can opt-in to caching the installation, making it a lot faster.
-Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore the Expo CLI installation.
-This action generates a unique cache key for the OS, used packager, and exact version of the Expo CLI.
+You can opt-out from caching the Expo and EAS CLI installations.
+Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore a previous install. 
+It reduces the installation time because it only needs to download and extract a single tar file.
 
-> Note, this cache will count towards your [repo cache limit][link-actions-cache-limit]. The Expo and EAS CLI are stored in different caches.
+> Note, using cache will count towards your [repo cache limit][link-actions-cache-limit]. Both the Expo and EAS CLI are stored in different caches.
 
 ### ENOSPC errors on Linux
 
-When you run `expo publish` or `expo build`, a new bundle is created.
-Creating these bundles require quite some resources.
-As of writing, GitHub actions has some small default values for the `fs.inotify` settings.
-Inside this action, we included a patch that increases these limits for the current workflow.
-It increases the `max_user_instances`, `max_user_watches` and `max_queued_events` to `524288`.
-You can disable this patch by setting the `patch-watchers` to `false`.
+Creating new bundles with Metro can be memory intensive. 
+In the past, some builds resulted in `ENOSPC` errors. 
+To prevent anyone from running into this, we make sure Ubuntu has sensible defaults in terms of file system availability. 
+You can opt-out from patching the file system by setting **patch-watchers** to `false`.
 
 <div align="center">
   <br />

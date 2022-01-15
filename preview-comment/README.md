@@ -27,15 +27,15 @@
 
 ## What's inside?
 
-This subaction allows you to create comments on pull requests, containing Expo QR codes.
-It can help speeding up the review process by letting the reviewer load the app directly on their phone.
+This (sub)action allows you to comment on pull requests containing Expo QR codes.
+It can help speed up the review process by letting the reviewer load the app directly on their phone.
 
-> This action only creates the comment, you still have to publish the project.
+> This action only creates the comment. You still have to publish the project.
 
 ## Configuration options
 
-This action is customizable through variables; they are defined in the [`action.yml`](action.yml).
-Here is a summary of all the variables that you can use and their purpose.
+This action is customizable through variables defined in the [`action.yml`](action.yml).
+Here is a summary of all the input options you can use.
 
 | variable       | default                     | description                                                                                      |
 | -------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -45,9 +45,11 @@ Here is a summary of all the variables that you can use and their purpose.
 | **message**    | _[see code][code-defaults]_ | The message template                                                                             |
 | **message-id** | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
 
-## Available ouputs
+## Available outputs
 
-There a few ouput and template variables available for both `message` and `message-id`.
+There are a few variables available to generate the comment content. 
+Some of these variables are also exported as subaction output. 
+Here is a summary of these variables.
 
 | output name      | template name    | description                                          |
 | ---------------- | ---------------- | ---------------------------------------------------- |
@@ -62,7 +64,7 @@ There a few ouput and template variables available for both `message` and `messa
 
 ## Example workflows
 
-Before you dive into the workflow examples, you should know the basics of GitHub Actions.
+Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
 1. [Publish and preview on pull request](#publish-and-preview-on-pull-request)
@@ -70,9 +72,9 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 ### Publish and preview on pull request
 
-This workflow listens to the `pull_request` event and publishes a to Expo, on release channel `pr-N`.
+This workflow listens to the `pull_request` event and publishes a to Expo, on release channel `pr-#`.
 Once that's done, it will comment with the QR code on that same pull request.
-It's important to keep pull requests separated, by release channel, to avoid writing over pull requests.
+It's essential to keep pull requests separated, by release channel, to avoid writing over pull requests.
 
 ```yml
 on:
@@ -104,7 +106,7 @@ jobs:
         run: expo publish --release-channel=pr-${{ github.event.number }}
 
       - name: 💬 Comment in preview
-        uses: expo/expo-github-action/preview-comment@v6
+        uses: expo/expo-github-action/preview-comment@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -113,8 +115,8 @@ jobs:
 
 ### Sending preview comments elsewhere
 
-You can also use this action to generate the comment, without actually commenting.
-This can be useful for workflows that aren't triggered on the `pull_request` event.
+You can also use this action to generate the comment without actually commenting. 
+By disabling commenting with **comment** set to `false`, you can reuse this action with any workflow trigger and send it to any service accessible in GitHub Actions.
 
 > See [Available variables](#available-variables) for a list of all outputs.
 
@@ -149,7 +151,7 @@ jobs:
         run: expo publish --release-channel=production
 
       - name: 👷 Create preview comment
-        uses: expo/expo-github-action/preview-comment@v6
+        uses: expo/expo-github-action/preview-comment@v7
         id: preview
         with:
           comment: false
@@ -168,9 +170,8 @@ jobs:
 
 ### Preventing duplicate comments
 
-When automating comments, you have to be careful not to spam a pull request with new comments.
-In every comment this action creates, we include a hidden **message-id**.
-We use this ID to identify previously made comments to avoid spamming.
+When automating these preview comments, you have to be careful not to spam a pull request on every successful run. 
+Every comment contains a generated **message-id** to identify previously made comments and update instead of creating a new comment.
 
 <div align="center">
   <br />
