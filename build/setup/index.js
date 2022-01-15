@@ -64699,6 +64699,7 @@ exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectO
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
+const assert_1 = __nccwpck_require__(9491);
 const url_1 = __nccwpck_require__(7310);
 /**
  * Try to authenticate the user using either Expo or EAS CLI.
@@ -64759,9 +64760,7 @@ exports.projectInfo = projectInfo;
  * Create a QR code for an update on project, with an optional release channel.
  */
 function projectQR(project, channel) {
-    if (!project.owner) {
-        throw new Error('Could not create a QR code for project without owner');
-    }
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
     const url = new url_1.URL('https://qr.expo.dev/expo-go');
     url.searchParams.append('owner', project.owner);
     url.searchParams.append('slug', project.slug);
@@ -64775,9 +64774,7 @@ exports.projectQR = projectQR;
  * Create a link for the project in Expo.
  */
 function projectLink(project, channel) {
-    if (!project.owner) {
-        throw new Error('Could not create a project link without owner');
-    }
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
     const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
     if (channel) {
         url.searchParams.append('release-channel', channel);
@@ -64848,6 +64845,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
+const assert_1 = __nccwpck_require__(9491);
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 var tool_cache_1 = __nccwpck_require__(7784);
@@ -64899,20 +64897,18 @@ async function patchWatchers() {
 }
 exports.patchWatchers = patchWatchers;
 function tempPath(name, version) {
-    const temp = process.env['RUNNER_TEMP'] || '';
-    if (!temp) {
-        throw new Error(`Could not resolve temporary path, 'RUNNER_TEMP' not defined.`);
-    }
-    return path_1.default.join(temp, name, version, os_1.default.arch());
+    (0, assert_1.ok)(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
+    return path_1.default.join(process.env['RUNNER_TEMP'], name, version, os_1.default.arch());
 }
 exports.tempPath = tempPath;
+/**
+ * Get the package path to the tool cache.
+ *
+ * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+ */
 function toolPath(name, version) {
-    const toolCache = process.env['RUNNER_TOOL_CACHE'] || '';
-    if (!toolCache) {
-        throw new Error(`Could not resolve the local tool cache, 'RUNNER_TOOL_CACHE' not defined.`);
-    }
-    // https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
-    return path_1.default.join(toolCache, name, version, os_1.default.arch());
+    (0, assert_1.ok)(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+    return path_1.default.join(process.env['RUNNER_TOOL_CACHE'], name, version, os_1.default.arch());
 }
 exports.toolPath = toolPath;
 
