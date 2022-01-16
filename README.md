@@ -88,7 +88,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish app
-        run: expo publish
+        run: expo publish --non-interactive
 ```
 
 ### Creating a new EAS build
@@ -128,7 +128,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Build app
-        run: eas build
+        run: eas build --non-interactive
 ```
 
 ### Publish a preview from PR
@@ -166,7 +166,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish preview
-        run: expo publish --release-channel=pr-${{ github.event.number }}
+        run: expo publish --release-channel=pr-${{ github.event.number }} --non-interactive
 
       - name: 💬 Comment preview
         uses: expo/expo-github-action/preview-comment@v7
