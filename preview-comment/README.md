@@ -3,13 +3,13 @@
   <p>Add <a href="https://github.com/expo/expo">Expo</a> preview comments to pull requests</p>
   <p>
     <a href="https://github.com/expo/expo-github-action/releases">
-      <img src="https://img.shields.io/github/release/expo/expo-github-action/all.svg?style=flat-square" alt="releases" />
+      <img src="https://img.shields.io/github/v/release/expo/expo-github-action" alt="releases" />
     </a>
     <a href="https://github.com/expo/expo-github-action/actions">
-      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/CI/main.svg?style=flat-square" alt="builds" />
+      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/test" alt="builds" />
     </a>
     <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
-      <img src="https://img.shields.io/github/license/expo/expo-github-action?style=flat-square" alt="license" />
+      <img src="https://img.shields.io/github/license/expo/expo-github-action" alt="license" />
     </a>
   </p>
   <p align="center">
