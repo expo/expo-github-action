@@ -117,11 +117,11 @@ jobs:
           node-version: 16.x
           cache: yarn
 
-      - name: 🏗 Setup Expo
+      - name: 🏗 Setup Expo and EAS
         uses: expo/expo-github-action@v7
         with:
-          eas-version: latest
           expo-version: 5.x
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
