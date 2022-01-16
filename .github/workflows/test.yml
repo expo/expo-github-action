@@ -1,6 +1,8 @@
 name: test
 
 on:
+  schedule:
+    - cron: '0 15 * * *'
   push:
     branches: [main]
   workflow_dispatch:
