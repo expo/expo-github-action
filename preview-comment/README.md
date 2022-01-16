@@ -103,7 +103,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish to Expo
-        run: expo publish --release-channel=pr-${{ github.event.number }}
+        run: expo publish --release-channel=pr-${{ github.event.number }} --non-interactive
 
       - name: 💬 Comment in preview
         uses: expo/expo-github-action/preview-comment@v7
@@ -148,7 +148,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Publish preview
-        run: expo publish --release-channel=production
+        run: expo publish --release-channel=production --non-interactive
 
       - name: 👷 Create preview comment
         uses: expo/expo-github-action/preview-comment@v7
