@@ -65230,7 +65230,7 @@ async function setupAction(input = setupInput()) {
         const message = input.easCache
             ? `Installing eas-cli (${version}) from cache or with ${input.packager}`
             : `Installing eas-cli (${version}) with ${input.packager}`;
-        await (0, core_1.group)(message, () => installCli('eas-cli', input.easVersion, input.packager, input.easCache));
+        await (0, core_1.group)(message, () => installCli('eas-cli', version, input.packager, input.easCache));
     }
     if (!input.token) {
         (0, core_1.info)(`Skipped authentication: 'token' not provided.`);
@@ -65246,16 +65246,15 @@ async function setupAction(input = setupInput()) {
     }
 }
 exports.setupAction = setupAction;
-async function installCli(name, version, packager, cache = true) {
-    const cliVersion = await (0, packager_1.resolvePackage)(name, version);
-    let cliPath = (0, worker_1.findTool)(name, cliVersion) || undefined;
-    if (!cliPath && cache) {
-        cliPath = await (0, cacher_1.restoreFromCache)(name, cliVersion, packager);
+async function installCli(name, version, packager, useCache = true) {
+    let cliPath = (0, worker_1.findTool)(name, version) || undefined;
+    if (!cliPath && useCache) {
+        cliPath = await (0, cacher_1.restoreFromCache)(name, version, packager);
     }
     if (!cliPath) {
-        cliPath = await (0, packager_1.installPackage)(name, cliVersion, packager);
-        if (cache) {
-            await (0, cacher_1.saveToCache)(name, cliVersion, packager);
+        cliPath = await (0, packager_1.installPackage)(name, version, packager);
+        if (useCache) {
+            await (0, cacher_1.saveToCache)(name, version, packager);
         }
     }
     (0, worker_1.installToolFromPackage)(cliPath);
