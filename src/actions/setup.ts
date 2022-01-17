@@ -41,7 +41,7 @@ export async function setupAction(input: SetupInput = setupInput()) {
       ? `Installing eas-cli (${version}) from cache or with ${input.packager}`
       : `Installing eas-cli (${version}) with ${input.packager}`;
 
-    await group(message, () => installCli('eas-cli', input.easVersion, input.packager, input.easCache));
+    await group(message, () => installCli('eas-cli', version, input.packager, input.easCache));
   }
 
   if (!input.token) {
@@ -59,19 +59,18 @@ export async function setupAction(input: SetupInput = setupInput()) {
   }
 }
 
-async function installCli(name: string, version: string, packager: string, cache: boolean = true) {
-  const cliVersion = await resolvePackage(name, version);
-  let cliPath = findTool(name, cliVersion) || undefined;
+async function installCli(name: string, version: string, packager: string, useCache = true) {
+  let cliPath = findTool(name, version) || undefined;
 
-  if (!cliPath && cache) {
-    cliPath = await restoreFromCache(name, cliVersion, packager);
+  if (!cliPath && useCache) {
+    cliPath = await restoreFromCache(name, version, packager);
   }
 
   if (!cliPath) {
-    cliPath = await installPackage(name, cliVersion, packager);
+    cliPath = await installPackage(name, version, packager);
 
-    if (cache) {
-      await saveToCache(name, cliVersion, packager);
+    if (useCache) {
+      await saveToCache(name, version, packager);
     }
   }
 
