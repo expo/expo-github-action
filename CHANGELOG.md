@@ -1,3 +1,23 @@
+### [7.0.1](https://github.com/expo/expo-github-action/compare/7.0.0...7.0.1) (2022-01-17)
+
+
+### Bug fixes
+
+* remove double resolving package versions ([#152](https://github.com/expo/expo-github-action/issues/152)) ([d53d38f](https://github.com/expo/expo-github-action/commit/d53d38f65bc6add70cdb1eb0fb1caadd3eae9ae4))
+
+
+### Other chores
+
+* run test workflow every day at 15:00 utc ([fd33d59](https://github.com/expo/expo-github-action/commit/fd33d597d339279a12768e1b3c99e051324dc8ba))
+
+
+### Documentation changes
+
+* explicitly add non interactive flag ([#151](https://github.com/expo/expo-github-action/issues/151)) ([844ea09](https://github.com/expo/expo-github-action/commit/844ea09678511192c3685351e3eedd0c92dd4d7d))
+* update comment preview readme header ([7a46a49](https://github.com/expo/expo-github-action/commit/7a46a499ece6b413f5c6fb05951606c95546e03e))
+* update step title in example with eas cli ([7934883](https://github.com/expo/expo-github-action/commit/79348837ee612ad7393e64b3ed04a93519982fe6))
+* update workflow badge with test status ([99593b8](https://github.com/expo/expo-github-action/commit/99593b87875c2d5cb38c2b111cf8bdf85ab54b1c))
+
 ## [7.0.0](https://github.com/expo/expo-github-action/compare/6.0.0...7.0.0) (2022-01-15)
 
 
