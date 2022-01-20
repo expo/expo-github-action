@@ -8,8 +8,8 @@ import { toolPath } from './worker';
  * Get the exact cache key for the package.
  * We can prefix this when there are breaking changes in this action.
  */
-export function cacheKey(name: string, version: string, manager: string): string {
-  return `${name}-${process.platform}-${os.arch()}-${manager}-${version}`;
+export function cacheKey(name: string, version: number, manager: string): string {
+  return `${name}-${process.platform}-${os.arch()}-${manager}-${String(version)}`;
 }
 
 /**
