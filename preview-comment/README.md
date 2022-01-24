@@ -44,6 +44,7 @@ Here is a summary of all the input options you can use.
 | **comment**    | `true`                      | If this action should comment on a PR                                                            |
 | **message**    | _[see code][code-defaults]_ | The message template                                                                             |
 | **message-id** | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
+| **github-token** | `GITHUB_TOKEN` | A GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 
 ## Available outputs
 
@@ -107,8 +108,6 @@ jobs:
 
       - name: 💬 Comment in preview
         uses: expo/expo-github-action/preview-comment@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           channel: pr-${{ github.event.number }}
 ```
@@ -173,6 +172,12 @@ jobs:
 When automating these preview comments, you have to be careful not to spam a pull request on every successful run. 
 Every comment contains a generated **message-id** to identify previously made comments and update instead of creating a new comment.
 
+### GitHub tokens
+
+When using the GitHub API, you always need to be authenticated.
+This action tries to auto-authenticate using the [Automatic token authentication][link-gha-token] from GitHub.
+You can overwrite the token by adding the `GITHUB_TOKEN` environment variable, or add the **github-token** input.
+
 <div align="center">
   <br />
   with :heart:&nbsp;<strong>byCedric</strong>
@@ -181,3 +186,4 @@ Every comment contains a generated **message-id** to identify previously made co
 
 [code-defaults]: ../src/actions/preview-comment.ts
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+[link-gha-token]: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token

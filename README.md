@@ -170,8 +170,6 @@ jobs:
 
       - name: 💬 Comment preview
         uses: expo/expo-github-action/preview-comment@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           channel: pr-${{ github.event.number }}
 ```
