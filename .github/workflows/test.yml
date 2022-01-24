@@ -79,7 +79,7 @@ jobs:
             const message = `${{ steps.preview.outputs.message }}`
             if (!message) throw new Error('Message output is empty')
       
-      - name: 🧪 Comment on PR (input auth)
+      - name: 🧪 Comment on PR (github-token)
         uses: ./preview-comment
         env:
           EXPO_TEST_GITHUB_PULL: 149
@@ -87,7 +87,7 @@ jobs:
           project: ./temp
           channel: test
 
-      - name: 🧪 Comment on PR (envvar auth)
+      - name: 🧪 Comment on PR (GITHUB_TOKEN)
         uses: ./preview-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,6 +95,6 @@ jobs:
         with:
           project: ./temp
           channel: test
-          github-token: ''
+          github-token: badtoken
 
 
