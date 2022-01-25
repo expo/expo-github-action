@@ -1,3 +1,10 @@
+### [7.0.2](https://github.com/expo/expo-github-action/compare/7.0.1...7.0.2) (2022-01-25)
+
+
+### Code changes
+
+* **preview-comment:** auto-fill the github token ([#156](https://github.com/expo/expo-github-action/issues/156)) ([204dfed](https://github.com/expo/expo-github-action/commit/204dfed23cb6416041ee5c918c7a6e3a5dbf8955))
+
 ### [7.0.1](https://github.com/expo/expo-github-action/compare/7.0.0...7.0.1) (2022-01-17)
 
 
