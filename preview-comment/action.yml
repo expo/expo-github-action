@@ -25,6 +25,10 @@ inputs:
   message-id:
     description: A unique identifier to prevent multiple comments on the same pull request
     required: false
+  github-token:
+    description: GitHub access token to comment on PRs
+    required: false
+    default: ${{ github.token }}
 outputs:
   projectOwner:
     description: The resolved project owner

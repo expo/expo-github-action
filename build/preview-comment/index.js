@@ -13563,6 +13563,7 @@ function commentInput() {
         message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE,
         messageId: (0, core_1.getInput)('message-id') || exports.DEFAULT_ID,
         project: (0, core_1.getInput)('project'),
+        githubToken: (0, core_1.getInput)('github-token'),
     };
 }
 exports.commentInput = commentInput;
@@ -13586,7 +13587,9 @@ async function commentAction(input = commentInput()) {
         (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
     }
     else {
-        await (0, github_1.createIssueComment)((0, github_1.pullContext)(), {
+        await (0, github_1.createIssueComment)({
+            ...(0, github_1.pullContext)(),
+            token: input.githubToken,
             id: messageId,
             body: messageBody,
         });
@@ -13719,16 +13722,16 @@ const assert_1 = __nccwpck_require__(9491);
  * Determine if a comment exists on an issue or pull with the provided identifier.
  * This will iterate all comments received from GitHub, and try to exit early if it exists.
  */
-async function fetchIssueComment(issue, commentId) {
-    const github = githubApi();
+async function fetchIssueComment(options) {
+    const github = githubApi(options);
     const iterator = github.paginate.iterator(github.rest.issues.listComments, {
-        owner: issue.owner,
-        repo: issue.repo,
-        issue_number: issue.number,
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
     });
     for await (const { data: batch } of iterator) {
         for (const item of batch) {
-            if ((item.body || '').includes(commentId)) {
+            if ((item.body || '').includes(options.id)) {
                 return item;
             }
         }
@@ -13740,33 +13743,34 @@ exports.fetchIssueComment = fetchIssueComment;
  * This includes a hidden identifier (markdown comment) to identify the comment later.
  * It will also update the comment when a previous comment id was found.
  */
-async function createIssueComment(issue, comment) {
-    const github = githubApi();
-    const body = `<!-- ${comment.id} -->\n${comment.body}`;
-    const existing = await fetchIssueComment(issue, comment.id);
+async function createIssueComment(options) {
+    const github = githubApi(options);
+    const body = `<!-- ${options.id} -->\n${options.body}`;
+    const existing = await fetchIssueComment(options);
     if (existing) {
         return github.rest.issues.updateComment({
-            owner: issue.owner,
-            repo: issue.repo,
+            owner: options.owner,
+            repo: options.repo,
             comment_id: existing.id,
             body,
         });
     }
     return github.rest.issues.createComment({
-        owner: issue.owner,
-        repo: issue.repo,
-        issue_number: issue.number,
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
         body,
     });
 }
 exports.createIssueComment = createIssueComment;
 /**
  * Get an authenticated octokit instance.
- * This uses the 'GITHUB_TOKEN' environment variable.
+ * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
  */
-function githubApi() {
-    (0, assert_1.ok)(process.env['GITHUB_TOKEN'], 'This step requires a GITHUB_TOKEN environment variable to create comments');
-    return (0, github_1.getOctokit)(process.env['GITHUB_TOKEN']);
+function githubApi(options = {}) {
+    const token = process.env['GITHUB_TOKEN'] || options.token;
+    (0, assert_1.ok)(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
+    return (0, github_1.getOctokit)(token);
 }
 exports.githubApi = githubApi;
 /**

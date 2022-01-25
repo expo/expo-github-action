@@ -3,6 +3,11 @@ import { ok as assert } from 'assert';
 
 type IssueContext = typeof context['issue'];
 
+type AuthContext = {
+  /** GitHub token from the 'github-input' to authenticate with */
+  token?: string;
+};
+
 type Comment = {
   /** A hidden identifier to embed in the comment */
   id: string;
@@ -14,17 +19,17 @@ type Comment = {
  * Determine if a comment exists on an issue or pull with the provided identifier.
  * This will iterate all comments received from GitHub, and try to exit early if it exists.
  */
-export async function fetchIssueComment(issue: IssueContext, commentId: Comment['id']) {
-  const github = githubApi();
+export async function fetchIssueComment(options: AuthContext & IssueContext & Pick<Comment, 'id'>) {
+  const github = githubApi(options);
   const iterator = github.paginate.iterator(github.rest.issues.listComments, {
-    owner: issue.owner,
-    repo: issue.repo,
-    issue_number: issue.number,
+    owner: options.owner,
+    repo: options.repo,
+    issue_number: options.number,
   });
 
   for await (const { data: batch } of iterator) {
     for (const item of batch) {
-      if ((item.body || '').includes(commentId)) {
+      if ((item.body || '').includes(options.id)) {
         return item;
       }
     }
@@ -36,35 +41,36 @@ export async function fetchIssueComment(issue: IssueContext, commentId: Comment[
  * This includes a hidden identifier (markdown comment) to identify the comment later.
  * It will also update the comment when a previous comment id was found.
  */
-export async function createIssueComment(issue: IssueContext, comment: Comment) {
-  const github = githubApi();
-  const body = `<!-- ${comment.id} -->\n${comment.body}`;
-  const existing = await fetchIssueComment(issue, comment.id);
+export async function createIssueComment(options: AuthContext & IssueContext & Comment) {
+  const github = githubApi(options);
+  const body = `<!-- ${options.id} -->\n${options.body}`;
+  const existing = await fetchIssueComment(options);
 
   if (existing) {
     return github.rest.issues.updateComment({
-      owner: issue.owner,
-      repo: issue.repo,
+      owner: options.owner,
+      repo: options.repo,
       comment_id: existing.id,
       body,
     });
   }
 
   return github.rest.issues.createComment({
-    owner: issue.owner,
-    repo: issue.repo,
-    issue_number: issue.number,
+    owner: options.owner,
+    repo: options.repo,
+    issue_number: options.number,
     body,
   });
 }
 
 /**
  * Get an authenticated octokit instance.
- * This uses the 'GITHUB_TOKEN' environment variable.
+ * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
  */
-export function githubApi(): ReturnType<typeof getOctokit> {
-  assert(process.env['GITHUB_TOKEN'], 'This step requires a GITHUB_TOKEN environment variable to create comments');
-  return getOctokit(process.env['GITHUB_TOKEN']);
+export function githubApi(options: AuthContext = {}): ReturnType<typeof getOctokit> {
+  const token = process.env['GITHUB_TOKEN'] || options.token;
+  assert(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
+  return getOctokit(token);
 }
 
 /**

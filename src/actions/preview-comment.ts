@@ -20,6 +20,7 @@ export function commentInput() {
     message: getInput('message') || DEFAULT_MESSAGE,
     messageId: getInput('message-id') || DEFAULT_ID,
     project: getInput('project'),
+    githubToken: getInput('github-token'),
   };
 }
 
@@ -46,7 +47,9 @@ export async function commentAction(input: CommentInput = commentInput()) {
   if (!input.comment) {
     info(`Skipped comment: 'comment' is disabled`);
   } else {
-    await createIssueComment(pullContext(), {
+    await createIssueComment({
+      ...pullContext(),
+      token: input.githubToken,
       id: messageId,
       body: messageBody,
     });

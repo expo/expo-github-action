@@ -24,6 +24,7 @@ describe(commentInput, () => {
       message: DEFAULT_MESSAGE,
       messageId: DEFAULT_ID,
       project: undefined,
+      githubToken: undefined,
     });
   });
 
@@ -46,6 +47,11 @@ describe(commentInput, () => {
     mockInput({ channel: 'pr-420' });
     expect(commentInput()).toMatchObject({ channel: 'pr-420' });
   });
+
+  it('returns github-token', () => {
+    mockInput({ 'github-token': 'fakegithubtoken' });
+    expect(commentInput()).toMatchObject({ githubToken: 'fakegithubtoken' });
+  });
 });
 
 describe(commentAction, () => {
@@ -55,6 +61,7 @@ describe(commentAction, () => {
     message: DEFAULT_MESSAGE,
     messageId: DEFAULT_ID,
     project: '',
+    githubToken: '',
   };
 
   beforeEach(() => {
