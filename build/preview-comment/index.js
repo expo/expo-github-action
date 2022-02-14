@@ -16021,9 +16021,16 @@ Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function ()
 Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
 /**
  * Auto-execute the action and pass errors to 'core.setFailed'.
+ * It also passes the full error, with stacktrace, to 'core.debug'.
+ * You'll need to enable debugging to view these full errors.
+ *
+ * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
  */
-async function executeAction(action) {
-    return action().catch(error => (0, core_1.setFailed)(error.message || error));
+function executeAction(action) {
+    return action().catch((error) => {
+        (0, core_1.setFailed)(error.message || error);
+        (0, core_1.debug)(error.stack || 'No stacktrace available');
+    });
 }
 exports.executeAction = executeAction;
 /**

@@ -1,4 +1,4 @@
-import { addPath, info, setFailed, warning } from '@actions/core';
+import { addPath, debug, info, setFailed, warning } from '@actions/core';
 import { exec } from '@actions/exec';
 import { ok as assert } from 'assert';
 import os from 'os';
@@ -8,9 +8,16 @@ export { find as findTool, cacheDir as cacheTool } from '@actions/tool-cache';
 
 /**
  * Auto-execute the action and pass errors to 'core.setFailed'.
+ * It also passes the full error, with stacktrace, to 'core.debug'.
+ * You'll need to enable debugging to view these full errors.
+ *
+ * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
  */
-export async function executeAction(action: () => Promise<void>) {
-  return action().catch(error => setFailed(error.message || error));
+export function executeAction(action: () => Promise<void>) {
+  return action().catch((error: Error) => {
+    setFailed(error.message || error);
+    debug(error.stack || 'No stacktrace available');
+  });
 }
 
 /**
