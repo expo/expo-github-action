@@ -92,4 +92,19 @@ describe(executeAction, () => {
     await expect(executeAction(action)).resolves.not.toThrow();
     expect(core.setFailed).toBeCalledWith(error.message);
   });
+
+  it('provides full stacktrace to debug', async () => {
+    const error = new Error('fake error');
+    const action = jest.fn(() => Promise.reject(error));
+    await expect(executeAction(action)).resolves.not.toThrow();
+    expect(core.debug).toBeCalledWith(error.stack);
+  });
+
+  it('provides fallback stacktrace to debug', async () => {
+    const error = new Error('fake error');
+    error.stack = undefined;
+    const action = jest.fn(() => Promise.reject(error));
+    await expect(executeAction(action)).resolves.not.toThrow();
+    expect(core.debug).toBeCalledWith('No stacktrace available');
+  });
 });
