@@ -22,4 +22,8 @@ describe(resolvePackage, () => {
       'Could not resolve'
     );
   });
+
+  it('rejects expo-cli@9999999 with proper error', async () => {
+    await expect(resolvePackage('expo-cli', '9999999')).rejects.toThrow('Could not resolve');
+  });
 });

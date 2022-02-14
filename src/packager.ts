@@ -17,6 +17,11 @@ export async function resolvePackage(name: string, range: string): Promise<strin
     throw new Error(`Could not resolve ${name}@${range}, reason:\n${error.message || error}`);
   }
 
+  // thanks npm, for returning a "" json string value for invalid versions
+  if (!stdout) {
+    throw new Error(`Could not resolve ${name}@${range}, reason:\nInvalid version`);
+  }
+
   // thanks npm, for returning a "x.x.x" json value...
   if (stdout.startsWith('"')) {
     stdout = `[${stdout}]`;
