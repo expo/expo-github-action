@@ -14,7 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release:
+  dryrun:
+    if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -27,16 +28,62 @@ jobs:
           cache: yarn
       
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile --check-files
+        run: yarn install --frozen-lockfile
 
       - name: 📋 Dry-running release
-        if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
         run: yarn semantic-release --dry-run
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+  publish:
+    if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+      
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: 📋 Release code
-        if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
         run: yarn semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+  tags:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 📦 Install semver
+        run: yarn add --dev semver
+      
+      - name: 🕵️ Resolve major version
+        uses: actions/github-script@v6
+        id: version
+        with:
+          result-encoding: string
+          script: |
+            const semver = require('semver')
+            const { version } = require('./package.json')
+            return semver.major(version)
+      
+      - name: 📋 Update tags
+        run: git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
