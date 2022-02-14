@@ -13,6 +13,9 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  hasAuth: ${{ !!secrets.EXPO_TOKEN }}
+
 jobs:
   setup:
     strategy:
@@ -41,14 +44,14 @@ jobs:
         run: eas --version
 
       - name: 🧪 EAS authenticated
-        if: ${{ secrets.EXPO_TOKEN }}
+        if: ${{ env.hasAuth }}
         run: eas whoami
 
       - name: 🧪 Expo installed
         run: expo --version
 
       - name: 🧪 Expo authenticated
-        if: ${{ secrets.EXPO_TOKEN }}
+        if: ${{ env.hasAuth }}
         run: expo whoami
   
   preview-comment:
@@ -82,7 +85,7 @@ jobs:
             if (!message) throw new Error('Message output is empty')
       
       - name: 🧪 Comment on PR (github-token)
-        if: ${{ secrets.EXPO_TOKEN }}
+        if: ${{ env.hasAuth }}
         uses: ./preview-comment
         env:
           EXPO_TEST_GITHUB_PULL: 149
@@ -91,7 +94,7 @@ jobs:
           channel: test
 
       - name: 🧪 Comment on PR (GITHUB_TOKEN)
-        if: ${{ secrets.EXPO_TOKEN }}
+        if: ${{ env.hasAuth }}
         uses: ./preview-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

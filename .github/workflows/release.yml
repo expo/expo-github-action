@@ -86,4 +86,4 @@ jobs:
             return semver.major(version)
       
       - name: 📋 Update tags
-        run: git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
+        run: git fetch --tags && git pull && git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
