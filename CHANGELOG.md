@@ -1,3 +1,23 @@
+### [7.0.3](https://github.com/expo/expo-github-action/compare/7.0.2...7.0.3) (2022-02-14)
+
+
+### Bug fixes
+
+* improve invalid package version error handling ([#159](https://github.com/expo/expo-github-action/issues/159)) ([94c7d8a](https://github.com/expo/expo-github-action/commit/94c7d8acbd68c7dac4ecde503427c98849039499))
+* output error stacktraces in debug mode ([#160](https://github.com/expo/expo-github-action/issues/160)) ([6931e3c](https://github.com/expo/expo-github-action/commit/6931e3c78b432c1b94d84e684da42ecba46044b4))
+
+
+### Other chores
+
+* always dry run a new release on merge ([#162](https://github.com/expo/expo-github-action/issues/162)) ([3f293ee](https://github.com/expo/expo-github-action/commit/3f293ee480f9d567c1c902848d26a5ca6720266b))
+* bump node-fetch from 2.6.1 to 2.6.7 ([#157](https://github.com/expo/expo-github-action/issues/157)) ([839215f](https://github.com/expo/expo-github-action/commit/839215f036182d3534f9b91d4573b9f126f56560))
+* fully automate releases ([#164](https://github.com/expo/expo-github-action/issues/164)) ([fbd4450](https://github.com/expo/expo-github-action/commit/fbd44501d896448c3c4ac4e5495bb536614fa3fc))
+
+
+### Documentation changes
+
+* simplify expo cli versioning to latest ([#161](https://github.com/expo/expo-github-action/issues/161)) ([2e1fe6a](https://github.com/expo/expo-github-action/commit/2e1fe6ac53c6fd536ea5691410d73df35384fd07))
+
 ### [7.0.2](https://github.com/expo/expo-github-action/compare/7.0.1...7.0.2) (2022-01-25)
 
 
