@@ -1,6 +1,6 @@
 import { getBooleanInput, getInput, setOutput, info } from '@actions/core';
 
-import { projectInfo, projectLink, projectOwner, projectQR } from '../expo';
+import { projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
 import { executeAction } from '../worker';
 
@@ -34,6 +34,7 @@ export async function commentAction(input: CommentInput = commentInput()) {
 
   const variables: Record<string, string> = {
     projectLink: projectLink(project, input.channel),
+    projectDeepLink: projectDeepLink(project, input.channel),
     projectName: project.name,
     projectOwner: project.owner || '',
     projectQR: projectQR(project, input.channel),

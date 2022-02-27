@@ -52,16 +52,17 @@ There are a few variables available to generate the comment content.
 Some of these variables are also exported as subaction output. 
 Here is a summary of these variables.
 
-| output name      | template name    | description                                          |
-| ---------------- | ---------------- | ---------------------------------------------------- |
-| **projectOwner** | `{projectOwner}` | The resolved owner of the project                    |
-| **projectSlug**  | `{projectSlug}`  | The resolved slug of the project                     |
-| **projectName**  | `{projectName}`  | The resolved name of the project                     |
-| **projectLink**  | `{projectLink}`  | The expo.dev project link, including release channel |
-| **projectQR**    | `{projectQR}`    | The QR code link, to load the project in Expo Go     |
-| -                | `{channel}`      | The release channel that was used                    |
-| **message**      | -                | The resolved message content                         |
-| **messageId**    | -                | The resolved message id content                      |
+| output name         | template name       | description                                           |
+| ----------------    | ----------------    | ----------------------------------------------------- |
+| **projectOwner**    | `{projectOwner}`    | The resolved owner of the project                     |
+| **projectSlug**     | `{projectSlug}`     | The resolved slug of the project                      |
+| **projectName**     | `{projectName}`     | The resolved name of the project                      |
+| **projectDeepLink** | `{projectDeepLink}` | The expo.host project link, including release channel |
+| **projectLink**     | `{projectLink}`     | The expo.dev project link, including release channel  |
+| **projectQR**       | `{projectQR}`       | The QR code link, to load the project in Expo Go      |
+| -                   | `{channel}`         | The release channel that was used                     |
+| **message**         | -                   | The resolved message content                          |
+| **messageId**       | -                   | The resolved message id content                       |
 
 ## Example workflows
 

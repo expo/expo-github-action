@@ -98,3 +98,17 @@ export function projectLink(project: ProjectInfo, channel?: string): string {
 
   return url.toString();
 }
+
+/**
+ * Create a deep link for the project in Expo.
+ */
+export function projectDeepLink(project: ProjectInfo, channel?: string): string {
+  assert(project.owner, 'Could not create a deep link for project without owner');
+
+  const url = new URL(`exp://expo.host/@${project.owner}/${project.slug}`);
+  if (channel) {
+    url.searchParams.append('release-channel', channel);
+  }
+
+  return url.toString();
+}
