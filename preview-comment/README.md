@@ -57,7 +57,7 @@ Here is a summary of these variables.
 | **projectOwner**    | `{projectOwner}`    | The resolved owner of the project                     |
 | **projectSlug**     | `{projectSlug}`     | The resolved slug of the project                      |
 | **projectName**     | `{projectName}`     | The resolved name of the project                      |
-| **projectDeepLink** | `{projectDeepLink}` | The expo.host project link, including release channel |
+| **projectDeepLink** | `{projectDeepLink}` | A deep link to open the project in Expo Go |
 | **projectLink**     | `{projectLink}`     | The expo.dev project link, including release channel  |
 | **projectQR**       | `{projectQR}`       | The QR code link, to load the project in Expo Go      |
 | -                   | `{channel}`         | The release channel that was used                     |

@@ -15917,11 +15917,11 @@ function projectLink(project, channel) {
 }
 exports.projectLink = projectLink;
 /**
- * Create a deep link for the project in Expo.
+ * Create a deep link to open the project in Expo Go
  */
 function projectDeepLink(project, channel) {
     (0, assert_1.ok)(project.owner, 'Could not create a deep link for project without owner');
-    const url = new url_1.URL(`exp://expo.host/@${project.owner}/${project.slug}`);
+    const url = new url_1.URL(`exp://exp.host/@${project.owner}/${project.slug}`);
     if (channel) {
         url.searchParams.append('release-channel', channel);
     }
