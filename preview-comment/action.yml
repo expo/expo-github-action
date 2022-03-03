@@ -1,6 +1,6 @@
 ---
 name: Expo GitHub Action - Preview comment
-author: Cedric van Putten <me@bycedric.com>
+author: Expo
 description: Add Expo preview comments to pull requests
 branding:
   icon: message-circle

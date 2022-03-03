@@ -1,6 +1,6 @@
 ---
 name: Expo GitHub Action
-author: Cedric van Putten <me@bycedric.com>
+author: Expo
 description: Publish, build or manage your Expo app with GitHub Actions
 branding:
   icon: terminal
