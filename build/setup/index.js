@@ -66905,7 +66905,7 @@ exports.handleCacheError = handleCacheError;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
+exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -66992,6 +66992,18 @@ function projectLink(project, channel) {
     return url.toString();
 }
 exports.projectLink = projectLink;
+/**
+ * Create a deep link to open the project in Expo Go
+ */
+function projectDeepLink(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a deep link for project without owner');
+    const url = new url_1.URL(`exp://exp.host/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectDeepLink = projectDeepLink;
 
 
 /***/ }),

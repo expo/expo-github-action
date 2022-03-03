@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, projectQR, projectLink } from '../src/expo';
+import { authenticate, projectQR, projectLink, projectDeepLink } from '../src/expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -65,6 +65,24 @@ describe(projectLink, () => {
   it('returns url with owner, slug, and release channel', () => {
     expect(projectLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')).toBe(
       'https://expo.dev/@fakeowner/fakeslug?release-channel=fakechannel'
+    );
+  });
+});
+
+describe(projectDeepLink, () => {
+  it('throws when owner is undefined', () => {
+    expect(() => projectDeepLink({ name: 'fakename', slug: 'fakeslug' })).toThrow('without owner');
+  });
+
+  it('returns url with owner and slug', () => {
+    expect(projectDeepLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' })).toBe(
+      'exp://exp.host/@fakeowner/fakeslug'
+    );
+  });
+
+  it('returns url with owner, slug, and release channel', () => {
+    expect(projectDeepLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')).toBe(
+      'exp://exp.host/@fakeowner/fakeslug?release-channel=fakechannel'
     );
   });
 });
