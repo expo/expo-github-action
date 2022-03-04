@@ -84,6 +84,9 @@ jobs:
             const semver = require('semver')
             const { version } = require('./package.json')
             return semver.major(version)
+            
+      - name: 🧹 Clean repo
+        run: git checkout . -xdf && git reset --hard HEAD && git pull
       
       - name: 📋 Update tags
-        run: git fetch --tags && git pull && git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
+        run: git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
