@@ -1,3 +1,18 @@
+## [7.1.0](https://github.com/expo/expo-github-action/compare/7.0.3...7.1.0) (2022-03-04)
+
+
+### New features
+
+* add projectDeepLink to template variables ([#165](https://github.com/expo/expo-github-action/issues/165)) ([2603f85](https://github.com/expo/expo-github-action/commit/2603f858e975e61d8b7650b890db57c3afc5c658))
+
+
+### Other chores
+
+* run authed tests only when auth is available ([5815161](https://github.com/expo/expo-github-action/commit/58151613afb24812ce88afb33ed1a6b3f569128e))
+* set major tag version to release commit ([b516013](https://github.com/expo/expo-github-action/commit/b5160133d207c9a70283880b33e34beb157cc7ea))
+* skip steps if auth is unavailable ([bb7c723](https://github.com/expo/expo-github-action/commit/bb7c72336b557c49ca0a0e84025e1b4cce23ce2e))
+* update github action author name ([#166](https://github.com/expo/expo-github-action/issues/166)) ([520d959](https://github.com/expo/expo-github-action/commit/520d9594e099c7b2475d8b376303466a187bcafa))
+
 ### [7.0.3](https://github.com/expo/expo-github-action/compare/7.0.2...7.0.3) (2022-02-14)
 
 

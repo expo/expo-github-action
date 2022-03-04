@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "expo-github-action",
-  "version": "7.0.3",
+  "version": "7.1.0",
   "description": "Expo CLI in your GitHub Actions workflow",
   "main": "build/index.js",
   "repository": {
