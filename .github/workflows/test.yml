@@ -44,14 +44,14 @@ jobs:
         run: eas --version
 
       - name: 🧪 EAS authenticated
-        if: ${{ env.hasAuth }}
+        if: ${{ env.hasAuth == 'true' }}
         run: eas whoami
 
       - name: 🧪 Expo installed
         run: expo --version
 
       - name: 🧪 Expo authenticated
-        if: ${{ env.hasAuth }}
+        if: ${{ env.hasAuth == 'true' }}
         run: expo whoami
   
   preview-comment:
@@ -71,6 +71,7 @@ jobs:
         run: expo init -t blank ./temp
       
       - name: 🧪 Without commenting
+        if: ${{ env.hasAuth == 'true' }}
         uses: ./preview-comment
         id: preview
         with:
@@ -78,6 +79,7 @@ jobs:
           comment: false
 
       - name: 🧪 Output has content
+        if: ${{ env.hasAuth == 'true' }}
         uses: actions/github-script@v5
         with:
           script: |
@@ -85,7 +87,7 @@ jobs:
             if (!message) throw new Error('Message output is empty')
       
       - name: 🧪 Comment on PR (github-token)
-        if: ${{ env.hasAuth }}
+        if: ${{ env.hasAuth == 'true' }}
         uses: ./preview-comment
         env:
           EXPO_TEST_GITHUB_PULL: 149
@@ -94,7 +96,7 @@ jobs:
           channel: test
 
       - name: 🧪 Comment on PR (GITHUB_TOKEN)
-        if: ${{ env.hasAuth }}
+        if: ${{ env.hasAuth == 'true' }}
         uses: ./preview-comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
