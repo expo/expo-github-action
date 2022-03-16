@@ -98,7 +98,7 @@ jobs:
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
         with:
-          expo-version: 5.x
+          expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
