@@ -31,9 +31,10 @@ export async function resolvePackage(name: string, range: string): Promise<strin
 }
 
 /**
- * Install a module using a node package manager.
- * The installation is executed in a temporary folder.
- * After this is complete, it's "installed" into the worker's tool cache.
+ * Install a module using a node package manager, inside a temporary directory.
+ * If that's successful, move the module into the worker's tool cache.
+ *
+ * Note, we do assume that the packager is globally available AND has the `add <pkgspec>` command.
  */
 export async function installPackage(name: string, version: string, manager: string) {
   const temp = tempPath(name, version);

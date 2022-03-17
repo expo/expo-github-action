@@ -67043,9 +67043,10 @@ async function resolvePackage(name, range) {
 }
 exports.resolvePackage = resolvePackage;
 /**
- * Install a module using a node package manager.
- * The installation is executed in a temporary folder.
- * After this is complete, it's "installed" into the worker's tool cache.
+ * Install a module using a node package manager, inside a temporary directory.
+ * If that's successful, move the module into the worker's tool cache.
+ *
+ * Note, we do assume that the packager is globally available AND has the `add <pkgspec>` command.
  */
 async function installPackage(name, version, manager) {
     const temp = (0, worker_1.tempPath)(name, version);
