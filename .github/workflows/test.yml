@@ -43,6 +43,12 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
+        
+      - name: TEST Windows packager resolve stuff
+        uses: actions/github-script@v5
+        with:
+          script: |
+            console.log(await io.which('npm'));
 
       - name: 🏗 Setup Expo
         uses: ./
