@@ -48,7 +48,9 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            console.log(await io.which('npm'));
+            const cliPath = await io.which('npm');
+            const output = await exec.getExecOutput('npm', ['--version']);
+            console.log({ cliPath, output });
 
       - name: 🏗 Setup Expo
         uses: ./
