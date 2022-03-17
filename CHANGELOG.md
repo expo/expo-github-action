@@ -1,3 +1,24 @@
+### [7.1.1](https://github.com/expo/expo-github-action/compare/7.1.0...7.1.1) (2022-03-17)
+
+
+### Bug fixes
+
+* package tool escape path on windows ([#169](https://github.com/expo/expo-github-action/issues/169)) ([db9b5ce](https://github.com/expo/expo-github-action/commit/db9b5ce00f55fe6dc5d802d41ffbd6c03cb598e4)), closes [#167](https://github.com/expo/expo-github-action/issues/167)
+
+
+### Other chores
+
+* add tags syncing to the release workflow ([eb1ffb8](https://github.com/expo/expo-github-action/commit/eb1ffb8b234266a58d5fbfa1343e6fe6adfaf914))
+* fix dirty repo preventing tag bump ([7cde8f8](https://github.com/expo/expo-github-action/commit/7cde8f899a0771d310e1d62ee65ce3d625d470ea))
+
+
+### Documentation changes
+
+* add direct link to expo access tokens ([1f38d16](https://github.com/expo/expo-github-action/commit/1f38d16d01677b6ed60d5358bdf23576538d578b))
+* increase visibility of the EXPO_TOKEN link ([#168](https://github.com/expo/expo-github-action/issues/168)) ([9fce70f](https://github.com/expo/expo-github-action/commit/9fce70f38003122ae997201dd07d4cc74830c24e))
+* **preview-comment:** update expo-cli version to latest ([4681fcf](https://github.com/expo/expo-github-action/commit/4681fcfc4247a28d47e8dfb17d23a9a0bff22827))
+* reword the assumptions on package manager ([459b567](https://github.com/expo/expo-github-action/commit/459b5673d55573b6e620015864c95b6b007f2f5f))
+
 ## [7.1.0](https://github.com/expo/expo-github-action/compare/7.0.3...7.1.0) (2022-03-04)
 
 
