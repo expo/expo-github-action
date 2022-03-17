@@ -43,18 +43,6 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
-        
-      - name: TEST Windows packager resolve stuff
-        uses: actions/github-script@v5
-        with:
-          script: |
-            const path = require('path');
-            const cliPath = await io.which('npm');
-            const output = await exec.getExecOutput(cliPath, ['--version']);
-            console.log({ cliPath, output });
-            const tempPath = path.join(process.env['RUNNER_TEMP'], 'abc');
-            await io.mkdirP(tempPath);
-            await exec.exec(cliPath, ['--version'], { cwd: tempPath });
 
       - name: 🏗 Setup Expo
         uses: ./
