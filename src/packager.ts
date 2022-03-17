@@ -1,5 +1,5 @@
 import { exec, getExecOutput } from '@actions/exec';
-import { which, mkdirP } from '@actions/io';
+import { mkdirP } from '@actions/io';
 
 import { cacheTool, tempPath } from './worker';
 
@@ -37,10 +37,9 @@ export async function resolvePackage(name: string, range: string): Promise<strin
  */
 export async function installPackage(name: string, version: string, manager: string) {
   const temp = tempPath(name, version);
-  const tool = await which(manager);
 
   await mkdirP(temp);
-  await exec(tool, ['add', `${name}@${version}`], { cwd: temp });
+  await exec(manager, ['add', `${name}@${version}`], { cwd: temp });
 
   return cacheTool(temp, name, version);
 }
