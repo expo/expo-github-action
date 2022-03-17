@@ -23,9 +23,22 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
+          - macos-latest
         cache:
           - with-cache
           - without-cache
+        packager:
+          - yarn
+        include:
+          - os: ubuntu-latest
+            cache: without-cache
+            packager: npm
+          - os: windows-latest
+            cache: without-cache
+            packager: npm
+          - os: macos-latest
+            cache: without-cache
+            packager: npm
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🏗 Setup repo
@@ -38,6 +51,7 @@ jobs:
           eas-cache: ${{ matrix.cache == 'with-cache' }}
           expo-version: latest
           expo-cache: ${{ matrix.cache == 'with-cache' }}
+          packager: ${{ matrix.packager }}
           token: ${{ secrets.EXPO_TOKEN }}
       
       - name: 🧪 EAS installed

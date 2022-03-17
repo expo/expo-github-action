@@ -67049,9 +67049,8 @@ exports.resolvePackage = resolvePackage;
  */
 async function installPackage(name, version, manager) {
     const temp = (0, worker_1.tempPath)(name, version);
-    const tool = await (0, io_1.which)(manager);
     await (0, io_1.mkdirP)(temp);
-    await (0, exec_1.exec)(tool, ['add', `${name}@${version}`], { cwd: temp });
+    await (0, exec_1.exec)(manager, ['add', `${name}@${version}`], { cwd: temp });
     return (0, worker_1.cacheTool)(temp, name, version);
 }
 exports.installPackage = installPackage;
