@@ -86,7 +86,7 @@ jobs:
             return semver.major(version)
             
       - name: 🧹 Clean repo
-        run: git checkout . -xdf && git reset --hard HEAD && git pull && git fetch --tags
+        run: git clean . -xdf && git reset --hard HEAD && git pull && git fetch --tags
       
       - name: 📋 Update tags
         run: git tag --force v${{ steps.version.outputs.result }} && git push --force --tags
