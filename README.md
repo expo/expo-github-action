@@ -31,6 +31,8 @@ Some additional features are included to make the usage of this action as simple
 
 ## Configuration options
 
+> Create your [`EXPO_TOKEN`][link-expo-token] GitHub secret.
+
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
@@ -41,7 +43,7 @@ Here is a summary of all the input options you can use.
 | **eas-version**    | -       | EAS CLI version to install _(skips when omitted)_                                             |
 | **eas-cache**      | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
 | **packager**       | `yarn`  | Package manager to use _(e.g. `yarn` or `npm`)_                                               |
-| **token**          | -       | Token of your Expo account - [get your token](https://expo.dev/accounts/%5Baccount%5D/settings/access-tokens) _(use with [secrets][link-actions-secrets])_                  |
+| **token**          | -       | Token of your Expo account - [get your token][link-expo-token] _(use with [secrets][link-actions-secrets])_                  |
 | **patch-watchers** | `true`  | If it should patch the `fs.inotify.*` limits on Ubuntu ([read more](#enospc-errors-on-linux)) |
 
 ## Example workflows
@@ -56,7 +58,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 ### Publish on any push to main
 
 This workflow listens to the `push` event on the `main` branch.
-It sets up all required components to publish the app, including authentication with a token.
+It sets up all required components to publish the app, including authentication with a [token][link-expo-token].
 
 > Always use [secrets][link-actions-secrets] when using tokens.
 
@@ -97,7 +99,7 @@ This action also allows you to install the EAS CLI.
 To do this, add the **eas-version** property, and the action will install it.
 We recommend using `latest` for the EAS CLI.
 
-> The **token** is shared for both Expo and EAS CLI.
+> The [**token**][link-expo-token] is shared for both Expo and EAS CLI.
 
 ```yml
 on:
@@ -179,9 +181,9 @@ jobs:
 ### Automatic Expo login
 
 Some Expo commands, like `expo publish` and `eas build`, require you to be authenticated. 
-This action exports the **token** to ensure you are authenticated in every workflow step.
+This action exports the [**token**][link-expo-token] to ensure you are authenticated in every workflow step.
 
-> Note, this action does not store the token anywhere. Each separate workflow job needs to set up the **token** individually.
+> Note, this action does not store the [token][link-expo-token] anywhere. Each separate workflow job needs to set up the [**token**][link-expo-token] individually.
 
 ### Using the built-in cache
 
@@ -212,3 +214,4 @@ You can opt-out from patching the file system by setting **patch-watchers** to `
 [link-expo-release-channels]: https://docs.expo.dev/distribution/release-channels/
 [link-eas-cli]: https://github.com/expo/eas-cli#readme
 [link-preview-comment]: https://github.com/expo/expo-github-action/pull/149#issuecomment-1013184520
+[link-expo-token]: https://expo.dev/accounts/%5Baccount%5D/settings/access-tokens
