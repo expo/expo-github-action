@@ -1,13 +1,13 @@
 ---
-name: Expo GitHub Action - Comment Trigger
+name: Expo GitHub Action - Command
 author: Expo
-description: Run command when a comment is added to a GitHub issue.
+description: Run Expo CLI/EAS CLI command when a comment is added to a GitHub Pull Request.
 branding:
   icon: message-circle
   color: gray-dark
 runs:
   using: node16
-  main: ../build/comment-trigger/index.js
+  main: ../build/command/index.js
 inputs:
   project:
     description: Path to the Expo project, relative from the workspace
