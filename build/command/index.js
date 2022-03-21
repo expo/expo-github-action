@@ -15750,79 +15750,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4478:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commentAction = exports.commentInput = exports.DEFAULT_MESSAGE = exports.DEFAULT_ID = void 0;
-const core_1 = __nccwpck_require__(2186);
-const expo_1 = __nccwpck_require__(2489);
-const github_1 = __nccwpck_require__(978);
-const worker_1 = __nccwpck_require__(8912);
-exports.DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
-exports.DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
-    `\n- Project: **@{projectOwner}/{projectSlug}**` +
-    `\n- Channel: **{channel}**` +
-    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
-function commentInput() {
-    return {
-        channel: (0, core_1.getInput)('channel') || 'default',
-        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
-        message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE,
-        messageId: (0, core_1.getInput)('message-id') || exports.DEFAULT_ID,
-        project: (0, core_1.getInput)('project'),
-        githubToken: (0, core_1.getInput)('github-token'),
-    };
-}
-exports.commentInput = commentInput;
-(0, worker_1.executeAction)(commentAction);
-async function commentAction(input = commentInput()) {
-    const project = await (0, expo_1.projectInfo)(input.project);
-    if (!project.owner) {
-        project.owner = await (0, expo_1.projectOwner)();
-    }
-    const variables = {
-        projectLink: (0, expo_1.projectLink)(project, input.channel),
-        projectDeepLink: (0, expo_1.projectDeepLink)(project, input.channel),
-        projectName: project.name,
-        projectOwner: project.owner || '',
-        projectQR: (0, expo_1.projectQR)(project, input.channel),
-        projectSlug: project.slug,
-        channel: input.channel,
-    };
-    const messageId = template(input.messageId, variables);
-    const messageBody = template(input.message, variables);
-    if (!input.comment) {
-        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
-    }
-    else {
-        await (0, github_1.createIssueComment)({
-            ...(0, github_1.pullContext)(),
-            token: input.githubToken,
-            id: messageId,
-            body: messageBody,
-        });
-    }
-    for (const name in variables) {
-        (0, core_1.setOutput)(name, variables[name]);
-    }
-    (0, core_1.setOutput)('messageId', messageId);
-    (0, core_1.setOutput)('message', messageBody);
-}
-exports.commentAction = commentAction;
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
-}
-
-
-/***/ }),
-
 /***/ 2489:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -16414,12 +16341,49 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4478);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commandAction = exports.commandInput = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const worker_1 = __nccwpck_require__(8912);
+function commandInput() {
+    return {
+        project: (0, core_1.getInput)('project'),
+        reaction: (0, core_1.getInput)('reaction'),
+        githubToken: (0, core_1.getInput)('github-token'),
+    };
+}
+exports.commandInput = commandInput;
+(0, worker_1.executeAction)(commandAction);
+async function commandAction(input = commandInput()) {
+    const action = (0, github_1.findAction)();
+    if (!action) {
+        return;
+    }
+    const project = await (0, expo_1.projectInfo)(input.project);
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    if (!input.reaction) {
+        return;
+    }
+    await (0, github_1.createReaction)({
+        ...(0, github_1.commentContext)(),
+        token: input.githubToken,
+        content: input.reaction,
+    });
+}
+exports.commandAction = commandAction;
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

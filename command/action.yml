@@ -1,0 +1,22 @@
+---
+name: Expo GitHub Action - Comment Trigger
+author: Expo
+description: Run command when a comment is added to a GitHub issue.
+branding:
+  icon: message-circle
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/comment-trigger/index.js
+inputs:
+  project:
+    description: Path to the Expo project, relative from the workspace
+    required: false
+  reaction:
+    description: If set, the specified emoji "reaction" is put on the comment to indicate that the trigger was detected. For example, "rocket".
+    required: false
+    default: ""
+  github-token:
+    description: GitHub access token to comment on PRs
+    required: false
+    default: ${{ github.token }}
