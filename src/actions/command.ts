@@ -48,7 +48,7 @@ export async function commandAction(input: CommandInput = commandInput()) {
     ...pullContext(),
     token: input.githubToken,
     id: `${comment_id ?? number}`,
-    body: result,
+    body: result[0] || result[1],
   });
 
   if (!input.reaction) {

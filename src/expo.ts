@@ -78,14 +78,15 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
 
 export async function runCommand(cmd: Command) {
   let stdout = '';
+  let stderr = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
+    ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
   } catch (error) {
     throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
   }
 
-  return stdout.trim();
+  return [stdout.trim(), stderr.trim()];
 }
 
 /**

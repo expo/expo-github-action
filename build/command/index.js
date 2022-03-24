@@ -15817,13 +15817,14 @@ async function projectOwner(cli = 'expo') {
 exports.projectOwner = projectOwner;
 async function runCommand(cmd) {
     let stdout = '';
+    let stderr = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
     }
     catch (error) {
         throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
     }
-    return stdout.trim();
+    return [stdout.trim(), stderr.trim()];
 }
 exports.runCommand = runCommand;
 /**
@@ -16400,7 +16401,7 @@ async function commandAction(input = commandInput()) {
         ...(0, github_1.pullContext)(),
         token: input.githubToken,
         id: `${comment_id ?? number}`,
-        body: result,
+        body: result[0] || result[1],
     });
     if (!input.reaction) {
         return;
