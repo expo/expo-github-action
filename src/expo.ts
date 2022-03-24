@@ -6,10 +6,36 @@ import { URL } from 'url';
 
 export type CliName = 'expo' | 'eas';
 
+export type Command = {
+  cli: CliName;
+  args: string[];
+  raw: string;
+  command: string;
+};
+
 export interface ProjectInfo {
   name: string;
   slug: string;
   owner?: string;
+}
+
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
+
+export function parseCommand(input: string) {
+  const matches = CommandRegExp.exec(input);
+  if (matches != null) {
+    return {
+      cli: matches[1] as CliName,
+      raw: input.substring(1).trim(),
+      args:
+        matches[2]
+          ?.split(' ')
+          .map(s => s.trim())
+          .filter(Boolean) ?? [],
+    } as Command;
+  }
+
+  return null;
 }
 
 /**
@@ -45,6 +71,18 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
     throw new Error(`Could not fetch the project owner, not authenticated`);
   } else if (stdout.endsWith(' (robot)')) {
     throw new Error(`Could not fetch the project owner, used robot account`);
+  }
+
+  return stdout.trim();
+}
+
+export async function runCommand(cmd: Command) {
+  let stdout = '';
+
+  try {
+    ({ stdout } = await getExecOutput(await which(cmd.cli), cmd.args, { silent: true }));
+  } catch (error) {
+    throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
   }
 
   return stdout.trim();

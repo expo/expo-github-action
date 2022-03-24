@@ -1,7 +1,7 @@
 import { getInput } from '@actions/core';
 
-import { projectInfo, projectOwner } from '../expo';
-import { commentContext, createReaction, findAction, Reaction } from '../github';
+import { CliName, parseCommand, projectInfo, projectOwner, runCommand } from '../expo';
+import { commentContext, createReaction, issueComment, Reaction } from '../github';
 import { executeAction } from '../worker';
 
 export type CommandInput = ReturnType<typeof commandInput>;
@@ -14,13 +14,29 @@ export function commandInput() {
   };
 }
 
+const whitelistCommands: { [key in CliName]: string[] } = {
+  eas: ['submit'],
+  expo: ['publish'],
+};
+
 executeAction(commandAction);
 
 export async function commandAction(input: CommandInput = commandInput()) {
-  const action = findAction();
-  if (!action) {
+  const comment = issueComment();
+  if (!comment) {
     return;
   }
+
+  const command = parseCommand(comment);
+  if (!command) {
+    return;
+  }
+
+  const availableCommands = whitelistCommands[command.cli];
+  if (availableCommands.length > 0 && !availableCommands.includes(command.args[0])) {
+    return;
+  }
+  const result = await runCommand(command);
 
   const project = await projectInfo(input.project);
   if (!project.owner) {

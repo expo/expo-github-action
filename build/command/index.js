@@ -15756,12 +15756,28 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
+exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
 const assert_1 = __nccwpck_require__(9491);
 const url_1 = __nccwpck_require__(7310);
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
+function parseCommand(input) {
+    const matches = CommandRegExp.exec(input);
+    if (matches != null) {
+        return {
+            cli: matches[1],
+            raw: input.substring(1).trim(),
+            args: matches[2]
+                ?.split(' ')
+                .map(s => s.trim())
+                .filter(Boolean) ?? [],
+        };
+    }
+    return null;
+}
+exports.parseCommand = parseCommand;
 /**
  * Try to authenticate the user using either Expo or EAS CLI.
  * This method tries to invoke 'whoami' to validate if the token is valid.
@@ -15799,6 +15815,17 @@ async function projectOwner(cli = 'expo') {
     return stdout.trim();
 }
 exports.projectOwner = projectOwner;
+async function runCommand(cmd) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args, { silent: true }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
+    }
+    return stdout.trim();
+}
+exports.runCommand = runCommand;
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
@@ -15865,7 +15892,7 @@ exports.projectDeepLink = projectDeepLink;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findAction = exports.commentContext = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+exports.issueComment = exports.commentContext = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
 const assert_1 = __nccwpck_require__(9491);
 /**
@@ -15963,29 +15990,13 @@ function commentContext() {
     return baseContext;
 }
 exports.commentContext = commentContext;
-function findAction() {
+function issueComment() {
     if (github_1.context.eventName !== 'issue_comment' || !github_1.context.payload.issue?.pull_request) {
         return null;
     }
-    const body = github_1.context.payload?.comment?.body;
-    if (!body) {
-        return null;
-    }
-    const tools = ['eas', 'expo'];
-    for (const tool of tools) {
-        if (body.startsWith(`#${tool} `)) {
-            // TODO(giautm): validate the command
-            const command = body.substring(tool.length + 2);
-            const args = command
-                .split(' ')
-                .map(s => s.trim())
-                .filter(Boolean);
-            return { tool, command, args };
-        }
-    }
-    return null;
+    return github_1.context.payload?.comment?.body ?? null;
 }
-exports.findAction = findAction;
+exports.issueComment = issueComment;
 
 
 /***/ }),
@@ -16361,12 +16372,25 @@ function commandInput() {
     };
 }
 exports.commandInput = commandInput;
+const whitelistCommands = {
+    eas: ['submit'],
+    expo: ['publish'],
+};
 (0, worker_1.executeAction)(commandAction);
 async function commandAction(input = commandInput()) {
-    const action = (0, github_1.findAction)();
-    if (!action) {
+    const comment = (0, github_1.issueComment)();
+    if (!comment) {
         return;
     }
+    const command = (0, expo_1.parseCommand)(comment);
+    if (!command) {
+        return;
+    }
+    const availableCommands = whitelistCommands[command.cli];
+    if (availableCommands.length > 0 && !availableCommands.includes(command.args[0])) {
+        return;
+    }
+    const result = await (0, expo_1.runCommand)(command);
     const project = await (0, expo_1.projectInfo)(input.project);
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();

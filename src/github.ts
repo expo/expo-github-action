@@ -23,11 +23,6 @@ export type Reaction = {
   content: '+1' | '-1' | 'laugh' | 'confused' | 'heart' | 'hooray' | 'rocket' | 'eyes';
 };
 
-type Action = {
-  tool: 'eas' | 'expo';
-  command: string;
-  args: string[];
-};
 /**
  * Determine if a comment exists on an issue or pull with the provided identifier.
  * This will iterate all comments received from GitHub, and try to exit early if it exists.
@@ -133,27 +128,10 @@ export function commentContext(): IssueCommentContext {
   return baseContext;
 }
 
-export function findAction(): Action | null {
+export function issueComment(): string | null {
   if (context.eventName !== 'issue_comment' || !context.payload.issue?.pull_request) {
     return null;
   }
-  const body: string = context.payload?.comment?.body;
-  if (!body) {
-    return null;
-  }
 
-  const tools: Action['tool'][] = ['eas', 'expo'];
-  for (const tool of tools) {
-    if (body.startsWith(`#${tool} `)) {
-      // TODO(giautm): validate the command
-      const command = body.substring(tool.length + 2);
-      const args = command
-        .split(' ')
-        .map(s => s.trim())
-        .filter(Boolean);
-      return { tool, command, args };
-    }
-  }
-
-  return null;
+  return context.payload?.comment?.body ?? null;
 }
