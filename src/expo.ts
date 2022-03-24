@@ -80,7 +80,7 @@ export async function runCommand(cmd: Command) {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which(cmd.cli), cmd.args, { silent: true }));
+    ({ stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
   } catch (error) {
     throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
   }
