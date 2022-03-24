@@ -16403,7 +16403,7 @@ async function commandAction(input = commandInput()) {
         ...context,
         token: input.githubToken,
         id: `${context.comment_id ?? context.number}`,
-        body: result[0] || result[1],
+        body: createDetails('Command output', codeBlock(result[0] || result[1])),
     });
     if (!input.reaction) {
         return;
@@ -16415,6 +16415,12 @@ async function commandAction(input = commandInput()) {
     });
 }
 exports.commandAction = commandAction;
+function createDetails(summary, details) {
+    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
+}
+function codeBlock(content, language = '') {
+    return `\`\`\`${language}\n${content}\n\`\`\``;
+}
 
 })();
 

@@ -1,7 +1,7 @@
 import { getInput } from '@actions/core';
 
 import { CliName, parseCommand, projectInfo, projectOwner, runCommand } from '../expo';
-import { commentContext, createIssueComment, createReaction, issueComment, pullContext, Reaction } from '../github';
+import { commentContext, createIssueComment, createReaction, issueComment, Reaction } from '../github';
 import { executeAction } from '../worker';
 
 export type CommandInput = ReturnType<typeof commandInput>;
@@ -48,7 +48,7 @@ export async function commandAction(input: CommandInput = commandInput()) {
     ...context,
     token: input.githubToken,
     id: `${context.comment_id ?? context.number}`,
-    body: result[0] || result[1],
+    body: createDetails('Command output', codeBlock(result[0] || result[1])),
   });
 
   if (!input.reaction) {
@@ -59,4 +59,12 @@ export async function commandAction(input: CommandInput = commandInput()) {
     token: input.githubToken,
     content: input.reaction,
   });
+}
+
+function createDetails(summary: string, details: string): string {
+  return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
+}
+
+function codeBlock(content: string, language: string = '') {
+  return `\`\`\`${language}\n${content}\n\`\`\``;
 }

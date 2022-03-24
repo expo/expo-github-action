@@ -138,3 +138,4 @@ export function issueComment(): string | null {
 
   return context.payload?.comment?.body ?? null;
 }
+
