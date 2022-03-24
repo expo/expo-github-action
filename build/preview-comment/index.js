@@ -15892,7 +15892,9 @@ async function runCommand(cmd) {
     let stdout = '';
     let stderr = '';
     try {
-        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), {
+            silent: false,
+        }));
     }
     catch (error) {
         throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);

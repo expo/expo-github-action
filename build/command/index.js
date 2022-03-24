@@ -15819,7 +15819,9 @@ async function runCommand(cmd) {
     let stdout = '';
     let stderr = '';
     try {
-        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), { silent: true }));
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), {
+            silent: false,
+        }));
     }
     catch (error) {
         throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
@@ -16396,18 +16398,18 @@ async function commandAction(input = commandInput()) {
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();
     }
-    const { comment_id, number } = (0, github_1.commentContext)();
+    const context = (0, github_1.commentContext)();
     await (0, github_1.createIssueComment)({
-        ...(0, github_1.pullContext)(),
+        ...context,
         token: input.githubToken,
-        id: `${comment_id ?? number}`,
+        id: `${context.comment_id ?? context.number}`,
         body: result[0] || result[1],
     });
     if (!input.reaction) {
         return;
     }
     await (0, github_1.createReaction)({
-        ...(0, github_1.commentContext)(),
+        ...context,
         token: input.githubToken,
         content: input.reaction,
     });

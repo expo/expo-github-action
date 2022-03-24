@@ -43,11 +43,11 @@ export async function commandAction(input: CommandInput = commandInput()) {
     project.owner = await projectOwner();
   }
 
-  const { comment_id, number } = commentContext();
+  const context = commentContext();
   await createIssueComment({
-    ...pullContext(),
+    ...context,
     token: input.githubToken,
-    id: `${comment_id ?? number}`,
+    id: `${context.comment_id ?? context.number}`,
     body: result[0] || result[1],
   });
 
@@ -55,7 +55,7 @@ export async function commandAction(input: CommandInput = commandInput()) {
     return;
   }
   await createReaction({
-    ...commentContext(),
+    ...context,
     token: input.githubToken,
     content: input.reaction,
   });
