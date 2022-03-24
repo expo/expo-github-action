@@ -120,12 +120,15 @@ export async function createReaction(options: AuthContext & IssueCommentContext 
 }
 
 export function commentContext(): IssueCommentContext {
-  const baseContext = pullContext();
   if (context.eventName === 'issue_comment') {
-    return { ...baseContext, comment_id: context.payload?.comment?.id };
+    return { ...context.issue, comment_id: context.payload?.comment?.id };
   }
 
-  return baseContext;
+  assert(
+    context.eventName === 'pull_request',
+    'Could not find the pull request context, make sure to run this from a pull_request triggered workflow'
+  );
+  return context.issue;
 }
 
 export function issueComment(): string | null {

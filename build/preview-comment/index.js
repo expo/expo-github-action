@@ -16057,11 +16057,11 @@ async function createReaction(options) {
 }
 exports.createReaction = createReaction;
 function commentContext() {
-    const baseContext = pullContext();
     if (github_1.context.eventName === 'issue_comment') {
-        return { ...baseContext, comment_id: github_1.context.payload?.comment?.id };
+        return { ...github_1.context.issue, comment_id: github_1.context.payload?.comment?.id };
     }
-    return baseContext;
+    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
+    return github_1.context.issue;
 }
 exports.commentContext = commentContext;
 function issueComment() {
