@@ -16395,6 +16395,13 @@ async function commandAction(input = commandInput()) {
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();
     }
+    const { comment_id, number } = (0, github_1.commentContext)();
+    await (0, github_1.createIssueComment)({
+        ...(0, github_1.pullContext)(),
+        token: input.githubToken,
+        id: `${comment_id ?? number}`,
+        body: result,
+    });
     if (!input.reaction) {
         return;
     }

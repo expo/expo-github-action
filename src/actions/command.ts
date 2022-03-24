@@ -1,7 +1,7 @@
 import { getInput } from '@actions/core';
 
 import { CliName, parseCommand, projectInfo, projectOwner, runCommand } from '../expo';
-import { commentContext, createReaction, issueComment, Reaction } from '../github';
+import { commentContext, createIssueComment, createReaction, issueComment, pullContext, Reaction } from '../github';
 import { executeAction } from '../worker';
 
 export type CommandInput = ReturnType<typeof commandInput>;
@@ -42,6 +42,14 @@ export async function commandAction(input: CommandInput = commandInput()) {
   if (!project.owner) {
     project.owner = await projectOwner();
   }
+
+  const { comment_id, number } = commentContext();
+  await createIssueComment({
+    ...pullContext(),
+    token: input.githubToken,
+    id: `${comment_id ?? number}`,
+    body: result,
+  });
 
   if (!input.reaction) {
     return;
