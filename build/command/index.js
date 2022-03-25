@@ -16370,7 +16370,7 @@ const worker_1 = __nccwpck_require__(8912);
 function commandInput() {
     return {
         project: (0, core_1.getInput)('project'),
-        reaction: (0, core_1.getInput)('reaction'),
+        reaction: ((0, core_1.getInput)('reaction') ?? '+1'),
         githubToken: (0, core_1.getInput)('github-token'),
     };
 }
@@ -16389,6 +16389,14 @@ async function commandAction(input = commandInput()) {
     if (!command) {
         return;
     }
+    const context = (0, github_1.commentContext)();
+    if (input.reaction) {
+        await (0, github_1.createReaction)({
+            ...context,
+            token: input.githubToken,
+            content: input.reaction,
+        });
+    }
     const availableCommands = whitelistCommands[command.cli];
     if (availableCommands.length > 0 && !availableCommands.includes(command.args[0])) {
         return;
@@ -16398,20 +16406,11 @@ async function commandAction(input = commandInput()) {
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();
     }
-    const context = (0, github_1.commentContext)();
     await (0, github_1.createIssueComment)({
         ...context,
         token: input.githubToken,
         id: `${context.comment_id ?? context.number}`,
         body: createDetails('Command output', codeBlock(result[0] || result[1])),
-    });
-    if (!input.reaction) {
-        return;
-    }
-    await (0, github_1.createReaction)({
-        ...context,
-        token: input.githubToken,
-        content: input.reaction,
     });
 }
 exports.commandAction = commandAction;
@@ -16421,6 +16420,15 @@ function createDetails(summary, details) {
 function codeBlock(content, language = '') {
     return `\`\`\`${language}\n${content}\n\`\`\``;
 }
+// <!-- 1078458632 -->
+// > #expo blah blah blah
+// I can't recognize your command, please see below for supported commands.
+// <details><summary>Supported commands</summary>
+// ### EAS-CLI
+// - `eas submit --profile <development|preview|production>` start a build.
+// ### EXPO-CLI
+// - `expo publish` deploy a project to Expo hosting
+// </details>
 
 })();
 
