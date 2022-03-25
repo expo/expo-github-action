@@ -1,6 +1,16 @@
 import { getInput } from '@actions/core';
 
-import { CliName, parseCommand, projectInfo, projectOwner, runCommand } from '../expo';
+import {
+  appPlatformDisplayNames,
+  appPlatformEmojis,
+  BuildInfo,
+  CliName,
+  getBuildLogsUrl,
+  parseCommand,
+  projectInfo,
+  projectOwner,
+  runCommand,
+} from '../expo';
 import { commentContext, createIssueComment, createReaction, issueComment, Reaction } from '../github';
 import { executeAction } from '../worker';
 
@@ -105,4 +115,34 @@ function createDetails({ summary, details }: { summary: string; details: string 
 
 function codeBlock(content: string, language: string = '') {
   return `\`\`\`${language}\n${content}\n\`\`\``;
+}
+
+function createBuildComment(builds: BuildInfo[]) {
+  const buildLinks = builds.map(
+    build =>
+      ` ${appPlatformEmojis[build.platform]} [${
+        appPlatformDisplayNames[build.platform]
+      } build details](${getBuildLogsUrl(build)}) `
+  );
+
+  const firstBuild = builds[0];
+  return [
+    `Commit #${firstBuild.gitCommitHash} is building...'`,
+    '',
+    `|${buildLinks.join('|')}|`,
+    `|${Array(buildLinks.length).fill(':-:').join('|')}`,
+    '',
+    createDetails({
+      summary: 'Build Details',
+      details: [
+        '## Summary',
+        '',
+        `- **Distribution**: \`${firstBuild.distribution}\``,
+        `- **Build profile**: \`${firstBuild.buildProfile}\``,
+        `- **SDK version**: \`${firstBuild.sdkVersion}\``,
+        `- **App version**: \`${firstBuild.appVersion}\``,
+        `- **Release channel**: \`${firstBuild.appVersion}\``,
+      ].join('\n'),
+    }),
+  ].join('\n');
 }

@@ -19,6 +19,38 @@ export interface ProjectInfo {
   owner?: string;
 }
 
+export enum AppPlatform {
+  Android = 'ANDROID',
+  Ios = 'IOS',
+}
+
+export type BuildInfo = {
+  id: string;
+  platform: AppPlatform;
+  project: {
+    slug: string;
+    ownerAccount: {
+      name: string;
+    };
+  };
+  releaseChannel: string;
+  distribution: string;
+  buildProfile: string;
+  sdkVersion: string;
+  appVersion: string;
+  gitCommitHash: string;
+};
+
+export const appPlatformDisplayNames: Record<AppPlatform, string> = {
+  [AppPlatform.Android]: 'Android',
+  [AppPlatform.Ios]: 'iOS',
+};
+
+export const appPlatformEmojis = {
+  [AppPlatform.Ios]: '🍎',
+  [AppPlatform.Android]: '🤖',
+};
+
 const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
 
 export function parseCommand(input: string) {
@@ -151,5 +183,15 @@ export function projectDeepLink(project: ProjectInfo, channel?: string): string 
     url.searchParams.append('release-channel', channel);
   }
 
+  return url.toString();
+}
+
+export function getBuildLogsUrl(build: BuildInfo): string {
+  const { project } = build;
+  const path = project
+    ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+    : `/builds/${build.id}`;
+
+  const url = new URL(path, 'https://expo.dev');
   return url.toString();
 }

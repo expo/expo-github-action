@@ -15829,12 +15829,25 @@ function template(template, replacements) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
 const assert_1 = __nccwpck_require__(9491);
 const url_1 = __nccwpck_require__(7310);
+var AppPlatform;
+(function (AppPlatform) {
+    AppPlatform["Android"] = "ANDROID";
+    AppPlatform["Ios"] = "IOS";
+})(AppPlatform = exports.AppPlatform || (exports.AppPlatform = {}));
+exports.appPlatformDisplayNames = {
+    [AppPlatform.Android]: 'Android',
+    [AppPlatform.Ios]: 'iOS',
+};
+exports.appPlatformEmojis = {
+    [AppPlatform.Ios]: '🍎',
+    [AppPlatform.Android]: '🤖',
+};
 const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
 function parseCommand(input) {
     const matches = CommandRegExp.exec(input);
@@ -15958,6 +15971,15 @@ function projectDeepLink(project, channel) {
     return url.toString();
 }
 exports.projectDeepLink = projectDeepLink;
+function getBuildLogsUrl(build) {
+    const { project } = build;
+    const path = project
+        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+        : `/builds/${build.id}`;
+    const url = new url_1.URL(path, 'https://expo.dev');
+    return url.toString();
+}
+exports.getBuildLogsUrl = getBuildLogsUrl;
 
 
 /***/ }),
