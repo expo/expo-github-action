@@ -1,6 +1,7 @@
 import { info, exportVariable } from '@actions/core';
 import { exec, getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
+import { EasJsonReader } from '@expo/eas-json';
 import { ok as assert } from 'assert';
 import { URL } from 'url';
 
@@ -140,6 +141,11 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
 
   const { name, slug, owner } = JSON.parse(stdout);
   return { name, slug, owner };
+}
+
+export async function readSubmitProfilesAsync(dir: string): Promise<string[]> {
+  const reader = new EasJsonReader(dir);
+  return await reader.getSubmitProfileNamesAsync();
 }
 
 /**

@@ -9,9 +9,6 @@ runs:
   using: node16
   main: ../build/command/index.js
 inputs:
-  project:
-    description: Path to the Expo project, relative from the workspace
-    required: false
   reaction:
     description: If set, the specified emoji "reaction" is put on the comment to indicate that the trigger was detected. For example, "rocket".
     required: false
