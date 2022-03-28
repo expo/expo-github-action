@@ -52,14 +52,14 @@ export const appPlatformEmojis = {
   [AppPlatform.Android]: '🤖',
 };
 
-const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
 
-export function parseCommand(input: string) {
+export function parseCommand(input: string): Command | null {
   const matches = CommandRegExp.exec(input);
   if (matches != null) {
     return {
       cli: matches[1] as CliName,
-      raw: input.substring(1).trim(),
+      raw: input.trimStart().substring(1).trim(),
       args:
         matches[2]
           ?.split(' ')
@@ -124,6 +124,20 @@ export async function runCommand(cmd: Command) {
   return [stdout.trim(), stderr.trim()];
 }
 
+export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
+  let stdout = '';
+
+  try {
+    const args = cmd.args.concat('--non-interactive', '--json');
+    ({ stdout } = await getExecOutput(await which('eas', true), args, {
+      silent: false,
+    }));
+  } catch (error) {
+    throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+  }
+
+  return JSON.parse(stdout);
+}
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */

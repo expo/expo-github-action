@@ -1,15 +1,12 @@
-import { getInput } from '@actions/core';
+import { getInput, info, setFailed } from '@actions/core';
 
 import {
   appPlatformDisplayNames,
   appPlatformEmojis,
   BuildInfo,
-  CliName,
+  easBuild,
   getBuildLogsUrl,
   parseCommand,
-  projectInfo,
-  projectOwner,
-  runCommand,
 } from '../expo';
 import { commentContext, createIssueComment, createReaction, issueComment, Reaction } from '../github';
 import { executeAction } from '../worker';
@@ -24,11 +21,6 @@ export function commandInput() {
   };
 }
 
-const whitelistCommands: { [key in CliName]: string[] } = {
-  eas: ['submit'],
-  expo: ['publish'],
-};
-
 executeAction(commandAction);
 
 export async function commandAction(input: CommandInput = commandInput()) {
@@ -39,20 +31,14 @@ export async function commandAction(input: CommandInput = commandInput()) {
 
   const command = parseCommand(comment);
   if (!command) {
+    info("Comment didn't contain a valid expo/eas command");
     return;
   }
 
   const context = commentContext();
-  if (input.reaction) {
-    await createReaction({
-      ...context,
-      token: input.githubToken,
-      content: input.reaction,
-    });
-  }
-
-  const availableCommands = whitelistCommands[command.cli];
-  if (availableCommands.length > 0 && !availableCommands.includes(command.args[0])) {
+  const cmdName = command.args[0];
+  if (command.cli !== 'eas' || cmdName !== 'build') {
+    setFailed(`We don't support \`${command.cli} ${cmdName}\` yet`);
     await createIssueComment({
       ...context,
       token: input.githubToken,
@@ -64,21 +50,21 @@ export async function commandAction(input: CommandInput = commandInput()) {
     });
     return;
   }
-  const result = await runCommand(command);
 
-  const project = await projectInfo(input.project);
-  if (!project.owner) {
-    project.owner = await projectOwner();
+  if (input.reaction) {
+    await createReaction({
+      ...context,
+      token: input.githubToken,
+      content: input.reaction,
+    });
   }
 
+  const result = await easBuild(command);
   await createIssueComment({
     ...context,
     token: input.githubToken,
-    id: `${context.comment_id ?? context.number}`,
-    body: createDetails({
-      summary: 'Command output',
-      details: codeBlock(result[0] || result[1]),
-    }),
+    id: 'eas build',
+    body: createBuildComment(result),
   });
 }
 
@@ -101,9 +87,9 @@ function createHelpComment(input: HelpCommentInput) {
       details: [
         '### EAS-CLI',
         `- \`eas ${submitArgs.join(' ')}\` start a build.`,
-        '',
-        '### EXPO-CLI',
-        '- `expo publish` deploy a project to Expo hosting',
+        // '',
+        // '### EXPO-CLI',
+        // '- `expo publish` deploy a project to Expo hosting',
       ].join('\n'),
     }),
   ].join('\n');

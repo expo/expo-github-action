@@ -42553,7 +42553,7 @@ try {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.readSubmitProfilesAsync = exports.projectInfo = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.readSubmitProfilesAsync = exports.projectInfo = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -42573,13 +42573,13 @@ exports.appPlatformEmojis = {
     [AppPlatform.Ios]: '🍎',
     [AppPlatform.Android]: '🤖',
 };
-const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
 function parseCommand(input) {
     const matches = CommandRegExp.exec(input);
     if (matches != null) {
         return {
             cli: matches[1],
-            raw: input.substring(1).trim(),
+            raw: input.trimStart().substring(1).trim(),
             args: matches[2]
                 ?.split(' ')
                 .map(s => s.trim())
@@ -42640,6 +42640,20 @@ async function runCommand(cmd) {
     return [stdout.trim(), stderr.trim()];
 }
 exports.runCommand = runCommand;
+async function easBuild(cmd) {
+    let stdout = '';
+    try {
+        const args = cmd.args.concat('--non-interactive', '--json');
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+    }
+    return JSON.parse(stdout);
+}
+exports.easBuild = easBuild;
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
@@ -43236,10 +43250,6 @@ function commandInput() {
     };
 }
 exports.commandInput = commandInput;
-const whitelistCommands = {
-    eas: ['submit'],
-    expo: ['publish'],
-};
 (0, worker_1.executeAction)(commandAction);
 async function commandAction(input = commandInput()) {
     const comment = (0, github_1.issueComment)();
@@ -43248,18 +43258,13 @@ async function commandAction(input = commandInput()) {
     }
     const command = (0, expo_1.parseCommand)(comment);
     if (!command) {
+        (0, core_1.info)("Comment didn't contain a valid expo/eas command");
         return;
     }
     const context = (0, github_1.commentContext)();
-    if (input.reaction) {
-        await (0, github_1.createReaction)({
-            ...context,
-            token: input.githubToken,
-            content: input.reaction,
-        });
-    }
-    const availableCommands = whitelistCommands[command.cli];
-    if (availableCommands.length > 0 && !availableCommands.includes(command.args[0])) {
+    const cmdName = command.args[0];
+    if (command.cli !== 'eas' || cmdName !== 'build') {
+        (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
         await (0, github_1.createIssueComment)({
             ...context,
             token: input.githubToken,
@@ -43271,19 +43276,19 @@ async function commandAction(input = commandInput()) {
         });
         return;
     }
-    const result = await (0, expo_1.runCommand)(command);
-    const project = await (0, expo_1.projectInfo)(input.project);
-    if (!project.owner) {
-        project.owner = await (0, expo_1.projectOwner)();
+    if (input.reaction) {
+        await (0, github_1.createReaction)({
+            ...context,
+            token: input.githubToken,
+            content: input.reaction,
+        });
     }
+    const result = await (0, expo_1.easBuild)(command);
     await (0, github_1.createIssueComment)({
         ...context,
         token: input.githubToken,
-        id: `${context.comment_id ?? context.number}`,
-        body: createDetails({
-            summary: 'Command output',
-            details: codeBlock(result[0] || result[1]),
-        }),
+        id: 'eas build',
+        body: createBuildComment(result),
     });
 }
 exports.commandAction = commandAction;
@@ -43301,9 +43306,9 @@ function createHelpComment(input) {
             details: [
                 '### EAS-CLI',
                 `- \`eas ${submitArgs.join(' ')}\` start a build.`,
-                '',
-                '### EXPO-CLI',
-                '- `expo publish` deploy a project to Expo hosting',
+                // '',
+                // '### EXPO-CLI',
+                // '- `expo publish` deploy a project to Expo hosting',
             ].join('\n'),
         }),
     ].join('\n');

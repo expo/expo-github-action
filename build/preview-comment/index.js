@@ -42626,7 +42626,7 @@ function template(template, replacements) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.readSubmitProfilesAsync = exports.projectInfo = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.readSubmitProfilesAsync = exports.projectInfo = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -42646,13 +42646,13 @@ exports.appPlatformEmojis = {
     [AppPlatform.Ios]: '🍎',
     [AppPlatform.Android]: '🤖',
 };
-const CommandRegExp = /^#(eas|expo)\s+(.+)?$/;
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
 function parseCommand(input) {
     const matches = CommandRegExp.exec(input);
     if (matches != null) {
         return {
             cli: matches[1],
-            raw: input.substring(1).trim(),
+            raw: input.trimStart().substring(1).trim(),
             args: matches[2]
                 ?.split(' ')
                 .map(s => s.trim())
@@ -42713,6 +42713,20 @@ async function runCommand(cmd) {
     return [stdout.trim(), stderr.trim()];
 }
 exports.runCommand = runCommand;
+async function easBuild(cmd) {
+    let stdout = '';
+    try {
+        const args = cmd.args.concat('--non-interactive', '--json');
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+    }
+    return JSON.parse(stdout);
+}
+exports.easBuild = easBuild;
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
