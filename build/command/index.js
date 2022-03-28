@@ -42547,6 +42547,141 @@ try {
 
 /***/ }),
 
+/***/ 4350:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commandAction = exports.commandInput = exports.MESSAGE_ID = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const worker_1 = __nccwpck_require__(8912);
+exports.MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
+function commandInput() {
+    return {
+        project: (0, core_1.getInput)('project'),
+        reaction: ((0, core_1.getInput)('reaction') ?? '+1'),
+        githubToken: (0, core_1.getInput)('github-token'),
+    };
+}
+exports.commandInput = commandInput;
+(0, worker_1.executeAction)(commandAction);
+async function commandAction(input = commandInput()) {
+    const comment = (0, github_1.issueComment)();
+    if (!comment) {
+        return;
+    }
+    const command = (0, expo_1.parseCommand)(comment);
+    if (!command) {
+        (0, core_1.info)("Comment didn't contain a valid expo/eas command");
+        return;
+    }
+    const context = (0, github_1.commentContext)();
+    const cmdName = command.args[0];
+    if (command.cli !== 'eas' || cmdName !== 'build') {
+        (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
+        await (0, github_1.createIssueComment)({
+            ...context,
+            token: input.githubToken,
+            id: `${context.comment_id ?? context.number}`,
+            body: createHelpComment({
+                input: comment,
+                submitProfiles: [],
+            }),
+        });
+        return;
+    }
+    if (input.reaction) {
+        await (0, github_1.createReaction)({
+            ...context,
+            token: input.githubToken,
+            content: input.reaction,
+        });
+    }
+    const project = await (0, expo_1.projectInfo)('');
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    const variables = {
+        projectName: project.name,
+        projectOwner: project.owner || '',
+        projectSlug: project.slug,
+        cli: command.cli,
+        cmdName,
+    };
+    const messageId = template(exports.MESSAGE_ID, variables);
+    const result = await (0, expo_1.easBuild)(command);
+    await (0, github_1.createIssueComment)({
+        ...context,
+        token: input.githubToken,
+        id: messageId,
+        body: createBuildComment(result),
+    });
+}
+exports.commandAction = commandAction;
+function createHelpComment(input) {
+    const submitArgs = ['submit'];
+    if (input.submitProfiles.length) {
+        submitArgs.push(`--submit-profiles <${input.submitProfiles.join('|')}>`);
+    }
+    return [
+        `> ${input.input}`,
+        '',
+        `I can't recognize your command, please see below for supported commands.`,
+        createDetails({
+            summary: 'Supported commands',
+            details: [
+                '### EAS-CLI',
+                `- \`eas ${submitArgs.join(' ')}\` start a build.`,
+                // '',
+                // '### EXPO-CLI',
+                // '- `expo publish` deploy a project to Expo hosting',
+            ].join('\n'),
+        }),
+    ].join('\n');
+}
+function createDetails({ summary, details }) {
+    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
+}
+function codeBlock(content, language = '') {
+    return `\`\`\`${language}\n${content}\n\`\`\``;
+}
+function createBuildComment(builds) {
+    const buildLinks = builds.map(build => ` ${expo_1.appPlatformEmojis[build.platform]} [${expo_1.appPlatformDisplayNames[build.platform]} build details](${(0, expo_1.getBuildLogsUrl)(build)}) `);
+    const firstBuild = builds[0];
+    return [
+        `Commit ${firstBuild.gitCommitHash} is building...`,
+        '',
+        `|${buildLinks.join('|')}|`,
+        `|${Array(buildLinks.length).fill(':-:').join('|')}`,
+        '',
+        createDetails({
+            summary: 'Build Details',
+            details: [
+                '## Summary',
+                '',
+                `- **Distribution**: \`${firstBuild.distribution}\``,
+                `- **Build profile**: \`${firstBuild.buildProfile}\``,
+                `- **SDK version**: \`${firstBuild.sdkVersion}\``,
+                `- **App version**: \`${firstBuild.appVersion}\``,
+                `- **Release channel**: \`${firstBuild.appVersion}\``,
+            ].join('\n'),
+        }),
+    ].join('\n');
+}
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+
+
+/***/ }),
+
 /***/ 2489:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -43230,121 +43365,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commandAction = exports.commandInput = void 0;
-const core_1 = __nccwpck_require__(2186);
-const expo_1 = __nccwpck_require__(2489);
-const github_1 = __nccwpck_require__(978);
-const worker_1 = __nccwpck_require__(8912);
-function commandInput() {
-    return {
-        project: (0, core_1.getInput)('project'),
-        reaction: ((0, core_1.getInput)('reaction') ?? '+1'),
-        githubToken: (0, core_1.getInput)('github-token'),
-    };
-}
-exports.commandInput = commandInput;
-(0, worker_1.executeAction)(commandAction);
-async function commandAction(input = commandInput()) {
-    const comment = (0, github_1.issueComment)();
-    if (!comment) {
-        return;
-    }
-    const command = (0, expo_1.parseCommand)(comment);
-    if (!command) {
-        (0, core_1.info)("Comment didn't contain a valid expo/eas command");
-        return;
-    }
-    const context = (0, github_1.commentContext)();
-    const cmdName = command.args[0];
-    if (command.cli !== 'eas' || cmdName !== 'build') {
-        (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
-        await (0, github_1.createIssueComment)({
-            ...context,
-            token: input.githubToken,
-            id: `${context.comment_id ?? context.number}`,
-            body: createHelpComment({
-                input: comment,
-                submitProfiles: [],
-            }),
-        });
-        return;
-    }
-    if (input.reaction) {
-        await (0, github_1.createReaction)({
-            ...context,
-            token: input.githubToken,
-            content: input.reaction,
-        });
-    }
-    const result = await (0, expo_1.easBuild)(command);
-    await (0, github_1.createIssueComment)({
-        ...context,
-        token: input.githubToken,
-        id: 'eas build',
-        body: createBuildComment(result),
-    });
-}
-exports.commandAction = commandAction;
-function createHelpComment(input) {
-    const submitArgs = ['submit'];
-    if (input.submitProfiles.length) {
-        submitArgs.push(`--submit-profiles <${input.submitProfiles.join('|')}>`);
-    }
-    return [
-        `> ${input.input}`,
-        '',
-        `I can't recognize your command, please see below for supported commands.`,
-        createDetails({
-            summary: 'Supported commands',
-            details: [
-                '### EAS-CLI',
-                `- \`eas ${submitArgs.join(' ')}\` start a build.`,
-                // '',
-                // '### EXPO-CLI',
-                // '- `expo publish` deploy a project to Expo hosting',
-            ].join('\n'),
-        }),
-    ].join('\n');
-}
-function createDetails({ summary, details }) {
-    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
-}
-function codeBlock(content, language = '') {
-    return `\`\`\`${language}\n${content}\n\`\`\``;
-}
-function createBuildComment(builds) {
-    const buildLinks = builds.map(build => ` ${expo_1.appPlatformEmojis[build.platform]} [${expo_1.appPlatformDisplayNames[build.platform]} build details](${(0, expo_1.getBuildLogsUrl)(build)}) `);
-    const firstBuild = builds[0];
-    return [
-        `Commit #${firstBuild.gitCommitHash} is building...'`,
-        '',
-        `|${buildLinks.join('|')}|`,
-        `|${Array(buildLinks.length).fill(':-:').join('|')}`,
-        '',
-        createDetails({
-            summary: 'Build Details',
-            details: [
-                '## Summary',
-                '',
-                `- **Distribution**: \`${firstBuild.distribution}\``,
-                `- **Build profile**: \`${firstBuild.buildProfile}\``,
-                `- **SDK version**: \`${firstBuild.sdkVersion}\``,
-                `- **App version**: \`${firstBuild.appVersion}\``,
-                `- **Release channel**: \`${firstBuild.appVersion}\``,
-            ].join('\n'),
-        }),
-    ].join('\n');
-}
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(4350);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

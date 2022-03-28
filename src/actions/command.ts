@@ -7,11 +7,15 @@ import {
   easBuild,
   getBuildLogsUrl,
   parseCommand,
+  projectInfo,
+  projectOwner,
 } from '../expo';
 import { commentContext, createIssueComment, createReaction, issueComment, Reaction } from '../github';
 import { executeAction } from '../worker';
 
 export type CommandInput = ReturnType<typeof commandInput>;
+
+export const MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
 
 export function commandInput() {
   return {
@@ -59,11 +63,24 @@ export async function commandAction(input: CommandInput = commandInput()) {
     });
   }
 
+  const project = await projectInfo('');
+  if (!project.owner) {
+    project.owner = await projectOwner();
+  }
+  const variables: Record<string, string> = {
+    projectName: project.name,
+    projectOwner: project.owner || '',
+    projectSlug: project.slug,
+    cli: command.cli,
+    cmdName,
+  };
+
+  const messageId = template(MESSAGE_ID, variables);
   const result = await easBuild(command);
   await createIssueComment({
     ...context,
     token: input.githubToken,
-    id: 'eas build',
+    id: messageId,
     body: createBuildComment(result),
   });
 }
@@ -113,7 +130,7 @@ function createBuildComment(builds: BuildInfo[]) {
 
   const firstBuild = builds[0];
   return [
-    `Commit #${firstBuild.gitCommitHash} is building...'`,
+    `Commit ${firstBuild.gitCommitHash} is building...`,
     '',
     `|${buildLinks.join('|')}|`,
     `|${Array(buildLinks.length).fill(':-:').join('|')}`,
@@ -131,4 +148,12 @@ function createBuildComment(builds: BuildInfo[]) {
       ].join('\n'),
     }),
   ].join('\n');
+}
+
+function template(template: string, replacements: Record<string, string>) {
+  let result = template;
+  for (const name in replacements) {
+    result = result.replaceAll(`{${name}}`, replacements[name]);
+  }
+  return result;
 }
