@@ -128,7 +128,7 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
   let stdout = '';
 
   try {
-    const args = cmd.args.concat('--non-interactive', '--json');
+    const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
     ({ stdout } = await getExecOutput(await which('eas', true), args, {
       silent: false,
     }));

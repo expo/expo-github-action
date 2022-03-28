@@ -93792,7 +93792,7 @@ exports.runCommand = runCommand;
 async function easBuild(cmd) {
     let stdout = '';
     try {
-        const args = cmd.args.concat('--non-interactive', '--json');
+        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
         ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
             silent: false,
         }));
