@@ -119,23 +119,16 @@ export async function createReaction(options: AuthContext & IssueCommentContext 
   });
 }
 
-export function commentContext(): IssueCommentContext {
-  if (context.eventName === 'issue_comment') {
-    return { ...context.issue, comment_id: context.payload?.comment?.id };
-  }
-
+export function issueComment() {
   assert(
-    context.eventName === 'pull_request',
-    'Could not find the pull request context, make sure to run this from a pull_request triggered workflow'
+    context.eventName === 'issue_comment',
+    'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow'
   );
-  return context.issue;
+  return [
+    (context.payload?.comment?.body ?? '') as string,
+    {
+      ...context.issue,
+      comment_id: context.payload?.comment?.id,
+    },
+  ] as const;
 }
-
-export function issueComment(): string | null {
-  if (context.eventName !== 'issue_comment' || !context.payload.issue?.pull_request) {
-    return null;
-  }
-
-  return context.payload?.comment?.body ?? null;
-}
-

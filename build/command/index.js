@@ -42557,19 +42557,19 @@ exports.commandAction = exports.commandInput = exports.MESSAGE_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
 const worker_1 = __nccwpck_require__(8912);
 exports.MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
 function commandInput() {
     return {
-        project: (0, core_1.getInput)('project'),
-        reaction: ((0, core_1.getInput)('reaction') ?? '+1'),
+        reaction: '+1',
         githubToken: (0, core_1.getInput)('github-token'),
     };
 }
 exports.commandInput = commandInput;
 (0, worker_1.executeAction)(commandAction);
 async function commandAction(input = commandInput()) {
-    const comment = (0, github_1.issueComment)();
+    const [comment, context] = (0, github_1.issueComment)();
     if (!comment) {
         return;
     }
@@ -42578,7 +42578,6 @@ async function commandAction(input = commandInput()) {
         (0, core_1.info)("Comment didn't contain a valid expo/eas command");
         return;
     }
-    const context = (0, github_1.commentContext)();
     const cmdName = command.args[0];
     if (command.cli !== 'eas' || cmdName !== 'build') {
         (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
@@ -42588,7 +42587,7 @@ async function commandAction(input = commandInput()) {
             id: `${context.comment_id ?? context.number}`,
             body: createHelpComment({
                 input: comment,
-                submitProfiles: [],
+                buildProfiles: [],
             }),
         });
         return;
@@ -42611,7 +42610,7 @@ async function commandAction(input = commandInput()) {
         cli: command.cli,
         cmdName,
     };
-    const messageId = template(exports.MESSAGE_ID, variables);
+    const messageId = (0, utils_1.template)(exports.MESSAGE_ID, variables);
     const result = await (0, expo_1.easBuild)(command);
     await (0, github_1.createIssueComment)({
         ...context,
@@ -42622,19 +42621,19 @@ async function commandAction(input = commandInput()) {
 }
 exports.commandAction = commandAction;
 function createHelpComment(input) {
-    const submitArgs = ['submit'];
-    if (input.submitProfiles.length) {
-        submitArgs.push(`--submit-profiles <${input.submitProfiles.join('|')}>`);
+    const buildArgs = ['build'];
+    if (input.buildProfiles.length) {
+        buildArgs.push(`--profile <${input.buildProfiles.join('|')}>`);
     }
     return [
         `> ${input.input}`,
         '',
-        `I can't recognize your command, please see below for supported commands.`,
+        `I didn't recognize your command, please retry with one of the commands below.`,
         createDetails({
-            summary: 'Supported commands',
+            summary: 'Available commands',
             details: [
                 '### EAS-CLI',
-                `- \`eas ${submitArgs.join(' ')}\` start a build.`,
+                `- \`eas ${buildArgs.join(' ')}\` start a build.`,
                 // '',
                 // '### EXPO-CLI',
                 // '- `expo publish` deploy a project to Expo hosting',
@@ -42670,13 +42669,6 @@ function createBuildComment(builds) {
             ].join('\n'),
         }),
     ].join('\n');
-}
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
 }
 
 
@@ -42851,6 +42843,8 @@ function projectDeepLink(project, channel) {
 }
 exports.projectDeepLink = projectDeepLink;
 function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
     const { project } = build;
     const path = project
         ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
@@ -42869,7 +42863,7 @@ exports.getBuildLogsUrl = getBuildLogsUrl;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.issueComment = exports.commentContext = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+exports.issueComment = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
 const assert_1 = __nccwpck_require__(9491);
 /**
@@ -42959,21 +42953,36 @@ async function createReaction(options) {
     });
 }
 exports.createReaction = createReaction;
-function commentContext() {
-    if (github_1.context.eventName === 'issue_comment') {
-        return { ...github_1.context.issue, comment_id: github_1.context.payload?.comment?.id };
-    }
-    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
-    return github_1.context.issue;
-}
-exports.commentContext = commentContext;
 function issueComment() {
-    if (github_1.context.eventName !== 'issue_comment' || !github_1.context.payload.issue?.pull_request) {
-        return null;
-    }
-    return github_1.context.payload?.comment?.body ?? null;
+    (0, assert_1.ok)(github_1.context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
+    return [
+        (github_1.context.payload?.comment?.body ?? ''),
+        {
+            ...github_1.context.issue,
+            comment_id: github_1.context.payload?.comment?.id,
+        },
+    ];
 }
 exports.issueComment = issueComment;
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.template = void 0;
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+exports.template = template;
 
 
 /***/ }),

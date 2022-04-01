@@ -93865,6 +93865,8 @@ function projectDeepLink(project, channel) {
 }
 exports.projectDeepLink = projectDeepLink;
 function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
     const { project } = build;
     const path = project
         ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`

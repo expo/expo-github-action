@@ -10,7 +10,8 @@ import {
   projectInfo,
   projectOwner,
 } from '../expo';
-import { commentContext, createIssueComment, createReaction, issueComment, Reaction } from '../github';
+import { createIssueComment, createReaction, issueComment, Reaction } from '../github';
+import { template } from '../utils';
 import { executeAction } from '../worker';
 
 export type CommandInput = ReturnType<typeof commandInput>;
@@ -19,8 +20,7 @@ export const MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
 
 export function commandInput() {
   return {
-    project: getInput('project'),
-    reaction: (getInput('reaction') ?? '+1') as Reaction['content'],
+    reaction: '+1' as Reaction['content'],
     githubToken: getInput('github-token'),
   };
 }
@@ -28,7 +28,7 @@ export function commandInput() {
 executeAction(commandAction);
 
 export async function commandAction(input: CommandInput = commandInput()) {
-  const comment = issueComment();
+  const [comment, context] = issueComment();
   if (!comment) {
     return;
   }
@@ -39,7 +39,6 @@ export async function commandAction(input: CommandInput = commandInput()) {
     return;
   }
 
-  const context = commentContext();
   const cmdName = command.args[0];
   if (command.cli !== 'eas' || cmdName !== 'build') {
     setFailed(`We don't support \`${command.cli} ${cmdName}\` yet`);
@@ -49,7 +48,7 @@ export async function commandAction(input: CommandInput = commandInput()) {
       id: `${context.comment_id ?? context.number}`,
       body: createHelpComment({
         input: comment,
-        submitProfiles: [],
+        buildProfiles: [],
       }),
     });
     return;
@@ -87,23 +86,23 @@ export async function commandAction(input: CommandInput = commandInput()) {
 
 type HelpCommentInput = {
   input: string;
-  submitProfiles: string[];
+  buildProfiles: string[];
 };
 
 function createHelpComment(input: HelpCommentInput) {
-  const submitArgs = ['submit'];
-  if (input.submitProfiles.length) {
-    submitArgs.push(`--submit-profiles <${input.submitProfiles.join('|')}>`);
+  const buildArgs = ['build'];
+  if (input.buildProfiles.length) {
+    buildArgs.push(`--profile <${input.buildProfiles.join('|')}>`);
   }
   return [
     `> ${input.input}`,
     '',
-    `I can't recognize your command, please see below for supported commands.`,
+    `I didn't recognize your command, please retry with one of the commands below.`,
     createDetails({
-      summary: 'Supported commands',
+      summary: 'Available commands',
       details: [
         '### EAS-CLI',
-        `- \`eas ${submitArgs.join(' ')}\` start a build.`,
+        `- \`eas ${buildArgs.join(' ')}\` start a build.`,
         // '',
         // '### EXPO-CLI',
         // '- `expo publish` deploy a project to Expo hosting',
@@ -148,12 +147,4 @@ function createBuildComment(builds: BuildInfo[]) {
       ].join('\n'),
     }),
   ].join('\n');
-}
-
-function template(template: string, replacements: Record<string, string>) {
-  let result = template;
-  for (const name in replacements) {
-    result = result.replaceAll(`{${name}}`, replacements[name]);
-  }
-  return result;
 }

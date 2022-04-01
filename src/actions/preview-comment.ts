@@ -2,6 +2,7 @@ import { getBooleanInput, getInput, setOutput, info } from '@actions/core';
 
 import { projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
+import { template } from '../utils';
 import { executeAction } from '../worker';
 
 export type CommentInput = ReturnType<typeof commentInput>;
@@ -64,10 +65,3 @@ export async function commentAction(input: CommentInput = commentInput()) {
   setOutput('message', messageBody);
 }
 
-function template(template: string, replacements: Record<string, string>) {
-  let result = template;
-  for (const name in replacements) {
-    result = result.replaceAll(`{${name}}`, replacements[name]);
-  }
-  return result;
-}

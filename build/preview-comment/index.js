@@ -42557,6 +42557,7 @@ exports.commentAction = exports.commentInput = exports.DEFAULT_MESSAGE = exports
 const core_1 = __nccwpck_require__(2186);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
 const worker_1 = __nccwpck_require__(8912);
 exports.DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
 exports.DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
@@ -42589,8 +42590,8 @@ async function commentAction(input = commentInput()) {
         projectSlug: project.slug,
         channel: input.channel,
     };
-    const messageId = template(input.messageId, variables);
-    const messageBody = template(input.message, variables);
+    const messageId = (0, utils_1.template)(input.messageId, variables);
+    const messageBody = (0, utils_1.template)(input.message, variables);
     if (!input.comment) {
         (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
     }
@@ -42609,13 +42610,6 @@ async function commentAction(input = commentInput()) {
     (0, core_1.setOutput)('message', messageBody);
 }
 exports.commentAction = commentAction;
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
-}
 
 
 /***/ }),
@@ -42789,6 +42783,8 @@ function projectDeepLink(project, channel) {
 }
 exports.projectDeepLink = projectDeepLink;
 function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
     const { project } = build;
     const path = project
         ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
@@ -42807,7 +42803,7 @@ exports.getBuildLogsUrl = getBuildLogsUrl;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.issueComment = exports.commentContext = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+exports.issueComment = exports.createReaction = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
 const assert_1 = __nccwpck_require__(9491);
 /**
@@ -42897,21 +42893,36 @@ async function createReaction(options) {
     });
 }
 exports.createReaction = createReaction;
-function commentContext() {
-    if (github_1.context.eventName === 'issue_comment') {
-        return { ...github_1.context.issue, comment_id: github_1.context.payload?.comment?.id };
-    }
-    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
-    return github_1.context.issue;
-}
-exports.commentContext = commentContext;
 function issueComment() {
-    if (github_1.context.eventName !== 'issue_comment' || !github_1.context.payload.issue?.pull_request) {
-        return null;
-    }
-    return github_1.context.payload?.comment?.body ?? null;
+    (0, assert_1.ok)(github_1.context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
+    return [
+        (github_1.context.payload?.comment?.body ?? ''),
+        {
+            ...github_1.context.issue,
+            comment_id: github_1.context.payload?.comment?.id,
+        },
+    ];
 }
 exports.issueComment = issueComment;
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.template = void 0;
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+exports.template = template;
 
 
 /***/ }),
