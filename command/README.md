@@ -30,14 +30,50 @@ Here is a summary of all the input options you can use.
 
 | variable       | default                     | description                                                                                      |
 | -------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
-| **project**    | -                           | The relative path to the Expo project                                                            |
-| **reaction**    | -                   | If set, the specified emoji "reaction" is put on the comment to indicate that the trigger was detected. For example, "rocket". |
 | **github-token** | `GITHUB_TOKEN` | A GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 
 ## Example workflows
 
 Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
+
+### Run the `eas build` command via an issue comment
+
+This workflow listens to the `issue_comment` event and run the `eas build` command to start a build at Expo.
+
+```yml
+name: Run EAS Command
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: Run command
+        uses: expo/expo-github-action/command@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
 
 ## Things to know
 
