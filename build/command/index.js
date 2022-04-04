@@ -42644,9 +42644,6 @@ function createHelpComment(input) {
 function createDetails({ summary, details }) {
     return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
 }
-function codeBlock(content, language = '') {
-    return `\`\`\`${language}\n${content}\n\`\`\``;
-}
 function createBuildComment(builds) {
     const buildLinks = builds.map(build => ` ${expo_1.appPlatformEmojis[build.platform]} [${expo_1.appPlatformDisplayNames[build.platform]} build details](${(0, expo_1.getBuildLogsUrl)(build)}) `);
     const firstBuild = builds[0];

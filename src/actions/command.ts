@@ -115,10 +115,6 @@ function createDetails({ summary, details }: { summary: string; details: string 
   return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
 }
 
-function codeBlock(content: string, language: string = '') {
-  return `\`\`\`${language}\n${content}\n\`\`\``;
-}
-
 function createBuildComment(builds: BuildInfo[]) {
   const buildLinks = builds.map(
     build =>

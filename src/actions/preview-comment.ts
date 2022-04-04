@@ -64,4 +64,3 @@ export async function commentAction(input: CommentInput = commentInput()) {
   setOutput('messageId', messageId);
   setOutput('message', messageBody);
 }
-
