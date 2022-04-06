@@ -23,6 +23,10 @@
   </p>
 </div>
 
+## Experimental
+
+**_This sub action is experimental and might change without notice. Use it at your own risk_**
+
 ## Configuration options
 
 This action is customizable through variables defined in the [`action.yml`](action.yml).
