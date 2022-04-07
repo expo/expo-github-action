@@ -2,11 +2,29 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, projectQR, projectLink, projectDeepLink } from '../src/expo';
+import { authenticate, projectQR, projectLink, projectDeepLink, parseCommand } from '../src/expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
 jest.mock('@actions/io');
+
+describe(parseCommand, () => {
+  it('invalid command', async () => {
+    expect(parseCommand('eas submit')).toBe(null);
+  });
+  it('#eas submit', async () => {
+    expect(parseCommand('#eas submit')).toStrictEqual({
+      raw: 'eas submit',
+      cli: 'eas',
+      args: ['submit'],
+    });
+    expect(parseCommand('#eas    submit   -p ios ')).toStrictEqual({
+      raw: 'eas    submit   -p ios',
+      cli: 'eas',
+      args: ['submit', '-p', 'ios'],
+    });
+  });
+});
 
 describe(authenticate, () => {
   it('exports EXPO_TOKEN variable', async () => {

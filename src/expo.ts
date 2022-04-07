@@ -6,10 +6,68 @@ import { URL } from 'url';
 
 export type CliName = 'expo' | 'eas';
 
+export type Command = {
+  cli: CliName;
+  args: string[];
+  raw: string;
+  command: string;
+};
+
 export interface ProjectInfo {
   name: string;
   slug: string;
   owner?: string;
+}
+
+export enum AppPlatform {
+  Android = 'ANDROID',
+  Ios = 'IOS',
+}
+
+export type BuildInfo = {
+  id: string;
+  platform: AppPlatform;
+  project: {
+    slug: string;
+    ownerAccount: {
+      name: string;
+    };
+  };
+  releaseChannel: string;
+  distribution: string;
+  buildProfile: string;
+  sdkVersion: string;
+  appVersion: string;
+  gitCommitHash: string;
+};
+
+export const appPlatformDisplayNames: Record<AppPlatform, string> = {
+  [AppPlatform.Android]: 'Android',
+  [AppPlatform.Ios]: 'iOS',
+};
+
+export const appPlatformEmojis = {
+  [AppPlatform.Ios]: '🍎',
+  [AppPlatform.Android]: '🤖',
+};
+
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
+
+export function parseCommand(input: string): Command | null {
+  const matches = CommandRegExp.exec(input);
+  if (matches != null) {
+    return {
+      cli: matches[1] as CliName,
+      raw: input.trimStart().substring(1).trim(),
+      args:
+        matches[2]
+          ?.split(' ')
+          .map(s => s.trim())
+          .filter(Boolean) ?? [],
+    } as Command;
+  }
+
+  return null;
 }
 
 /**
@@ -50,6 +108,35 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   return stdout.trim();
 }
 
+export async function runCommand(cmd: Command) {
+  let stdout = '';
+  let stderr = '';
+
+  try {
+    ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), {
+      silent: false,
+    }));
+  } catch (error) {
+    throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
+  }
+
+  return [stdout.trim(), stderr.trim()];
+}
+
+export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
+  let stdout = '';
+
+  try {
+    const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
+    ({ stdout } = await getExecOutput(await which('eas', true), args, {
+      silent: false,
+    }));
+  } catch (error) {
+    throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+  }
+
+  return JSON.parse(stdout);
+}
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
@@ -110,5 +197,17 @@ export function projectDeepLink(project: ProjectInfo, channel?: string): string 
     url.searchParams.append('release-channel', channel);
   }
 
+  return url.toString();
+}
+
+export function getBuildLogsUrl(build: BuildInfo): string {
+  // TODO: reuse this function from the original source
+  // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
+  const { project } = build;
+  const path = project
+    ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+    : `/builds/${build.id}`;
+
+  const url = new URL(path, 'https://expo.dev');
   return url.toString();
 }

@@ -1,0 +1,15 @@
+---
+name: Expo GitHub Action - Command
+author: Expo
+description: Run Expo CLI/EAS CLI command when a comment is added to a GitHub Pull Request.
+branding:
+  icon: message-circle
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/command/index.js
+inputs:
+  github-token:
+    description: GitHub access token to comment on PRs
+    required: false
+    default: ${{ github.token }}

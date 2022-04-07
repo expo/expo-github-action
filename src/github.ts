@@ -3,6 +3,10 @@ import { ok as assert } from 'assert';
 
 type IssueContext = typeof context['issue'];
 
+type IssueCommentContext = IssueContext & {
+  comment_id?: number;
+};
+
 type AuthContext = {
   /** GitHub token from the 'github-input' to authenticate with */
   token?: string;
@@ -13,6 +17,10 @@ type Comment = {
   id: string;
   /** The contents of the comment */
   body: string;
+};
+
+export type Reaction = {
+  content: '+1' | '-1' | 'laugh' | 'confused' | 'heart' | 'hooray' | 'rocket' | 'eyes';
 };
 
 /**
@@ -89,4 +97,38 @@ export function pullContext(): IssueContext {
     'Could not find the pull request context, make sure to run this from a pull_request triggered workflow'
   );
   return context.issue;
+}
+
+export async function createReaction(options: AuthContext & IssueCommentContext & Reaction) {
+  const github = githubApi(options);
+
+  if (options.comment_id) {
+    return github.rest.reactions.createForIssueComment({
+      owner: options.owner,
+      repo: options.repo,
+      comment_id: options.comment_id,
+      content: options.content,
+    });
+  }
+
+  return github.rest.reactions.createForIssue({
+    owner: options.owner,
+    repo: options.repo,
+    issue_number: options.number,
+    content: options.content,
+  });
+}
+
+export function issueComment() {
+  assert(
+    context.eventName === 'issue_comment',
+    'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow'
+  );
+  return [
+    (context.payload?.comment?.body ?? '') as string,
+    {
+      ...context.issue,
+      comment_id: context.payload?.comment?.id,
+    },
+  ] as const;
 }

@@ -66905,12 +66905,41 @@ exports.handleCacheError = handleCacheError;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.projectOwner = exports.authenticate = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
 const assert_1 = __nccwpck_require__(9491);
 const url_1 = __nccwpck_require__(7310);
+var AppPlatform;
+(function (AppPlatform) {
+    AppPlatform["Android"] = "ANDROID";
+    AppPlatform["Ios"] = "IOS";
+})(AppPlatform = exports.AppPlatform || (exports.AppPlatform = {}));
+exports.appPlatformDisplayNames = {
+    [AppPlatform.Android]: 'Android',
+    [AppPlatform.Ios]: 'iOS',
+};
+exports.appPlatformEmojis = {
+    [AppPlatform.Ios]: '🍎',
+    [AppPlatform.Android]: '🤖',
+};
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
+function parseCommand(input) {
+    const matches = CommandRegExp.exec(input);
+    if (matches != null) {
+        return {
+            cli: matches[1],
+            raw: input.trimStart().substring(1).trim(),
+            args: matches[2]
+                ?.split(' ')
+                .map(s => s.trim())
+                .filter(Boolean) ?? [],
+        };
+    }
+    return null;
+}
+exports.parseCommand = parseCommand;
 /**
  * Try to authenticate the user using either Expo or EAS CLI.
  * This method tries to invoke 'whoami' to validate if the token is valid.
@@ -66948,6 +66977,34 @@ async function projectOwner(cli = 'expo') {
     return stdout.trim();
 }
 exports.projectOwner = projectOwner;
+async function runCommand(cmd) {
+    let stdout = '';
+    let stderr = '';
+    try {
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
+    }
+    return [stdout.trim(), stderr.trim()];
+}
+exports.runCommand = runCommand;
+async function easBuild(cmd) {
+    let stdout = '';
+    try {
+        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+    }
+    return JSON.parse(stdout);
+}
+exports.easBuild = easBuild;
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
@@ -67004,6 +67061,17 @@ function projectDeepLink(project, channel) {
     return url.toString();
 }
 exports.projectDeepLink = projectDeepLink;
+function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
+    const { project } = build;
+    const path = project
+        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+        : `/builds/${build.id}`;
+    const url = new url_1.URL(path, 'https://expo.dev');
+    return url.toString();
+}
+exports.getBuildLogsUrl = getBuildLogsUrl;
 
 
 /***/ }),
