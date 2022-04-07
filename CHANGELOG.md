@@ -1,3 +1,23 @@
+## [7.2.0](https://github.com/expo/expo-github-action/compare/7.1.1...7.2.0) (2022-04-07)
+
+
+### New features
+
+* **comment:** add comment-based action to interact with eas in pulls ([#171](https://github.com/expo/expo-github-action/issues/171)) ([088fd4e](https://github.com/expo/expo-github-action/commit/088fd4e6fdfc0c17a87a176a2a7bee50b18482c9))
+
+
+### Other chores
+
+* bump minimist from 1.2.5 to 1.2.6 ([#173](https://github.com/expo/expo-github-action/issues/173)) ([72721e5](https://github.com/expo/expo-github-action/commit/72721e5519453138c89882c06954665b116f1dc7))
+* clean the repo instead of checking out ([ec1a49b](https://github.com/expo/expo-github-action/commit/ec1a49baeb2ec1c952f1fc96f6c25baaaedeb40e))
+* disallow any linting issues for pulls ([#177](https://github.com/expo/expo-github-action/issues/177)) ([b5a8ca7](https://github.com/expo/expo-github-action/commit/b5a8ca7f7ff3dc5ec7126734447ad1451337b81d))
+
+
+### Documentation changes
+
+* **command:** clean up the readme code example ([0811162](https://github.com/expo/expo-github-action/commit/0811162597bbb2719038d9bac02bd074a5d6d124))
+* update the release steps in the contribution guide ([b3b45ee](https://github.com/expo/expo-github-action/commit/b3b45ee53f1b6ce7e1db84a06047941fbea5c236))
+
 ### [7.1.1](https://github.com/expo/expo-github-action/compare/7.1.0...7.1.1) (2022-03-17)
 
 
