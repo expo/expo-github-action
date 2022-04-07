@@ -34,7 +34,7 @@ Here is a summary of all the input options you can use.
 
 | variable       | default                     | description                                                                                      |
 | -------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
-| **github-token** | `GITHUB_TOKEN` | A GitHub token to use when commenting on PR ([read more](#github-tokens)) |
+| **github-token** | `github.token` | A GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 
 ## Example workflows
 
@@ -46,12 +46,12 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 This workflow listens to the `issue_comment` event and run the `eas build` command to start a build at Expo.
 
 ```yml
-name: Run EAS Command
+name: EAS Command
 on:
   issue_comment:
     types: [created]
 jobs:
-  publish:
+  comment:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -73,10 +73,8 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: Run command
+      - name: 💬 Respond to command
         uses: expo/expo-github-action/command@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Things to know
