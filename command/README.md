@@ -56,6 +56,8 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
