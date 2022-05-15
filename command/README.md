@@ -55,7 +55,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      # NOTE: This is an important step to prevent
+      # the build from running on the default branch.
+      - name: 🏗 Checkout Pull Request
+        run: hub pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
