@@ -46,40 +46,42 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 This workflow listens to the `issue_comment` event and run the `eas build` command to start a build at Expo.
 
 ```yml
-name: EAS Command
+name: Expo Comment Bot
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
+concurrency: 
+  # Limit the max concurrency to only 1 active action per pull
+  group: bot-${{ github.event.issue.number }}
+  cancel-in-progress: true
 jobs:
-  comment:
+  bot:
     runs-on: ubuntu-latest
+    # Only trigger from comments on pulls
+    if: ${{ github.event.issue.pull_request }}
+    # Allow the bot to comment on pulls
+    permissions:
+      pull-requests: write
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
-      # NOTE: This is an important step to prevent
-      # the build from running on the default branch.
-      - name: 🏗 Checkout Pull Request
-        run: hub pr checkout ${{ github.event.issue.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        uses: actions/checkout@v2
+        with:
+          # Checkout the repo on the pull
+          ref: refs/pull/${{ github.event.issue.number }}/merge
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
           cache: yarn
-
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
         with:
           eas-version: latest
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-
       - name: 📦 Install dependencies
         run: yarn install
-
-      - name: 💬 Respond to command
+      - name: 🤖 Run expo command
         uses: expo/expo-github-action/command@v7
 ```
 
