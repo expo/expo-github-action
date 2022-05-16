@@ -81,7 +81,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: 📦 Install dependencies
         run: yarn install
-      - name: 🤖 Run expo command
+      - name: 🤖 Run expo bot
         uses: expo/expo-github-action/command@v7
 ```
 
