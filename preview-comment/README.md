@@ -85,6 +85,8 @@ on:
 jobs:
   preview:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
@@ -128,6 +130,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v2
