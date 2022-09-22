@@ -1,0 +1,59 @@
+---
+name: Expo GitHub Action - EAS Update
+author: Expo
+description: Add Expo preview comments to pull requests after EAS update
+branding:
+  icon: message-circle
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/eas-update/index.js
+inputs:
+  project:
+    description: Path to the Expo project, relative from the workspace
+    required: false
+    default: .
+  channel:
+    description: Release channel to preview
+    required: false
+  comment:
+    description: If the action should comment on a PR
+    required: false
+    default: true
+  message:
+    description: Pull request comment template
+    required: false
+  message-id:
+    description: A unique identifier to prevent multiple comments on the same pull request
+    required: false
+  github-token:
+    description: GitHub access token to comment on PRs
+    required: false
+    default: ${{ github.token }}
+  is-ios-build:
+    description: Flag is should generate QR for IOS build 
+    required: true
+    default: true
+  is-android-build:
+    description: Flag is should generate QR for Adroid build 
+    required: true
+    default: true
+outputs:
+  projectOwner:
+    description: The resolved project owner
+  projectName:
+    description: The resolved project name
+  projectSlug:
+    description: The resolved project slug
+  projectLink:
+    description: The absolute link to the project on expo.dev
+  messageId:
+    description: The resolved message id
+  projectQR:
+    description: The absolute URL to the QR code
+  message:
+    description: The resolved message content
+  iosQr:
+    description: The QR code for the IOS Update
+  androidQr:
+    description: The QR code for the Android Update

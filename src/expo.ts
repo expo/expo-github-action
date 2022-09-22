@@ -19,6 +19,30 @@ export interface ProjectInfo {
   owner?: string;
 }
 
+export interface Update {
+  id: string;
+  group: string;
+  runtimeVersion: string;
+  platform: 'android' | 'ios' | 'web';
+  manifestPermalink: string;
+}
+
+export interface UpdateListElement {
+  id: string;
+  group: string;
+  message: string;
+  createdAt: string;
+  runtimeVersion: string;
+  platform: string;
+  manifestFragment: string;
+  actor: {
+    id: string;
+    username: string;
+  };
+  branch: string;
+  platforms: string;
+}
+
 export enum AppPlatform {
   Android = 'ANDROID',
   Ios = 'IOS',
@@ -108,6 +132,52 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   return stdout.trim();
 }
 
+export async function latestUpdates(cli: CliName = 'eas', branch: string): Promise<string> {
+  let stdout = '';
+
+  try {
+    const command = await which(cli);
+    const args = ['update:list', '--branch', branch, '--json'];
+    stdout = (
+      await getExecOutput(command, args, {
+        silent: true,
+      })
+    ).stdout;
+  } catch (error) {
+    throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
+  }
+
+  if (!stdout) {
+    throw new Error(`Could not fetch the update history`);
+  }
+  const result = JSON.parse(stdout.trim()) as UpdateListElement[];
+  if (!Array.isArray(result)) {
+    throw new Error('The result is valid');
+  }
+  return result[0].group;
+}
+
+export async function lastUpdate(cli: CliName = 'eas', branch: string): Promise<Update[]> {
+  const groupId = await latestUpdates(cli, branch);
+  let stdout = '';
+  try {
+    const command = await which(cli);
+    const args = ['update:view', groupId, '--json'];
+    stdout = (
+      await getExecOutput(command, args, {
+        silent: true,
+      })
+    ).stdout;
+  } catch (error) {
+    throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
+  }
+  const result = JSON.parse(stdout) as Update[];
+  if (!Array.isArray(result)) {
+    throw new Error('Could not fetch the last update.');
+  }
+  return result;
+}
+
 export async function runCommand(cmd: Command) {
   let stdout = '';
   let stderr = '';
@@ -168,6 +238,16 @@ export function projectQR(project: ProjectInfo, channel?: string): string {
   if (channel) {
     url.searchParams.append('releaseChannel', channel);
   }
+
+  return url.toString();
+}
+
+export function createEasQr(updateId: string) {
+  assert(updateId, 'Could not create a QR code for project without the updateId');
+  const url = new URL('https://qr.expo.dev/eas-update');
+  url.searchParams.append('updateId', updateId);
+  url.searchParams.append('appScheme', 'exp');
+  url.searchParams.append('host', 'u.expo.dev');
 
   return url.toString();
 }

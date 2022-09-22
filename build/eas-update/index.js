@@ -15750,126 +15750,204 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4350:
+/***/ 1805:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commandAction = exports.commandInput = exports.MESSAGE_ID = void 0;
+exports.updateAction = exports.updateInput = exports.DEFAULT_SYSTEM_QR = exports.DEFAULT_MESSAGE_FOR_UPDATE = void 0;
+const core_1 = __nccwpck_require__(2186);
+// import {} from '@actions/github'
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
+const worker_1 = __nccwpck_require__(8912);
+const preview_comment_1 = __nccwpck_require__(4478);
+exports.DEFAULT_MESSAGE_FOR_UPDATE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
+    `\n- Project: **@{projectOwner}/{projectSlug}**` +
+    `\n- Branch: **{channel}**`;
+exports.DEFAULT_SYSTEM_QR = `\n\n For {system}: \n <a href="{qr}"><img src="{qr}" height="200px" width="200px"></a>`;
+const updateInput = () => {
+    return {
+        channel: (0, core_1.getInput)('channel') || 'default',
+        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
+        message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE_FOR_UPDATE,
+        messageId: (0, core_1.getInput)('message-id') || preview_comment_1.DEFAULT_ID,
+        project: (0, core_1.getInput)('project'),
+        githubToken: (0, core_1.getInput)('github-token'),
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        updateResult: (0, core_1.getMultilineInput)('update-result'),
+>>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
+=======
+>>>>>>> c56844f0 (Build)
+        ios: (0, core_1.getBooleanInput)('is-ios-build') || true,
+        android: (0, core_1.getBooleanInput)('is-android-build') || true,
+    };
+};
+exports.updateInput = updateInput;
+async function updateAction(input = (0, exports.updateInput)()) {
+    const project = await (0, expo_1.projectInfo)(input.project);
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    if (!input.channel) {
+        throw new Error("'channel' variable is needed");
+    }
+    const variables = {
+        projectLink: (0, expo_1.projectLink)(project, input.channel),
+        projectDeepLink: (0, expo_1.projectDeepLink)(project, input.channel),
+        projectName: project.name,
+        projectOwner: project.owner || '',
+        projectSlug: project.slug,
+<<<<<<< HEAD
+<<<<<<< HEAD
+        projectQR: (0, expo_1.projectQR)(project, input.channel),
+=======
+>>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
+=======
+        projectQR: (0, expo_1.projectQR)(project, input.channel),
+>>>>>>> c56844f0 (Build)
+        channel: input.channel,
+    };
+    const update = await (0, expo_1.lastUpdate)('eas', input.channel);
+    const messageId = (0, utils_1.template)(input.messageId, variables);
+    let messageBody = (0, utils_1.template)(input.message, variables);
+    if (input.ios) {
+        const iosUpdate = update.find(u => u.platform === 'ios');
+        if (iosUpdate) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+            const iosQr = (0, expo_1.createEasQr)(iosUpdate.id);
+            variables.iosQr = iosQr;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'ios', qr: iosQr });
+=======
+            const id = iosUpdate.id;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'ios', qr: (0, expo_1.createEasQr)(id) });
+>>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
+=======
+            const iosQr = (0, expo_1.createEasQr)(iosUpdate.id);
+            variables.iosQr = iosQr;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'ios', qr: iosQr });
+>>>>>>> c56844f0 (Build)
+        }
+    }
+    if (input.android) {
+        const iosUpdate = update.find(u => u.platform === 'android');
+        if (iosUpdate) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+            const androidQr = (0, expo_1.createEasQr)(iosUpdate.id);
+            variables.androidQr = androidQr;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'android', qr: androidQr });
+=======
+            const id = iosUpdate.id;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'android', qr: (0, expo_1.createEasQr)(id) });
+>>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
+=======
+            const androidQr = (0, expo_1.createEasQr)(iosUpdate.id);
+            variables.androidQr = androidQr;
+            messageBody += (0, utils_1.template)(exports.DEFAULT_SYSTEM_QR, { system: 'android', qr: androidQr });
+>>>>>>> c56844f0 (Build)
+        }
+    }
+    if (!input.comment) {
+        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
+    }
+    else {
+        await (0, github_1.createIssueComment)({
+            ...(0, github_1.pullContext)(),
+            token: input.githubToken,
+            id: messageId,
+            body: messageBody,
+        });
+    }
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c56844f0 (Build)
+    for (const name in variables) {
+        (0, core_1.setOutput)(name, variables[name]);
+    }
+    (0, core_1.setOutput)('messageId', messageId);
+    (0, core_1.setOutput)('message', messageBody);
+<<<<<<< HEAD
+=======
+>>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
+=======
+>>>>>>> c56844f0 (Build)
+}
+exports.updateAction = updateAction;
+(0, worker_1.executeAction)(updateAction);
+
+
+/***/ }),
+
+/***/ 4478:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commentAction = exports.commentInput = exports.DEFAULT_MESSAGE = exports.DEFAULT_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const utils_1 = __nccwpck_require__(1314);
 const worker_1 = __nccwpck_require__(8912);
-exports.MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
-function commandInput() {
+exports.DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
+exports.DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
+    `\n- Project: **@{projectOwner}/{projectSlug}**` +
+    `\n- Channel: **{channel}**` +
+    `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
+function commentInput() {
     return {
-        reaction: '+1',
+        channel: (0, core_1.getInput)('channel') || 'default',
+        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
+        message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE,
+        messageId: (0, core_1.getInput)('message-id') || exports.DEFAULT_ID,
+        project: (0, core_1.getInput)('project'),
         githubToken: (0, core_1.getInput)('github-token'),
     };
 }
-exports.commandInput = commandInput;
-(0, worker_1.executeAction)(commandAction);
-async function commandAction(input = commandInput()) {
-    const [comment, context] = (0, github_1.issueComment)();
-    if (!comment) {
-        return;
-    }
-    const command = (0, expo_1.parseCommand)(comment);
-    if (!command) {
-        (0, core_1.info)("Comment didn't contain a valid expo/eas command");
-        return;
-    }
-    const cmdName = command.args[0];
-    if (command.cli !== 'eas' || cmdName !== 'build') {
-        (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
-        await (0, github_1.createIssueComment)({
-            ...context,
-            token: input.githubToken,
-            id: `${context.comment_id ?? context.number}`,
-            body: createHelpComment({
-                input: comment,
-                buildProfiles: [],
-            }),
-        });
-        return;
-    }
-    if (input.reaction) {
-        await (0, github_1.createReaction)({
-            ...context,
-            token: input.githubToken,
-            content: input.reaction,
-        });
-    }
-    const project = await (0, expo_1.projectInfo)('');
+exports.commentInput = commentInput;
+(0, worker_1.executeAction)(commentAction);
+async function commentAction(input = commentInput()) {
+    const project = await (0, expo_1.projectInfo)(input.project);
     if (!project.owner) {
         project.owner = await (0, expo_1.projectOwner)();
     }
     const variables = {
+        projectLink: (0, expo_1.projectLink)(project, input.channel),
+        projectDeepLink: (0, expo_1.projectDeepLink)(project, input.channel),
         projectName: project.name,
         projectOwner: project.owner || '',
+        projectQR: (0, expo_1.projectQR)(project, input.channel),
         projectSlug: project.slug,
-        cli: command.cli,
-        cmdName,
+        channel: input.channel,
     };
-    const messageId = (0, utils_1.template)(exports.MESSAGE_ID, variables);
-    const result = await (0, expo_1.easBuild)(command);
-    await (0, github_1.createIssueComment)({
-        ...context,
-        token: input.githubToken,
-        id: messageId,
-        body: createBuildComment(result),
-    });
-}
-exports.commandAction = commandAction;
-function createHelpComment(input) {
-    const buildArgs = ['build'];
-    if (input.buildProfiles.length) {
-        buildArgs.push(`--profile <${input.buildProfiles.join('|')}>`);
+    const messageId = (0, utils_1.template)(input.messageId, variables);
+    const messageBody = (0, utils_1.template)(input.message, variables);
+    if (!input.comment) {
+        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
     }
-    return [
-        `> ${input.input}`,
-        '',
-        `I didn't recognize your command, please retry with one of the commands below.`,
-        createDetails({
-            summary: 'Available commands',
-            details: [
-                '### EAS-CLI',
-                `- \`eas ${buildArgs.join(' ')}\` start a build.`,
-                // '',
-                // '### EXPO-CLI',
-                // '- `expo publish` deploy a project to Expo hosting',
-            ].join('\n'),
-        }),
-    ].join('\n');
+    else {
+        await (0, github_1.createIssueComment)({
+            ...(0, github_1.pullContext)(),
+            token: input.githubToken,
+            id: messageId,
+            body: messageBody,
+        });
+    }
+    for (const name in variables) {
+        (0, core_1.setOutput)(name, variables[name]);
+    }
+    (0, core_1.setOutput)('messageId', messageId);
+    (0, core_1.setOutput)('message', messageBody);
 }
-function createDetails({ summary, details }) {
-    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
-}
-function createBuildComment(builds) {
-    const buildLinks = builds.map(build => ` ${expo_1.appPlatformEmojis[build.platform]} [${expo_1.appPlatformDisplayNames[build.platform]} build details](${(0, expo_1.getBuildLogsUrl)(build)}) `);
-    const firstBuild = builds[0];
-    return [
-        `Commit ${firstBuild.gitCommitHash} is building...`,
-        '',
-        `|${buildLinks.join('|')}|`,
-        `|${Array(buildLinks.length).fill(':-:').join('|')}`,
-        '',
-        createDetails({
-            summary: 'Build Details',
-            details: [
-                '## Summary',
-                '',
-                `- **Distribution**: \`${firstBuild.distribution}\``,
-                `- **Build profile**: \`${firstBuild.buildProfile}\``,
-                `- **SDK version**: \`${firstBuild.sdkVersion}\``,
-                `- **App version**: \`${firstBuild.appVersion}\``,
-                `- **Release channel**: \`${firstBuild.appVersion}\``,
-            ].join('\n'),
-        }),
-    ].join('\n');
-}
+exports.commentAction = commentAction;
 
 
 /***/ }),
@@ -16608,7 +16686,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4350);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1805);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
