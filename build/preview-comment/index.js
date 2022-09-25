@@ -15905,13 +15905,6 @@ async function latestUpdates(cli = 'eas', branch) {
         })).stdout;
     }
     catch (error) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
     }
     if (!stdout) {
@@ -15928,14 +15921,7 @@ async function lastUpdate(cli = 'eas', branch) {
     const groupId = await latestUpdates(cli, branch);
     let stdout = '';
     try {
-<<<<<<< HEAD
-<<<<<<< HEAD
         const command = await (0, io_1.which)(cli);
-=======
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
-        const command = await (0, io_1.which)(cli);
->>>>>>> c56844f0 (Build)
         const args = ['update:view', groupId, '--json'];
         stdout = (await (0, exec_1.getExecOutput)(command, args, {
             silent: true,
@@ -16014,13 +16000,6 @@ exports.projectQR = projectQR;
 function createEasQr(updateId) {
     (0, assert_1.ok)(updateId, 'Could not create a QR code for project without the updateId');
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
     url.searchParams.append('updateId', updateId);
     url.searchParams.append('appScheme', 'exp');
     url.searchParams.append('host', 'u.expo.dev');

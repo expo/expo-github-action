@@ -15962,13 +15962,6 @@ async function latestUpdates(cli = 'eas', branch) {
         })).stdout;
     }
     catch (error) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        console.log(error);
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
     }
     if (!stdout) {
@@ -15987,25 +15980,11 @@ async function lastUpdate(cli = 'eas', branch) {
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:view', groupId, '--json'];
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        console.log('command', `${command} ${args.join(' ')}`);
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         stdout = (await (0, exec_1.getExecOutput)(command, args, {
             silent: true,
         })).stdout;
     }
     catch (error) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        console.log(error);
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
     }
     const result = JSON.parse(stdout);

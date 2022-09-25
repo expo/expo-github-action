@@ -66977,74 +66977,16 @@ async function projectOwner(cli = 'expo') {
     return stdout.trim();
 }
 exports.projectOwner = projectOwner;
-<<<<<<< HEAD
-<<<<<<< HEAD
 async function latestUpdates(cli = 'eas', branch) {
-=======
-<<<<<<< HEAD
-=======
-async function latestUpdates(cli = 'eas', branch) {
->>>>>>> 4264424d (test)
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
-async function latestUpdates(cli = 'eas', branch) {
->>>>>>> c56844f0 (Build)
     let stdout = '';
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:list', '--branch', branch, '--json'];
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-        stdout = (await (0, exec_1.getExecOutput)(command, args, {
-            silent: true,
-    }
-    const result = JSON.parse(stdout.trim());
-    if (!Array.isArray(result)) {
-        throw new Error('The result is valid');
-    }
-    return result[0].group;
-}
-exports.latestUpdates = latestUpdates;
-async function lastUpdate(cli = 'eas', branch) {
-    const groupId = await latestUpdates(cli, branch);
-    let stdout = '';
-    try {
-        const command = await (0, io_1.which)(cli);
-        const args = ['update:view', groupId, '--json'];
-        console.log('command', `${command} ${args.join(' ')}`);
-=======
->>>>>>> 4264424d (test)
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         stdout = (await (0, exec_1.getExecOutput)(command, args, {
             silent: true,
         })).stdout;
     }
     catch (error) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-        console.log(error);
-        throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
-    }
-    const result = JSON.parse(stdout);
-    if (!Array.isArray(result)) {
-        throw new Error('Could not fetch the last update.');
-    }
-    return result;
-}
-=======
-=======
-        console.log(error);
->>>>>>> 12fa7a4c (test)
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
     }
     if (!stdout) {
@@ -67063,25 +67005,11 @@ async function lastUpdate(cli = 'eas', branch) {
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:view', groupId, '--json'];
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        console.log('command', `${command} ${args.join(' ')}`);
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         stdout = (await (0, exec_1.getExecOutput)(command, args, {
             silent: true,
         })).stdout;
     }
     catch (error) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        console.log(error);
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
         throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
     }
     const result = JSON.parse(stdout);
@@ -67090,13 +67018,6 @@ async function lastUpdate(cli = 'eas', branch) {
     }
     return result;
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 4264424d (test)
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
 exports.lastUpdate = lastUpdate;
 async function runCommand(cmd) {
     let stdout = '';
@@ -67161,13 +67082,6 @@ exports.projectQR = projectQR;
 function createEasQr(updateId) {
     (0, assert_1.ok)(updateId, 'Could not create a QR code for project without the updateId');
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 63001e66 (Add new sub-action that creates a comment on a PR with QR codes for IOS and Android)
-=======
->>>>>>> c56844f0 (Build)
     url.searchParams.append('updateId', updateId);
     url.searchParams.append('appScheme', 'exp');
     url.searchParams.append('host', 'u.expo.dev');
