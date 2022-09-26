@@ -2,7 +2,7 @@ import { getBooleanInput, getInput, info, setOutput } from '@actions/core';
 
 import { createEasQr, lastUpdate, projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
-import { template } from '../utils';
+import { createPlatformQr, template } from '../utils';
 import { executeAction } from '../worker';
 
 export type UpdateInput = ReturnType<typeof updateInput>;
@@ -50,21 +50,17 @@ export async function updateAction(input: UpdateInput = updateInput()) {
 
   const update = await lastUpdate('eas', input.channel);
   const messageId = template(input.messageId, variables);
-  let messageBody = template(input.message, variables);
+  const messageBody = template(input.message, variables);
   if (input.ios) {
-    const iosUpdate = update.find(u => u.platform === 'ios');
-    if (iosUpdate) {
-      const iosQr = createEasQr(iosUpdate.id);
+    const iosQr = createPlatformQr(update, 'ios', messageBody);
+    if (iosQr) {
       variables.iosQr = iosQr;
-      messageBody += template(DEFAULT_SYSTEM_QR, { system: 'ios', qr: iosQr });
     }
   }
   if (input.android) {
-    const iosUpdate = update.find(u => u.platform === 'android');
-    if (iosUpdate) {
-      const androidQr = createEasQr(iosUpdate.id);
+    const androidQr = createPlatformQr(update, 'android', messageBody);
+    if (androidQr) {
       variables.androidQr = androidQr;
-      messageBody += template(DEFAULT_SYSTEM_QR, { system: 'android', qr: androidQr });
     }
   }
   if (!input.comment) {

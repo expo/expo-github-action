@@ -32,8 +32,8 @@
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable       | default                     | description                                                                                      |
-| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| variable         | default        | description                                                               |
+| ---------------- | -------------- | ------------------------------------------------------------------------- |
 | **github-token** | `github.token` | A GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 
 ## Example workflows
@@ -50,7 +50,7 @@ name: Expo Comment Bot
 on:
   issue_comment:
     types: [created, edited]
-concurrency: 
+concurrency:
   # Limit the max concurrency to only 1 active action per pull
   group: bot-${{ github.event.issue.number }}
   cancel-in-progress: true
@@ -71,7 +71,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7

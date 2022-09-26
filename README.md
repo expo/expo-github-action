@@ -78,7 +78,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
@@ -117,7 +117,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo and EAS
@@ -156,7 +156,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
@@ -205,7 +205,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
