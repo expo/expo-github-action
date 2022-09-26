@@ -66905,7 +66905,7 @@ exports.handleCacheError = handleCacheError;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.createEasQr = exports.projectQR = exports.projectInfo = exports.easBuild = exports.runCommand = exports.lastUpdate = exports.latestUpdates = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.createEasQr = exports.projectQR = exports.projectInfo = exports.easBuild = exports.runCommand = exports.execCommand = exports.lastUpdate = exports.latestUpdates = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -66963,7 +66963,9 @@ exports.authenticate = authenticate;
 async function projectOwner(cli = 'expo') {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
+        const command = await (0, io_1.which)(cli);
+        const args = ['whoami'];
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
@@ -66979,12 +66981,13 @@ async function projectOwner(cli = 'expo') {
 exports.projectOwner = projectOwner;
 async function latestUpdates(cli = 'eas', branch) {
     let stdout = '';
+    if (!branch) {
+        throw new Error('The branch needs to be specified');
+    }
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:list', '--branch', branch, '--json'];
-        stdout = (await (0, exec_1.getExecOutput)(command, args, {
-            silent: true,
-        })).stdout;
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
@@ -66992,11 +66995,16 @@ async function latestUpdates(cli = 'eas', branch) {
     if (!stdout) {
         throw new Error(`Could not fetch the update history`);
     }
-    const result = JSON.parse(stdout.trim());
-    if (!Array.isArray(result)) {
-        throw new Error('The result is valid');
+    try {
+        const result = JSON.parse(stdout.trim());
+        if (!Array.isArray(result)) {
+            throw new Error('The result is valid');
+        }
+        return result[0].group;
     }
-    return result[0].group;
+    catch (err) {
+        throw new Error('Invalid Update List.');
+    }
 }
 exports.latestUpdates = latestUpdates;
 async function lastUpdate(cli = 'eas', branch) {
@@ -67005,20 +67013,27 @@ async function lastUpdate(cli = 'eas', branch) {
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:view', groupId, '--json'];
-        stdout = (await (0, exec_1.getExecOutput)(command, args, {
-            silent: true,
-        })).stdout;
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
     }
-    const result = JSON.parse(stdout);
-    if (!Array.isArray(result)) {
-        throw new Error('Could not fetch the last update.');
+    try {
+        const result = JSON.parse(stdout);
+        if (!Array.isArray(result)) {
+            throw new Error('Could not fetch the last update.');
+        }
+        return result;
     }
-    return result;
+    catch (err) {
+        throw new Error('Fail to parse last update on the branch!');
+    }
 }
 exports.lastUpdate = lastUpdate;
+async function execCommand(command, args, options = { silent: true }) {
+    return (await (0, exec_1.getExecOutput)(command, args, options)).stdout;
+}
+exports.execCommand = execCommand;
 async function runCommand(cmd) {
     let stdout = '';
     let stderr = '';

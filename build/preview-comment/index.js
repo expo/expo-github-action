@@ -15750,6 +15750,91 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 1805:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateAction = exports.updateInput = exports.DEFAULT_SYSTEM_QR = exports.DEFAULT_MESSAGE_FOR_UPDATE = exports.DEFAULT_ID = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
+const worker_1 = __nccwpck_require__(8912);
+exports.DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
+exports.DEFAULT_MESSAGE_FOR_UPDATE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
+    `\n- Project: **@{projectOwner}/{projectSlug}**` +
+    `\n- Branch: **{channel}**`;
+exports.DEFAULT_SYSTEM_QR = `\n\n For {system}: \n <a href="{qr}"><img src="{qr}" height="200px" width="200px"></a>`;
+const updateInput = () => {
+    return {
+        channel: (0, core_1.getInput)('channel') || 'default',
+        comment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
+        message: (0, core_1.getInput)('message') || exports.DEFAULT_MESSAGE_FOR_UPDATE,
+        messageId: (0, core_1.getInput)('message-id') || exports.DEFAULT_ID,
+        project: (0, core_1.getInput)('project'),
+        githubToken: (0, core_1.getInput)('github-token'),
+        ios: (0, core_1.getBooleanInput)('is-ios-build') || true,
+        android: (0, core_1.getBooleanInput)('is-android-build') || true,
+    };
+};
+exports.updateInput = updateInput;
+async function updateAction(input = (0, exports.updateInput)()) {
+    const project = await (0, expo_1.projectInfo)(input.project);
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    if (!input.channel) {
+        throw new Error("'channel' variable is needed");
+    }
+    const variables = {
+        projectLink: (0, expo_1.projectLink)(project, input.channel),
+        projectDeepLink: (0, expo_1.projectDeepLink)(project, input.channel),
+        projectName: project.name,
+        projectOwner: project.owner || '',
+        projectSlug: project.slug,
+        projectQR: (0, expo_1.projectQR)(project, input.channel),
+        channel: input.channel,
+    };
+    const update = await (0, expo_1.lastUpdate)('eas', input.channel);
+    const messageId = (0, utils_1.template)(input.messageId, variables);
+    const messageBody = (0, utils_1.template)(input.message, variables);
+    if (input.ios) {
+        const iosQr = (0, utils_1.createPlatformQr)(update, 'ios', messageBody);
+        if (iosQr) {
+            variables.iosQr = iosQr;
+        }
+    }
+    if (input.android) {
+        const androidQr = (0, utils_1.createPlatformQr)(update, 'android', messageBody);
+        if (androidQr) {
+            variables.androidQr = androidQr;
+        }
+    }
+    if (!input.comment) {
+        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
+    }
+    else {
+        await (0, github_1.createIssueComment)({
+            ...(0, github_1.pullContext)(),
+            token: input.githubToken,
+            id: messageId,
+            body: messageBody,
+        });
+    }
+    for (const name in variables) {
+        (0, core_1.setOutput)(name, variables[name]);
+    }
+    (0, core_1.setOutput)('messageId', messageId);
+    (0, core_1.setOutput)('message', messageBody);
+}
+exports.updateAction = updateAction;
+(0, worker_1.executeAction)(updateAction);
+
+
+/***/ }),
+
 /***/ 4478:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -15823,7 +15908,7 @@ exports.commentAction = commentAction;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.createEasQr = exports.projectQR = exports.projectInfo = exports.easBuild = exports.runCommand = exports.lastUpdate = exports.latestUpdates = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.createEasQr = exports.projectQR = exports.projectInfo = exports.easBuild = exports.runCommand = exports.execCommand = exports.lastUpdate = exports.latestUpdates = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -15881,7 +15966,9 @@ exports.authenticate = authenticate;
 async function projectOwner(cli = 'expo') {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
+        const command = await (0, io_1.which)(cli);
+        const args = ['whoami'];
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
@@ -15897,12 +15984,13 @@ async function projectOwner(cli = 'expo') {
 exports.projectOwner = projectOwner;
 async function latestUpdates(cli = 'eas', branch) {
     let stdout = '';
+    if (!branch) {
+        throw new Error('The branch needs to be specified');
+    }
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:list', '--branch', branch, '--json'];
-        stdout = (await (0, exec_1.getExecOutput)(command, args, {
-            silent: true,
-        })).stdout;
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
@@ -15910,11 +15998,16 @@ async function latestUpdates(cli = 'eas', branch) {
     if (!stdout) {
         throw new Error(`Could not fetch the update history`);
     }
-    const result = JSON.parse(stdout.trim());
-    if (!Array.isArray(result)) {
-        throw new Error('The result is valid');
+    try {
+        const result = JSON.parse(stdout.trim());
+        if (!Array.isArray(result)) {
+            throw new Error('The result is valid');
+        }
+        return result[0].group;
     }
-    return result[0].group;
+    catch (err) {
+        throw new Error('Invalid Update List.');
+    }
 }
 exports.latestUpdates = latestUpdates;
 async function lastUpdate(cli = 'eas', branch) {
@@ -15923,20 +16016,27 @@ async function lastUpdate(cli = 'eas', branch) {
     try {
         const command = await (0, io_1.which)(cli);
         const args = ['update:view', groupId, '--json'];
-        stdout = (await (0, exec_1.getExecOutput)(command, args, {
-            silent: true,
-        })).stdout;
+        stdout = await execCommand(command, args);
     }
     catch (error) {
         throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
     }
-    const result = JSON.parse(stdout);
-    if (!Array.isArray(result)) {
-        throw new Error('Could not fetch the last update.');
+    try {
+        const result = JSON.parse(stdout);
+        if (!Array.isArray(result)) {
+            throw new Error('Could not fetch the last update.');
+        }
+        return result;
     }
-    return result;
+    catch (err) {
+        throw new Error('Fail to parse last update on the branch!');
+    }
 }
 exports.lastUpdate = lastUpdate;
+async function execCommand(command, args, options = { silent: true }) {
+    return (await (0, exec_1.getExecOutput)(command, args, options)).stdout;
+}
+exports.execCommand = execCommand;
 async function runCommand(cmd) {
     let stdout = '';
     let stderr = '';
@@ -16157,12 +16257,14 @@ exports.issueComment = issueComment;
 /***/ }),
 
 /***/ 1314:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.template = void 0;
+exports.createPlatformQr = exports.template = void 0;
+const eas_update_1 = __nccwpck_require__(1805);
+const expo_1 = __nccwpck_require__(2489);
 function template(template, replacements) {
     let result = template;
     for (const name in replacements) {
@@ -16171,6 +16273,16 @@ function template(template, replacements) {
     return result;
 }
 exports.template = template;
+function createPlatformQr(update, platform, messageBody) {
+    const platormUpdate = update.find(u => u.platform === platform);
+    if (platormUpdate) {
+        const qr = (0, expo_1.createEasQr)(platormUpdate.id);
+        messageBody += template(eas_update_1.DEFAULT_SYSTEM_QR, { system: platform, qr });
+        return qr;
+    }
+    return null;
+}
+exports.createPlatformQr = createPlatformQr;
 
 
 /***/ }),

@@ -1,6 +1,6 @@
 import { getBooleanInput, getInput, info, setOutput } from '@actions/core';
 
-import { createEasQr, lastUpdate, projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
+import { lastUpdate, projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
 import { createPlatformQr, template } from '../utils';
 import { executeAction } from '../worker';
