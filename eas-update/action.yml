@@ -1,4 +1,4 @@
----
+a---
 name: Expo GitHub Action - EAS Update
 author: Expo
 description: Add Expo preview comments to pull requests after EAS update
@@ -35,7 +35,7 @@ inputs:
     required: true
     default: true
   is-android-build:
-    description: Flag is should generate QR for Adroid build 
+    description: Flag is should generate QR for Android build 
     required: true
     default: true
 outputs:
