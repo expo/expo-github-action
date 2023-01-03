@@ -1,27 +1,34 @@
 <div align="center">
   <h1>expo-github-action</h1>
   <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with GitHub Actions!</p>
-  <p>
-    <a href="https://github.com/expo/expo-github-action/releases">
-      <img src="https://img.shields.io/github/v/release/expo/expo-github-action" alt="releases" />
-    </a>
-    <a href="https://github.com/expo/expo-github-action/actions">
-      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/test" alt="builds" />
-    </a>
-    <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
-      <img src="https://img.shields.io/github/license/expo/expo-github-action" alt="license" />
-    </a>
-  </p>
-  <p align="center">
-    <a href="#configuration-options"><b>Usage</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="#example-workflows"><b>Examples</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="#things-to-know"><b>Caveats</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
-  </p>
 </div>
+
+<p align="center">
+  <a href="https://github.com/expo/expo-github-action/releases" title="Latest release">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=49505A">
+      <img alt="Latest release" src="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=D1D5DA" />
+    </picture>
+  </a>
+  <a href="https://github.com/expo/expo-github-action/actions" title="Workflow status">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=49505A">
+      <img alt="Workflow status" src="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=D1D5DA" />
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="#configuration-options"><b>Usage</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="#example-workflows"><b>Examples</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="#things-to-know"><b>Caveats</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+</p>
+
+<br />
 
 ## What's inside?
 
@@ -73,10 +80,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 18.x
           cache: yarn
@@ -112,10 +119,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 18.x
           cache: yarn
@@ -151,10 +158,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 18.x
           cache: yarn
