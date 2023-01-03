@@ -1,27 +1,34 @@
 <div align="center">
   <h1>expo-github-action</h1>
   <p>Publish, build or manage your <a href="https://github.com/expo/expo">Expo</a> app with GitHub Actions!</p>
-  <p>
-    <a href="https://github.com/expo/expo-github-action/releases">
-      <img src="https://img.shields.io/github/v/release/expo/expo-github-action" alt="releases" />
-    </a>
-    <a href="https://github.com/expo/expo-github-action/actions">
-      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/test" alt="builds" />
-    </a>
-    <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
-      <img src="https://img.shields.io/github/license/expo/expo-github-action" alt="license" />
-    </a>
-  </p>
-  <p align="center">
-    <a href="#configuration-options"><b>Usage</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="#example-workflows"><b>Examples</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="#things-to-know"><b>Caveats</b></a>
-    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-    <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
-  </p>
 </div>
+
+<p align="center">
+  <a href="https://github.com/expo/expo-github-action/releases" title="Latest release">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=49505A">
+      <img alt="Latest release" src="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=D1D5DA" />
+    </picture>
+  </a>
+  <a href="https://github.com/expo/expo-github-action/actions" title="Workflow status">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=49505A">
+      <img alt="Workflow status" src="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=D1D5DA" />
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="#configuration-options"><b>Usage</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="#example-workflows"><b>Examples</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="#things-to-know"><b>Caveats</b></a>
+  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+  <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+</p>
+
+<br />
 
 ## What's inside?
 
@@ -135,7 +142,7 @@ jobs:
 
 ### Publish a preview from PR
 
-Reviewing pull requests can take some time. 
+Reviewing pull requests can take some time.
 The reviewer needs to check out the branch, install the changes, and run the bundler to review the results.
 You can also automatically publish the project for the reviewer to skip those manual steps.
 
@@ -180,7 +187,7 @@ jobs:
 
 ### Automatic Expo login
 
-Some Expo commands, like `expo publish` and `eas build`, require you to be authenticated. 
+Some Expo commands, like `expo publish` and `eas build`, require you to be authenticated.
 This action exports the [**token**][link-expo-token] to ensure you are authenticated in every workflow step.
 
 > Note, this action does not store the [token][link-expo-token] anywhere. Each separate workflow job needs to set up the [**token**][link-expo-token] individually.
@@ -188,16 +195,16 @@ This action exports the [**token**][link-expo-token] to ensure you are authentic
 ### Using the built-in cache
 
 You can opt-out from caching the Expo and EAS CLI installations.
-Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore a previous install. 
+Under the hood, it uses the [`@actions/cache`][link-actions-cache-package] package to restore a previous install.
 It reduces the installation time because it only needs to download and extract a single tar file.
 
 > Note, using cache will count towards your [repo cache limit][link-actions-cache-limit]. Both the Expo and EAS CLI are stored in different caches.
 
 ### ENOSPC errors on Linux
 
-Creating new bundles with Metro can be memory intensive. 
-In the past, some builds resulted in `ENOSPC` errors. 
-To prevent anyone from running into this, we make sure Ubuntu has sensible defaults in terms of file system availability. 
+Creating new bundles with Metro can be memory intensive.
+In the past, some builds resulted in `ENOSPC` errors.
+To prevent anyone from running into this, we make sure Ubuntu has sensible defaults in terms of file system availability.
 You can opt-out from patching the file system by setting **patch-watchers** to `false`.
 
 <div align="center">
