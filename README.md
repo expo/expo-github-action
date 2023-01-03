@@ -72,10 +72,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
@@ -111,10 +111,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
@@ -150,10 +150,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
