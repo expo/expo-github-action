@@ -4,6 +4,8 @@ import { ok as assert } from 'assert';
 import os from 'os';
 import path from 'path';
 
+import { errorMessage } from './utils';
+
 export { find as findTool, cacheDir as cacheTool } from '@actions/tool-cache';
 
 /**
@@ -54,7 +56,7 @@ export async function patchWatchers(): Promise<void> {
   } catch (error) {
     warning(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
     warning('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
-    warning(error.message);
+    warning(errorMessage(error));
   }
 }
 

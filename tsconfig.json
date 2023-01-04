@@ -2,8 +2,7 @@
   "extends": "@tsconfig/node16",
   "compilerOptions": {
     "outDir": "./build",
-    "rootDir": "./src",
-    "useUnknownInCatchVariables": false
+    "rootDir": "./src"
   },
   "exclude": [
     "build",

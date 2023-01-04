@@ -72232,9 +72232,32 @@ var external_assert_ = __nccwpck_require__(9491);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(1017);
 var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_);
+;// CONCATENATED MODULE: ./src/utils.ts
+/**
+ * Replace all template variables in a string.
+ * This uses the notation of `{varname}`, which can be defined as object.
+ */
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+function utils_errorMessage(error) {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string') {
+        return error;
+    }
+    return 'Unknown error';
+}
+
 // EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
 var tool_cache = __nccwpck_require__(7784);
 ;// CONCATENATED MODULE: ./src/worker.ts
+
 
 
 
@@ -72287,7 +72310,7 @@ async function patchWatchers() {
     catch (error) {
         (0,core.warning)(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
         (0,core.warning)('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
-        (0,core.warning)(error.message);
+        (0,core.warning)(utils_errorMessage(error));
     }
 }
 function tempPath(name, version) {
@@ -72329,7 +72352,7 @@ function cacheKey(name, version, manager) {
 async function restoreFromCache(name, version, manager) {
     const dir = toolPath(name, version);
     if (!cacheIsAvailable()) {
-        (0,core.warning)(`Remote cache is not available, skipping restore from cache...`);
+        (0,core.warning)(`Skipped restoring from remote cache, not available.`);
         return undefined;
     }
     try {
@@ -72347,7 +72370,7 @@ async function restoreFromCache(name, version, manager) {
  */
 async function saveToCache(name, version, manager) {
     if (!cacheIsAvailable()) {
-        (0,core.warning)(`Remote cache is not available, skipping saving to cache...`);
+        (0,core.warning)(`Skipped saving to remote cache, not available.`);
         return undefined;
     }
     try {
@@ -72368,8 +72391,7 @@ async function saveToCache(name, version, manager) {
  */
 function handleCacheError(error) {
     const isReserveCacheError = error instanceof cache.ReserveCacheError;
-    const isCacheUnavailable = error.message.toLowerCase().includes('cache service url not found');
-    if (isReserveCacheError || isCacheUnavailable) {
+    if (isReserveCacheError) {
         (0,core.warning)('Skipped remote cache, encountered error:');
         (0,core.warning)(error.message);
     }
@@ -72383,6 +72405,7 @@ var io = __nccwpck_require__(7436);
 // EXTERNAL MODULE: external "url"
 var external_url_ = __nccwpck_require__(7310);
 ;// CONCATENATED MODULE: ./src/expo.ts
+
 
 
 
@@ -72441,7 +72464,7 @@ async function projectOwner(cli = 'expo') {
         ({ stdout } = await getExecOutput(await which(cli), ['whoami'], { silent: true }));
     }
     catch (error) {
-        throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
+        throw new Error(`Could not fetch the project owner, reason:\n${errorMessage(error)}`);
     }
     if (!stdout) {
         throw new Error(`Could not fetch the project owner, not authenticated`);
@@ -72460,7 +72483,7 @@ async function runCommand(cmd) {
         }));
     }
     catch (error) {
-        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
+        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${errorMessage(error)}`);
     }
     return [stdout.trim(), stderr.trim()];
 }
@@ -72473,7 +72496,7 @@ async function easBuild(cmd) {
         }));
     }
     catch (error) {
-        throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+        throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
     }
     return JSON.parse(stdout);
 }
@@ -72489,7 +72512,7 @@ async function projectInfo(dir) {
         }));
     }
     catch (error) {
-        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${error.message || error}`);
+        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${errorMessage(error)}`);
     }
     const { name, slug, owner } = JSON.parse(stdout);
     return { name, slug, owner };
@@ -72544,6 +72567,7 @@ function getBuildLogsUrl(build) {
 
 
 
+
 /**
  * Resolve a package with version range to an exact version.
  * This is useful to invalidate the cache _and_ using dist-tags or version ranges.
@@ -72555,7 +72579,7 @@ async function resolvePackage(name, range) {
         ({ stdout } = await (0,exec.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
     }
     catch (error) {
-        throw new Error(`Could not resolve ${name}@${range}, reason:\n${error.message || error}`);
+        throw new Error(`Could not resolve ${name}@${range}, reason:\n${utils_errorMessage(error)}`);
     }
     // thanks npm, for returning a "" json string value for invalid versions
     if (!stdout) {
