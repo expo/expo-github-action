@@ -5,8 +5,6 @@ import { authenticate } from '../expo';
 import { installPackage, resolvePackage } from '../packager';
 import { executeAction, findTool, installToolFromPackage, patchWatchers } from '../worker';
 
-export type SetupInput = ReturnType<typeof setupInput>;
-
 export function setupInput() {
   return {
     easCache: !getInput('eas-cache') || getBooleanInput('eas-cache'),
@@ -21,7 +19,7 @@ export function setupInput() {
 
 executeAction(setupAction);
 
-export async function setupAction(input: SetupInput = setupInput()) {
+export async function setupAction(input = setupInput()) {
   if (!input.expoVersion) {
     info(`Skipped installing expo-cli: 'expo-version' not provided.`);
   } else {

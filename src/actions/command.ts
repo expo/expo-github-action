@@ -14,8 +14,6 @@ import { createIssueComment, createReaction, issueComment, Reaction } from '../g
 import { template } from '../utils';
 import { executeAction } from '../worker';
 
-export type CommandInput = ReturnType<typeof commandInput>;
-
 export const MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
 
 export function commandInput() {
@@ -27,7 +25,7 @@ export function commandInput() {
 
 executeAction(commandAction);
 
-export async function commandAction(input: CommandInput = commandInput()) {
+export async function commandAction(input = commandInput()) {
   const [comment, context] = issueComment();
   if (!comment) {
     return;

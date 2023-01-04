@@ -21,7 +21,7 @@
     "clean": "rimraf build"
   },
   "dependencies": {
-    "@actions/cache": "^1.0.8",
+    "@actions/cache": "^3.1.2",
     "@actions/core": "^1.9.1",
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
