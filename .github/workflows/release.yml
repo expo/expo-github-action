@@ -19,14 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
-      
+
       - name: 📦 Install dependencies
         run: yarn install --frozen-lockfile
 
@@ -40,14 +40,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
-      
+
       - name: 📦 Install dependencies
         run: yarn install --frozen-lockfile
 
@@ -61,10 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
@@ -74,7 +74,7 @@ jobs:
 
       - name: 📦 Install semver
         run: yarn add --dev semver
-      
+
       - name: 🕵️ Resolve major version
         uses: actions/github-script@v6
         id: version
@@ -84,9 +84,9 @@ jobs:
             const semver = require('semver')
             const { version } = require('./package.json')
             return semver.major(version)
-            
+
       - name: 🧹 Clean repo
         run: git clean . -xdf && git reset --hard HEAD && git pull && git fetch --tags
-      
+
       - name: 📋 Update tags
         run: git tag --force v${{ steps.version.outputs.result }} && git push --force --tags

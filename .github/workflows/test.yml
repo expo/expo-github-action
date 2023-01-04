@@ -42,7 +42,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Expo
         uses: ./
@@ -53,7 +53,7 @@ jobs:
           expo-cache: ${{ matrix.cache == 'with-cache' }}
           packager: ${{ matrix.packager }}
           token: ${{ secrets.EXPO_TOKEN }}
-      
+
       - name: 🧪 EAS installed
         run: eas --version
 
@@ -67,12 +67,12 @@ jobs:
       - name: 🧪 Expo authenticated
         if: ${{ env.hasAuth == 'true' }}
         run: expo whoami
-  
+
   preview-comment:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 🏗 Setup Expo
         uses: ./
@@ -80,10 +80,10 @@ jobs:
           eas-version: latest
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      
+
       - name: 🏗 Setup project
         run: expo init -t blank ./temp
-      
+
       - name: 🧪 Without commenting
         if: ${{ env.hasAuth == 'true' }}
         uses: ./preview-comment
@@ -94,12 +94,12 @@ jobs:
 
       - name: 🧪 Output has content
         if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             const message = `${{ steps.preview.outputs.message }}`
             if (!message) throw new Error('Message output is empty')
-      
+
       - name: 🧪 Comment on PR (github-token)
         if: ${{ env.hasAuth == 'true' }}
         uses: ./preview-comment
