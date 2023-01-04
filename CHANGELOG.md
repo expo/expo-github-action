@@ -1,3 +1,34 @@
+## [7.2.1](https://github.com/expo/expo-github-action/compare/7.2.0...7.2.1) (2023-01-04)
+
+
+### Code changes
+
+* drop rimraf dependency ([#203](https://github.com/expo/expo-github-action/issues/203)) ([830e647](https://github.com/expo/expo-github-action/commit/830e6473278701f5d83324a386c99662dc58e220))
+* update actions dependencies ([#202](https://github.com/expo/expo-github-action/issues/202)) ([259d15d](https://github.com/expo/expo-github-action/commit/259d15d85bd6a1444b37b23f5018e9b63d2643f3))
+* update dev dependencies ([#204](https://github.com/expo/expo-github-action/issues/204)) ([5a73f07](https://github.com/expo/expo-github-action/commit/5a73f07f497383964411bfd27e03c532c4b78db2))
+
+
+### Other chores
+
+* bump @actions/core from 1.6.0 to 1.9.1 ([#191](https://github.com/expo/expo-github-action/issues/191)) ([670b449](https://github.com/expo/expo-github-action/commit/670b449e5b2cfd7c093d1ec54d935742ed3a0336))
+* bump ansi-regex from 5.0.0 to 5.0.1 ([#198](https://github.com/expo/expo-github-action/issues/198)) ([d63621e](https://github.com/expo/expo-github-action/commit/d63621e22d242a584d4d351448bf052dc47fe53c))
+* bump json5 from 1.0.1 to 1.0.2 ([#196](https://github.com/expo/expo-github-action/issues/196)) ([5a8228a](https://github.com/expo/expo-github-action/commit/5a8228a651a211f42988b0732878e6f43ed55f7f))
+* bump minimatch from 3.0.4 to 3.1.2 ([#197](https://github.com/expo/expo-github-action/issues/197)) ([5619369](https://github.com/expo/expo-github-action/commit/5619369736dbf3118c004c43dd34f1b0cd01d4dc))
+* bump qs from 6.5.2 to 6.5.3 ([#195](https://github.com/expo/expo-github-action/issues/195)) ([3beea56](https://github.com/expo/expo-github-action/commit/3beea56d800947f5f642529f112ddea7eb768c39))
+* bump semantic-release from 18.0.1 to 19.0.3 ([#185](https://github.com/expo/expo-github-action/issues/185)) ([079b95e](https://github.com/expo/expo-github-action/commit/079b95e5d39e2dc23018ce96c2c73ce1278841b5))
+* bump semver-regex from 3.1.3 to 3.1.4 ([#183](https://github.com/expo/expo-github-action/issues/183)) ([6b82e9e](https://github.com/expo/expo-github-action/commit/6b82e9e52206832cf878b2863e1c369dfb91ae5f))
+* rebuild all actions ([e6ba70c](https://github.com/expo/expo-github-action/commit/e6ba70ca50d4eec946753af4518355fb3e8df7dd))
+* update workflow actions to latest ([3cecf2e](https://github.com/expo/expo-github-action/commit/3cecf2eb8a1aec28f1de4401423eb501ab09cb1b))
+
+
+### Documentation changes
+
+* **command:** update readme to fix badge ([#201](https://github.com/expo/expo-github-action/issues/201)) ([2606508](https://github.com/expo/expo-github-action/commit/26065080230b775cbb5a343ebfe866fd85da271e))
+* **preview-comment:** add missing permissions in examples ([#187](https://github.com/expo/expo-github-action/issues/187)) ([5848f88](https://github.com/expo/expo-github-action/commit/5848f88b34faf9f069239064e5fcff992266c126))
+* update badge urls in the readmes ([#199](https://github.com/expo/expo-github-action/issues/199)) ([8440fd9](https://github.com/expo/expo-github-action/commit/8440fd9605abc8291c6c947f0ecc51c5ad44c5f2))
+* update demo workflow to fix checkout issue ([#181](https://github.com/expo/expo-github-action/issues/181)) ([8e2559c](https://github.com/expo/expo-github-action/commit/8e2559c349b0b82eb2c3f1dc622f3ad9d4ed13b6))
+* use latest action verisons in readme ([#193](https://github.com/expo/expo-github-action/issues/193)) ([3f0a4b5](https://github.com/expo/expo-github-action/commit/3f0a4b53556cfbd02a236b3e524f5a23397e5693))
+
 ## [7.2.0](https://github.com/expo/expo-github-action/compare/7.1.1...7.2.0) (2022-04-07)
 
 
