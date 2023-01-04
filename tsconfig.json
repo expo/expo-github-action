@@ -1,13 +1,12 @@
 {
-	"extends": "./node_modules/@tsconfig/node16/tsconfig.json",
-	"compilerOptions": {
-		"outDir": "./build",
-		"rootDir": "./src",
-		"useUnknownInCatchVariables": false
-	},
-	"exclude": [
-		"build",
-		"node_modules",
-		"tests/**"
-	]
+  "extends": "@tsconfig/node16",
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "exclude": [
+    "build",
+    "node_modules",
+    "tests/**"
+  ]
 }

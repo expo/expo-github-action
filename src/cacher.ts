@@ -27,7 +27,7 @@ export async function restoreFromCache(name: string, version: string, manager: s
   const dir = toolPath(name, version)!;
 
   if (!cacheIsAvailable()) {
-    warning(`Remote cache is not available, skipping restore from cache...`);
+    warning(`Skipped restoring from remote cache, not available.`);
     return undefined;
   }
 
@@ -46,7 +46,7 @@ export async function restoreFromCache(name: string, version: string, manager: s
  */
 export async function saveToCache(name: string, version: string, manager: string) {
   if (!cacheIsAvailable()) {
-    warning(`Remote cache is not available, skipping saving to cache...`);
+    warning(`Skipped saving to remote cache, not available.`);
     return undefined;
   }
 
@@ -66,11 +66,10 @@ export async function saveToCache(name: string, version: string, manager: string
  *   - ReserveCacheError
  *   - "cache service url not found"
  */
-export function handleCacheError(error: Error): void {
+export function handleCacheError(error: Error | unknown): void {
   const isReserveCacheError = error instanceof ReserveCacheError;
-  const isCacheUnavailable = error.message.toLowerCase().includes('cache service url not found');
 
-  if (isReserveCacheError || isCacheUnavailable) {
+  if (isReserveCacheError) {
     warning('Skipped remote cache, encountered error:');
     warning(error.message);
   } else {

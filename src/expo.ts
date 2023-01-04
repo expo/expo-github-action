@@ -4,6 +4,8 @@ import { which } from '@actions/io';
 import { ok as assert } from 'assert';
 import { URL } from 'url';
 
+import { errorMessage } from './utils';
+
 export type CliName = 'expo' | 'eas';
 
 export type Command = {
@@ -96,7 +98,7 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   try {
     ({ stdout } = await getExecOutput(await which(cli), ['whoami'], { silent: true }));
   } catch (error) {
-    throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
+    throw new Error(`Could not fetch the project owner, reason:\n${errorMessage(error)}`);
   }
 
   if (!stdout) {
@@ -117,7 +119,7 @@ export async function runCommand(cmd: Command) {
       silent: false,
     }));
   } catch (error) {
-    throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${error.message | error}`);
+    throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${errorMessage(error)}`);
   }
 
   return [stdout.trim(), stderr.trim()];
@@ -132,7 +134,7 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
       silent: false,
     }));
   } catch (error) {
-    throw new Error(`Could not run command eas build, reason:\n${error.message | error}`);
+    throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
   }
 
   return JSON.parse(stdout);
@@ -149,7 +151,7 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
       silent: true,
     }));
   } catch (error) {
-    throw new Error(`Could not fetch the project info from ${dir}, reason:\n${error.message || error}`);
+    throw new Error(`Could not fetch the project info from ${dir}, reason:\n${errorMessage(error)}`);
   }
 
   const { name, slug, owner } = JSON.parse(stdout);

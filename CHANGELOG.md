@@ -18,7 +18,7 @@
 * **command:** clean up the readme code example ([0811162](https://github.com/expo/expo-github-action/commit/0811162597bbb2719038d9bac02bd074a5d6d124))
 * update the release steps in the contribution guide ([b3b45ee](https://github.com/expo/expo-github-action/commit/b3b45ee53f1b6ce7e1db84a06047941fbea5c236))
 
-### [7.1.1](https://github.com/expo/expo-github-action/compare/7.1.0...7.1.1) (2022-03-17)
+## [7.1.1](https://github.com/expo/expo-github-action/compare/7.1.0...7.1.1) (2022-03-17)
 
 
 ### Bug fixes
@@ -54,7 +54,7 @@
 * skip steps if auth is unavailable ([bb7c723](https://github.com/expo/expo-github-action/commit/bb7c72336b557c49ca0a0e84025e1b4cce23ce2e))
 * update github action author name ([#166](https://github.com/expo/expo-github-action/issues/166)) ([520d959](https://github.com/expo/expo-github-action/commit/520d9594e099c7b2475d8b376303466a187bcafa))
 
-### [7.0.3](https://github.com/expo/expo-github-action/compare/7.0.2...7.0.3) (2022-02-14)
+## [7.0.3](https://github.com/expo/expo-github-action/compare/7.0.2...7.0.3) (2022-02-14)
 
 
 ### Bug fixes
@@ -74,14 +74,14 @@
 
 * simplify expo cli versioning to latest ([#161](https://github.com/expo/expo-github-action/issues/161)) ([2e1fe6a](https://github.com/expo/expo-github-action/commit/2e1fe6ac53c6fd536ea5691410d73df35384fd07))
 
-### [7.0.2](https://github.com/expo/expo-github-action/compare/7.0.1...7.0.2) (2022-01-25)
+## [7.0.2](https://github.com/expo/expo-github-action/compare/7.0.1...7.0.2) (2022-01-25)
 
 
 ### Code changes
 
 * **preview-comment:** auto-fill the github token ([#156](https://github.com/expo/expo-github-action/issues/156)) ([204dfed](https://github.com/expo/expo-github-action/commit/204dfed23cb6416041ee5c918c7a6e3a5dbf8955))
 
-### [7.0.1](https://github.com/expo/expo-github-action/compare/7.0.0...7.0.1) (2022-01-17)
+## [7.0.1](https://github.com/expo/expo-github-action/compare/7.0.0...7.0.1) (2022-01-17)
 
 
 ### Bug fixes
@@ -192,7 +192,7 @@
 * update readme for v6 release ([#101](https://github.com/expo/expo-github-action/issues/101)) ([8b43bae](https://github.com/expo/expo-github-action/commit/8b43bae073f280d4fa76aa174642ad46febe985c))
 * update upstream reference in contributing guide ([76ce4de](https://github.com/expo/expo-github-action/commit/76ce4de80ea89b343404cdabadc922882af80487))
 
-### [5.5.1](https://github.com/expo/expo-github-action/compare/5.5.0...5.5.1) (2021-06-17)
+## [5.5.1](https://github.com/expo/expo-github-action/compare/5.5.0...5.5.1) (2021-06-17)
 
 
 ### Bug fixes
