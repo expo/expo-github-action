@@ -3,8 +3,7 @@
   "compilerOptions": {
     "outDir": "./build",
     "rootDir": "./src",
-    "useUnknownInCatchVariables": false,
-    "moduleResolution": "node"
+    "useUnknownInCatchVariables": false
   },
   "exclude": [
     "build",
