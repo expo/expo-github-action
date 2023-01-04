@@ -1,8 +1,15 @@
-import { saveCache, restoreCache, ReserveCacheError } from '@actions/cache';
+import { saveCache, restoreCache, ReserveCacheError, isFeatureAvailable } from '@actions/cache';
 import { warning } from '@actions/core';
 import os from 'os';
 
 import { toolPath } from './worker';
+
+/**
+ * Determine if the remote cache is available and can be used.
+ */
+export function cacheIsAvailable(): boolean {
+  return isFeatureAvailable();
+}
 
 /**
  * Get the exact cache key for the package.
@@ -18,6 +25,12 @@ export function cacheKey(name: string, version: string, manager: string): string
  */
 export async function restoreFromCache(name: string, version: string, manager: string) {
   const dir = toolPath(name, version)!;
+
+  if (!cacheIsAvailable()) {
+    warning(`Remote cache is not available, skipping restore from cache...`);
+    return undefined;
+  }
+
   try {
     if (await restoreCache([dir], cacheKey(name, version, manager))) {
       return dir;
@@ -32,6 +45,11 @@ export async function restoreFromCache(name: string, version: string, manager: s
  * This will fetch the tool from the local tool cache.
  */
 export async function saveToCache(name: string, version: string, manager: string) {
+  if (!cacheIsAvailable()) {
+    warning(`Remote cache is not available, skipping saving to cache...`);
+    return undefined;
+  }
+
   try {
     await saveCache([toolPath(name, version)], cacheKey(name, version, manager));
   } catch (error) {

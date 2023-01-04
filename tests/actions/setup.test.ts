@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 
-import { SetupInput, setupInput, setupAction } from '../../src/actions/setup';
+import { setupInput, setupAction } from '../../src/actions/setup';
 import * as cacher from '../../src/cacher';
 import * as expo from '../../src/expo';
 import * as packager from '../../src/packager';
@@ -53,7 +53,7 @@ describe(setupInput, () => {
 });
 
 describe(setupAction, () => {
-  const input: SetupInput = {
+  const input: ReturnType<typeof setupInput> = {
     easCache: false,
     easVersion: '',
     expoCache: false,

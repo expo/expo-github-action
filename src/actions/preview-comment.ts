@@ -5,8 +5,6 @@ import { createIssueComment, pullContext } from '../github';
 import { template } from '../utils';
 import { executeAction } from '../worker';
 
-export type CommentInput = ReturnType<typeof commentInput>;
-
 export const DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
 export const DEFAULT_MESSAGE =
   `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
@@ -27,7 +25,7 @@ export function commentInput() {
 
 executeAction(commentAction);
 
-export async function commentAction(input: CommentInput = commentInput()) {
+export async function commentAction(input = commentInput()) {
   const project = await projectInfo(input.project);
   if (!project.owner) {
     project.owner = await projectOwner();

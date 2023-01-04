@@ -1,12 +1,6 @@
 import * as core from '@actions/core';
 
-import {
-  CommentInput,
-  commentInput,
-  commentAction,
-  DEFAULT_ID,
-  DEFAULT_MESSAGE,
-} from '../../src/actions/preview-comment';
+import { commentInput, commentAction, DEFAULT_ID, DEFAULT_MESSAGE } from '../../src/actions/preview-comment';
 import * as expo from '../../src/expo';
 import * as github from '../../src/github';
 import { mockInput } from '../utils';
@@ -55,7 +49,7 @@ describe(commentInput, () => {
 });
 
 describe(commentAction, () => {
-  const input: CommentInput = {
+  const input: ReturnType<typeof commentInput> = {
     channel: 'default',
     comment: false,
     message: DEFAULT_MESSAGE,
