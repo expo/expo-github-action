@@ -47,9 +47,16 @@ export async function setupAction(input: SetupInput = setupInput()) {
   if (!input.token) {
     info(`Skipped authentication: 'token' not provided.`);
   } else {
-    await group('Validating authenticated account', () =>
-      authenticate(input.token, input.easVersion ? 'eas' : input.expoVersion ? 'expo' : undefined)
-    );
+    await group('Validating authenticated account', async () => {
+      if (input.easVersion) {
+        authenticate(input.token, 'eas');
+      }
+      if (input.expoVersion) {
+        authenticate(input.token, 'expo');
+      } else {
+        authenticate(input.token, undefined);
+      }
+    });
   }
 
   if (!input.patchWatchers) {

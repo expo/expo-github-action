@@ -1,36 +1,29 @@
 <div align="center">
-  <h1>expo-github-action/preview-comment</h1>
-  <p>Add <a href="https://github.com/expo/expo">Expo</a> preview comments to pull requests</p>
+  <h1>expo-github-action/eas-update</h1>
+  <p>Add <a href="https://github.com/expo/expo">Expo</a> preview comments to pull requests for EAS updates</p>
+  <p>
+    <a href="https://github.com/expo/expo-github-action/releases">
+      <img src="https://img.shields.io/github/v/release/expo/expo-github-action" alt="releases" />
+    </a>
+    <a href="https://github.com/expo/expo-github-action/actions">
+      <img src="https://img.shields.io/github/workflow/status/expo/expo-github-action/test" alt="builds" />
+    </a>
+    <a href="https://github.com/expo/expo-github-action/blob/main/LICENSE.md">
+      <img src="https://img.shields.io/github/license/expo/expo-github-action" alt="license" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="#configuration-options"><b>Usage</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="#available-outputs"><b>Outputs</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="#example-workflows"><b>Examples</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="#things-to-know"><b>Caveats</b></a>
+    &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+    <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+  </p>
 </div>
-
-<p align="center">
-  <a href="https://github.com/expo/expo-github-action/releases" title="Latest release">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=49505A">
-      <img alt="Latest release" src="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=D1D5DA" />
-    </picture>
-  </a>
-  <a href="https://github.com/expo/expo-github-action/actions" title="Workflow status">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=49505A">
-      <img alt="Workflow status" src="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=D1D5DA" />
-    </picture>
-  </a>
-</p>
-
-<p align="center">
-  <a href="#configuration-options"><b>Usage</b></a>
-  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="#available-outputs"><b>Outputs</b></a>
-  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="#example-workflows"><b>Examples</b></a>
-  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="#things-to-know"><b>Caveats</b></a>
-  &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
-</p>
-
-<br />
 
 ## What's inside?
 
@@ -44,14 +37,16 @@ It can help speed up the review process by letting the reviewer load the app dir
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable         | default                     | description                                                                                      |
-| ---------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
-| **project**      | -                           | The relative path to the Expo project                                                            |
-| **channel**      | `default`                   | On what channel the project was published                                                        |
-| **comment**      | `true`                      | If this action should comment on a PR                                                            |
-| **message**      | _[see code][code-defaults]_ | The message template                                                                             |
-| **message-id**   | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
-| **github-token** | `GITHUB_TOKEN`              | A GitHub token to use when commenting on PR ([read more](#github-tokens))                        |
+| variable             | default                     | description                                                                                      |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| **project**          | -                           | The relative path to the Expo project                                                            |
+| **channel**          | `default`                   | On what channel the project was published                                                        |
+| **comment**          | `true`                      | If this action should comment on a PR                                                            |
+| **message**          | _[see code][code-defaults]_ | The message template                                                                             |
+| **message-id**       | _[see code][code-defaults]_ | A unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
+| **github-token**     | `GITHUB_TOKEN`              | A GitHub token to use when commenting on PR ([read more](#github-tokens))                        |
+| **is-ios-build**     | `true`                      | If this is true will comment with a QR for IOS                                                   |
+| **is-android-build** | `true`                      | If this is true will comment with a QR for Android                                               |
 
 ## Available outputs
 
@@ -70,6 +65,8 @@ Here is a summary of these variables.
 | -                   | `{channel}`         | The release channel that was used                    |
 | **message**         | -                   | The resolved message content                         |
 | **messageId**       | -                   | The resolved message id content                      |
+| **iosQr**           | -                   | The QR code link, to load the IOS update             |
+| **androidQr**       | -                   | The QR code link, to load the Android update         |
 
 ## Example workflows
 
@@ -96,10 +93,10 @@ jobs:
       pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
           node-version: 18.x
           cache: yarn
@@ -113,13 +110,16 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Publish to Expo
-        run: expo publish --release-channel=pr-${{ github.event.number }} --non-interactive
+      - name: 🚀 Eas Update
+        id: update
+        run: |
+          eas update --branch pr-${{ github.event.number }} --json --non-interactive --message test-message
 
-      - name: 💬 Comment in preview
-        uses: expo/expo-github-action/preview-comment@v7
+      - uses: 💬 expo/expo-github-action/eas-update@7
         with:
           channel: pr-${{ github.event.number }}
+          is-ios-build: false
+          is-android-build: true
 ```
 
 ### Sending preview comments elsewhere
@@ -141,10 +141,10 @@ jobs:
       pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
           node-version: 18.x
           cache: yarn
@@ -158,15 +158,19 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Publish preview
-        run: expo publish --release-channel=production --non-interactive
+      - name: 🚀 Eas Update
+        id: update
+        run: |
+          eas update --branch production --json --non-interactive --message test-message
 
       - name: 👷 Create preview comment
-        uses: expo/expo-github-action/preview-comment@v7
+        uses: expo/expo-github-action/eas-update@v7
         id: preview
         with:
           comment: false
           channel: production
+          is-ios-build: true
+          is-android-build: true
 
       - name: 💬 Comment in Slack
         uses: slackapi/slack-github-action@v1.17.0
@@ -174,7 +178,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
         with:
           channel-id: deployments
-          slack-message: 'New deployment is ready!\n- Preview: ${{ steps.preview.outputs.projectQR }}'
+          slack-message: 'New deployment is ready!\n- IOS Preview: ${{ steps.preview.outputs.iosQr }} /n Android Preview ${{step.preview.outputs.androidQr}} '
 ```
 
 ## Things to know
@@ -192,7 +196,7 @@ You can overwrite the token by adding the `GITHUB_TOKEN` environment variable, o
 
 <div align="center">
   <br />
-  with :heart:&nbsp;<strong>byCedric</strong>
+  with :heart:&nbsp;<strong>SirCQQ</strong>
   <br />
 </div>
 

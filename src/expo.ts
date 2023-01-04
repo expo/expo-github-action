@@ -1,5 +1,5 @@
 import { info, exportVariable } from '@actions/core';
-import { exec, getExecOutput } from '@actions/exec';
+import { exec, ExecOptions, getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ok as assert } from 'assert';
 import { URL } from 'url';
@@ -17,6 +17,32 @@ export interface ProjectInfo {
   name: string;
   slug: string;
   owner?: string;
+}
+
+export type Platform = 'android' | 'ios' | 'web';
+
+export interface Update {
+  id: string;
+  group: string;
+  runtimeVersion: string;
+  platform: Platform;
+  manifestPermalink: string;
+}
+
+export interface UpdateListElement {
+  id: string;
+  group: string;
+  message: string;
+  createdAt: string;
+  runtimeVersion: string;
+  platform: string;
+  manifestFragment: string;
+  actor: {
+    id: string;
+    username: string;
+  };
+  branch: string;
+  platforms: string;
 }
 
 export enum AppPlatform {
@@ -94,7 +120,9 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which(cli), ['whoami'], { silent: true }));
+    const command = await which(cli);
+    const args = ['whoami'];
+    stdout = await execCommand(command, args);
   } catch (error) {
     throw new Error(`Could not fetch the project owner, reason:\n${error.message | error}`);
   }
@@ -106,6 +134,58 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
   }
 
   return stdout.trim();
+}
+
+export async function latestUpdates(cli: CliName = 'eas', branch: string): Promise<string> {
+  let stdout = '';
+  if (!branch) {
+    throw new Error('The branch needs to be specified');
+  }
+  try {
+    const command = await which(cli);
+    const args = ['update:list', '--branch', branch, '--json'];
+    stdout = await execCommand(command, args);
+  } catch (error) {
+    throw new Error(`Could not fetch latest updates, reason:\n${error.message | error}`);
+  }
+
+  if (!stdout) {
+    throw new Error(`Could not fetch the update history`);
+  }
+  try {
+    const result = JSON.parse(stdout.trim()) as UpdateListElement[];
+    if (!Array.isArray(result)) {
+      throw new Error('The result is valid');
+    }
+    return result[0].group;
+  } catch (err) {
+    throw new Error('Invalid Update List.');
+  }
+}
+
+export async function lastUpdate(cli: CliName = 'eas', branch: string): Promise<Update[]> {
+  const groupId = await latestUpdates(cli, branch);
+  let stdout = '';
+  try {
+    const command = await which(cli);
+    const args = ['update:view', groupId, '--json'];
+    stdout = await execCommand(command, args);
+  } catch (error) {
+    throw new Error(`Could not fetch the last update, reason:\n${error.message | error}`);
+  }
+  try {
+    const result = JSON.parse(stdout) as Update[];
+    if (!Array.isArray(result)) {
+      throw new Error('Could not fetch the last update.');
+    }
+    return result;
+  } catch (err) {
+    throw new Error('Fail to parse last update on the branch!');
+  }
+}
+
+export async function execCommand(command: string, args: string[], options: ExecOptions = { silent: true }) {
+  return (await getExecOutput(command, args, options)).stdout;
 }
 
 export async function runCommand(cmd: Command) {
@@ -168,6 +248,16 @@ export function projectQR(project: ProjectInfo, channel?: string): string {
   if (channel) {
     url.searchParams.append('releaseChannel', channel);
   }
+
+  return url.toString();
+}
+
+export function createEasQr(updateId: string) {
+  assert(updateId, 'Could not create a QR code for project without the updateId');
+  const url = new URL('https://qr.expo.dev/eas-update');
+  url.searchParams.append('updateId', updateId);
+  url.searchParams.append('appScheme', 'exp');
+  url.searchParams.append('host', 'u.expo.dev');
 
   return url.toString();
 }

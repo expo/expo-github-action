@@ -43,15 +43,15 @@ Some additional features are included to make the usage of this action as simple
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable           | default | description                                                                                   |
-| ------------------ | ------- | --------------------------------------------------------------------------------------------- |
-| **expo-version**   | -       | Expo CLI version to install _(skips when omitted)_                                            |
-| **expo-cache**     | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
-| **eas-version**    | -       | EAS CLI version to install _(skips when omitted)_                                             |
-| **eas-cache**      | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
-| **packager**       | `yarn`  | Package manager to use _(e.g. `yarn` or `npm`)_                                               |
-| **token**          | -       | Token of your Expo account - [get your token][link-expo-token] _(use with [secrets][link-actions-secrets])_                  |
-| **patch-watchers** | `true`  | If it should patch the `fs.inotify.*` limits on Ubuntu ([read more](#enospc-errors-on-linux)) |
+| variable           | default | description                                                                                                 |
+| ------------------ | ------- | ----------------------------------------------------------------------------------------------------------- |
+| **expo-version**   | -       | Expo CLI version to install _(skips when omitted)_                                                          |
+| **expo-cache**     | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))                          |
+| **eas-version**    | -       | EAS CLI version to install _(skips when omitted)_                                                           |
+| **eas-cache**      | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))                          |
+| **packager**       | `yarn`  | Package manager to use _(e.g. `yarn` or `npm`)_                                                             |
+| **token**          | -       | Token of your Expo account - [get your token][link-expo-token] _(use with [secrets][link-actions-secrets])_ |
+| **patch-watchers** | `true`  | If it should patch the `fs.inotify.*` limits on Ubuntu ([read more](#enospc-errors-on-linux))               |
 
 ## Example workflows
 
@@ -61,6 +61,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 1. [Publish on any push to main](#publish-on-any-push-to-main)
 2. [Creating a new EAS build](#creating-a-new-eas-build)
 3. [Publish a preview from PR](#publish-a-preview-from-PR)
+4. [Publish a preview from PR with EAS update](#publish-a-preview-from-pr-with-eas-update)
 
 ### Publish on any push to main
 
@@ -84,7 +85,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
@@ -123,7 +124,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo and EAS
@@ -162,7 +163,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
@@ -181,6 +182,58 @@ jobs:
         uses: expo/expo-github-action/preview-comment@v7
         with:
           channel: pr-${{ github.event.number }}
+```
+
+### Publish a preview from PR with EAS update
+
+Reviewing pull requests can take some time.
+The reviewer needs to check out the branch, install the changes, and run the bundler to review the results.
+You can also automatically publish the project for the reviewer to skip those manual steps.
+
+This workflow publishes the changes on the `pr-#` [release channel][link-expo-release-channels] and adds a comment to the pull request once it's ready for review.
+
+This action is used to add QR for preview on the PR with the latest `Update` made on EAS.
+
+> See the [eas-update docs](./eas-update).
+
+```yml
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Allow comments on PRs
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
+          cache: yarn
+
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: yarn install
+
+      - name: 🚀 Eas Update
+        id: update
+        run: |
+          eas update --branch pr-${{ github.event.number }} --json --non-interactive --message test-message
+
+      - uses: 💬 expo/expo-github-action/eas-update@7
+        with:
+          channel: pr-${{ github.event.number }}
+          is-ios-build: false
+          is-android-build: true
 ```
 
 ## Things to know
