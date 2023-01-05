@@ -1,0 +1,59 @@
+---
+name: Expo GitHub Action - Preview
+author: Expo
+description: Create Expo previews on pull requests using EAS Update
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/preview/index.js
+inputs:
+  command:
+    description: The EAS Update command to execute
+    required: true
+  comment:
+    description: If the action should create comments on PRs
+    required: false
+    default: true
+  message:
+    description: The PR comment message template
+    required: false
+  message-id:
+    description: The unique comment ID template to reuse existing comments on PRs
+  working-directory:
+    description: Path to the Expo project, relative from the repository root
+    required: false
+  github-token:
+    description: GitHub access token to create comment on PRs
+    required: false
+    default: ${{ github.token }}
+outputs:
+  easProjectId:
+    description: EAS project ID from the `app.json` `extra.eas.projectId` section
+  projectName:
+    description: The resolved project name
+  projectSlug:
+    description: The resolved project slug
+  updateGroupId:
+    description: The EAS Update group ID
+  androidId:
+    description: The EAS Update ID created for Android
+  androidRuntimeVersion:
+    description: The EAS Update runtimeVersion created for Android
+  androidQR:
+    description: The EAS Update QR code to open the update on Android
+  androidLink:
+    description: The EAS Update URL to open the update on Android
+  iosId:
+    description: The EAS Update ID created for iOS
+  iosRuntimeVersion:
+    description: The EAS Update runtimeVersion created for iOS
+  iosQR:
+    description: The EAS Update QR code to open the update on iOS
+  iosLink:
+    description: The EAS Update URL to open the update on ios
+  messageId:
+    description: The resolved message id
+  message:
+    description: The resolved message content

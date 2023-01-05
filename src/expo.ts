@@ -139,6 +139,7 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
 
   return JSON.parse(stdout);
 }
+
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */

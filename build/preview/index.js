@@ -20387,18 +20387,18 @@ __nccwpck_require__.r(__webpack_exports__);
 __nccwpck_require__.d(__webpack_exports__, {
   "DEFAULT_ID": () => (/* binding */ DEFAULT_ID),
   "DEFAULT_MESSAGE": () => (/* binding */ DEFAULT_MESSAGE),
-  "commentAction": () => (/* binding */ commentAction),
-  "commentInput": () => (/* binding */ commentInput)
+  "previewAction": () => (/* binding */ previewAction),
+  "previewInput": () => (/* binding */ previewInput)
 });
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
+;// CONCATENATED MODULE: external "console"
+const external_console_namespaceObject = require("console");
 // EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
 var lib_exec = __nccwpck_require__(1514);
 // EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
 var io = __nccwpck_require__(7436);
-// EXTERNAL MODULE: external "assert"
-var external_assert_ = __nccwpck_require__(9491);
 // EXTERNAL MODULE: external "url"
 var external_url_ = __nccwpck_require__(7310);
 ;// CONCATENATED MODULE: ./src/utils.ts
@@ -20432,167 +20432,42 @@ function utils_errorMessage(error) {
     return 'Unknown error';
 }
 
-;// CONCATENATED MODULE: ./src/expo.ts
+;// CONCATENATED MODULE: ./src/eas.ts
 
 
 
 
-
-
-var AppPlatform;
-(function (AppPlatform) {
-    AppPlatform["Android"] = "ANDROID";
-    AppPlatform["Ios"] = "IOS";
-})(AppPlatform || (AppPlatform = {}));
-const appPlatformDisplayNames = {
-    [AppPlatform.Android]: 'Android',
-    [AppPlatform.Ios]: 'iOS',
-};
-const appPlatformEmojis = {
-    [AppPlatform.Ios]: '🍎',
-    [AppPlatform.Android]: '🤖',
-};
-const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
-function parseCommand(input) {
-    const matches = CommandRegExp.exec(input);
-    if (matches != null) {
-        return {
-            cli: matches[1],
-            raw: input.trimStart().substring(1).trim(),
-            args: matches[2]
-                ?.split(' ')
-                .map(s => s.trim())
-                .filter(Boolean) ?? [],
-        };
-    }
-    return null;
-}
 /**
- * Try to authenticate the user using either Expo or EAS CLI.
- * This method tries to invoke 'whoami' to validate if the token is valid.
- * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
+ * Create a new EAS Update using the user-provided command.
+ * The command should be anything after `eas ...`.
  */
-async function authenticate(token, cli = 'expo') {
-    if (!cli) {
-        info(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
-    }
-    else {
-        await exec(await which(cli), ['whoami'], {
-            env: { ...process.env, EXPO_TOKEN: token },
-        });
-    }
-    exportVariable('EXPO_TOKEN', token);
-}
-/**
- * Try to resolve the project owner, by running 'eas|expo whoami'.
- */
-async function projectOwner(cli = 'expo') {
+async function createUpdate(cwd, command) {
     let stdout = '';
     try {
-        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)(cli), ['whoami'], { silent: true }));
-    }
-    catch (error) {
-        throw new Error(`Could not fetch the project owner, reason:\n${utils_errorMessage(error)}`);
-    }
-    if (!stdout) {
-        throw new Error(`Could not fetch the project owner, not authenticated`);
-    }
-    else if (stdout.endsWith(' (robot)')) {
-        throw new Error(`Could not fetch the project owner, used robot account`);
-    }
-    return stdout.trim();
-}
-async function runCommand(cmd) {
-    let stdout = '';
-    let stderr = '';
-    try {
-        ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), {
-            silent: false,
+        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)('eas', true), [command], {
+            cwd,
         }));
     }
     catch (error) {
-        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${errorMessage(error)}`);
-    }
-    return [stdout.trim(), stderr.trim()];
-}
-async function easBuild(cmd) {
-    let stdout = '';
-    try {
-        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
-        ({ stdout } = await getExecOutput(await which('eas', true), args, {
-            silent: false,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+        throw new Error(`Could not create a new EAS Update, reason:\n${utils_errorMessage(error)}`);
     }
     return JSON.parse(stdout);
 }
 /**
- * Try to resolve the project info, by running 'expo config --type prebuild'.
+ * Create a QR code link for an EAS Update.
  */
-async function projectInfo(dir) {
-    let stdout = '';
-    try {
-        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
-            cwd: dir,
-            silent: true,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${utils_errorMessage(error)}`);
-    }
-    const { name, slug, owner } = JSON.parse(stdout);
-    return { name, slug, owner };
-}
-/**
- * Create a QR code for an update on project, with an optional release channel.
- */
-function projectQR(project, channel) {
-    (0,external_assert_.ok)(project.owner, 'Could not create a QR code for project without owner');
-    const url = new external_url_.URL('https://qr.expo.dev/expo-go');
-    url.searchParams.append('owner', project.owner);
-    url.searchParams.append('slug', project.slug);
-    if (channel) {
-        url.searchParams.append('releaseChannel', channel);
-    }
-    return url.toString();
-}
-/**
- * Create a link for the project in Expo.
- */
-function projectLink(project, channel) {
-    (0,external_assert_.ok)(project.owner, 'Could not create a QR code for project without owner');
-    const url = new external_url_.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
-    if (channel) {
-        url.searchParams.append('release-channel', channel);
-    }
-    return url.toString();
-}
-/**
- * Create a deep link to open the project in Expo Go
- */
-function projectDeepLink(project, channel) {
-    (0,external_assert_.ok)(project.owner, 'Could not create a deep link for project without owner');
-    const url = new external_url_.URL(`exp://exp.host/@${project.owner}/${project.slug}`);
-    if (channel) {
-        url.searchParams.append('release-channel', channel);
-    }
-    return url.toString();
-}
-function getBuildLogsUrl(build) {
-    // TODO: reuse this function from the original source
-    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
-    const { project } = build;
-    const path = project
-        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
-        : `/builds/${build.id}`;
-    const url = new URL(path, 'https://expo.dev');
+function getUpdateQr({ projectId, updateId, appScheme = 'exp', }) {
+    const url = new external_url_.URL('https://qr.expo.dev/eas-update');
+    url.searchParams.append('appScheme', appScheme);
+    url.searchParams.append('projectId', projectId);
+    url.searchParams.append('updateId', updateId);
     return url.toString();
 }
 
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
+// EXTERNAL MODULE: external "assert"
+var external_assert_ = __nccwpck_require__(9491);
 ;// CONCATENATED MODULE: ./src/github.ts
 
 
@@ -20689,6 +20564,29 @@ function issueComment() {
     ];
 }
 
+;// CONCATENATED MODULE: ./src/project.ts
+
+
+
+/**
+ * Load the Expo app project config in the given directory.
+ * This runs `expo config` command instead of using `@expo/config` directly,
+ * to use the app's own version of the config.
+ */
+async function loadProjectConfig(cwd) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)('expo', true), ['config', '--json', '--type', 'public'], {
+            cwd,
+            silent: true,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project info from ${cwd}, reason:\n${utils_errorMessage(error)}`);
+    }
+    return JSON.parse(stdout);
+}
+
 // EXTERNAL MODULE: external "os"
 var external_os_ = __nccwpck_require__(2037);
 // EXTERNAL MODULE: external "path"
@@ -20766,46 +20664,64 @@ function toolPath(name, version) {
     return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
 }
 
-;// CONCATENATED MODULE: ./src/actions/preview-comment.ts
+;// CONCATENATED MODULE: ./src/actions/preview.ts
 
 
 
 
 
-const DEFAULT_ID = `app:@{projectOwner}/{projectSlug} channel:{channel}`;
-const DEFAULT_MESSAGE = `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
+
+
+const DEFAULT_ID = 'projectId:${projectId} projectDir:${projectDir}';
+const DEFAULT_MESSAGE = // TODO
+ `This pull request was automatically deployed using [Expo GitHub Actions](https://github.com/expo/expo-github-action/tree/main/preview-comment)!\n` +
     `\n- Project: **@{projectOwner}/{projectSlug}**` +
     `\n- Channel: **{channel}**` +
     `\n\n<a href="{projectQR}"><img src="{projectQR}" height="200px" width="200px"></a>`;
-function commentInput() {
+function previewInput() {
     return {
-        channel: (0,core.getInput)('channel') || 'default',
-        comment: !(0,core.getInput)('comment') || (0,core.getBooleanInput)('comment'),
+        command: (0,core.getInput)('command'),
+        shouldComment: !(0,core.getInput)('comment') || (0,core.getBooleanInput)('comment'),
         message: (0,core.getInput)('message') || DEFAULT_MESSAGE,
         messageId: (0,core.getInput)('message-id') || DEFAULT_ID,
-        project: (0,core.getInput)('project'),
+        workingDirectory: (0,core.getInput)('working-directory'),
         githubToken: (0,core.getInput)('github-token'),
     };
 }
-executeAction(commentAction);
-async function commentAction(input = commentInput()) {
-    const project = await projectInfo(input.project);
-    if (!project.owner) {
-        project.owner = await projectOwner();
-    }
-    const variables = {
-        projectLink: projectLink(project, input.channel),
-        projectDeepLink: projectDeepLink(project, input.channel),
-        projectName: project.name,
-        projectOwner: project.owner || '',
-        projectQR: projectQR(project, input.channel),
-        projectSlug: project.slug,
-        channel: input.channel,
+executeAction(previewAction);
+async function previewAction(input = previewInput()) {
+    const config = await loadProjectConfig(input.workingDirectory);
+    const scheme = config.scheme || 'exp';
+    const projectId = config.extra?.eas?.projectId || '';
+    const command = sanitizeCommand(input.command);
+    const updates = await (0,core.group)(`Creating preview using "eas ${command}"`, () => createUpdate(input.workingDirectory, command));
+    const updateGroupId = updates[0].group;
+    const updateAndroid = updates.find(update => update.platform === 'android');
+    const updateIos = updates.find(update => update.platform === 'ios');
+    const outputs = {
+        // EAS specific
+        easProjectId: projectId,
+        // Project (expo) specific
+        projectName: config.name,
+        projectSlug: config.slug,
+        projectFullName: config.currentFullName || '',
+        // Update group
+        updateGroupId,
+        // Android update
+        androidId: updateAndroid?.id || '',
+        androidRuntimeVersion: updateAndroid?.runtimeVersion || '',
+        androidQR: updateAndroid ? getUpdateQr({ projectId, updateId: updateAndroid.id, appScheme: scheme }) : '',
+        androidUpdateLink: updateAndroid?.manifestPermalink || '',
+        // iOS update
+        iosId: updateIos?.id || '',
+        iosRuntimeVersion: updateIos?.runtimeVersion || '',
+        iosQR: updateIos ? getUpdateQr({ projectId, updateId: updateIos.id, appScheme: scheme }) : '',
+        iosUpdateLink: updateIos?.manifestPermalink || '',
     };
-    const messageId = template(input.messageId, variables);
-    const messageBody = template(input.message, variables);
-    if (!input.comment) {
-        (0,core.info)(`Skipped comment: 'comment' is disabled`);
+    const messageId = templateLiteral(input.messageId, { ...outputs, projectDir: input.workingDirectory });
+    const messageBody = templateLiteral(input.message, { ...outputs, projectDir: input.workingDirectory });
+    if (!input.shouldComment) {
+        (0,external_console_namespaceObject.info)(`Skipped comment: 'comment' is disabled`);
     }
     else {
         await createIssueComment({
@@ -20815,11 +20731,32 @@ async function commentAction(input = commentInput()) {
             body: messageBody,
         });
     }
-    for (const name in variables) {
-        (0,core.setOutput)(name, variables[name]);
+    for (const name in outputs) {
+        (0,core.setOutput)(name, outputs[name]);
     }
     (0,core.setOutput)('messageId', messageId);
     (0,core.setOutput)('message', messageBody);
+}
+/**
+ * Validate and sanitize the command that creates the update.
+ * This ensures that both `--json` and `--non-interactive` flags are present.
+ * It also ensures that the command starts with `eas ...` to make sure we can run it.
+ */
+function sanitizeCommand(input) {
+    let command = input.trim();
+    if (!command.startsWith('eas')) {
+        throw new Error(`The command must start with "eas", received "${command}"`);
+    }
+    else {
+        command = command.replace(/^eas/, '').trim();
+    }
+    if (!command.includes('--json')) {
+        command += ' --json';
+    }
+    if (!command.includes('--non-interactive')) {
+        command += ' --non-interactive';
+    }
+    return command;
 }
 
 })();
