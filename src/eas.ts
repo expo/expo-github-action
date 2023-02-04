@@ -6,7 +6,7 @@ import { URL } from 'url';
 
 import { errorMessage } from './utils';
 
-interface Update {
+export interface EasUpdate {
   /** The unique ID of the platform specific update */
   id: string;
   /** When the update was created */
@@ -53,11 +53,11 @@ export async function assertEasVersion(versionRange: string) {
  * Create a new EAS Update using the user-provided command.
  * The command should be anything after `eas ...`.
  */
-export async function createUpdate(cwd: string, command: string): Promise<Update[]> {
+export async function createUpdate(cwd: string, command: string): Promise<EasUpdate[]> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which('eas', true), [command], {
+    ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${command}`, undefined, {
       cwd,
     }));
   } catch (error) {
@@ -70,13 +70,22 @@ export async function createUpdate(cwd: string, command: string): Promise<Update
 /**
  * Create a QR code link for an EAS Update.
  */
-export function getUpdateGroupQr({ updateGroupId, appScheme }: { updateGroupId: string; appScheme?: string }): string {
+export function getUpdateGroupQr({
+  projectId,
+  updateGroupId,
+  appScheme,
+}: {
+  projectId: string;
+  updateGroupId: string;
+  appScheme?: string;
+}): string {
   const url = new URL('https://qr.expo.dev/eas-update');
 
   if (appScheme) {
     url.searchParams.append('appScheme', appScheme);
   }
 
+  url.searchParams.append('projectId', projectId);
   url.searchParams.append('groupId', updateGroupId);
 
   return url.toString();

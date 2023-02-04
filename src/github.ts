@@ -99,6 +99,15 @@ export function pullContext(): IssueContext {
   return context.issue;
 }
 
+export function hasPullContext(): boolean {
+  try {
+    pullContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function createReaction(options: AuthContext & IssueCommentContext & Reaction) {
   const github = githubApi(options);
 

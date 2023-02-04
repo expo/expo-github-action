@@ -72244,15 +72244,6 @@ function template(template, replacements) {
     }
     return result;
 }
-/**
- * Create a template to interpolate template strings from another string.
- * This uses `new Function` and should not be used with untrusted input.
- * Note, this action is executed in the user's own action, by the user or a contributor with access.
- */
-function templateLiteral(template, variables) {
-    /* eslint-disable no-new-func */
-    return new Function(`return \`${template}\`;`).call(variables);
-}
 function utils_errorMessage(error) {
     if (error instanceof Error) {
         return error.message;

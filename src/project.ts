@@ -1,5 +1,4 @@
 import { getExecOutput } from '@actions/exec';
-import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
 
 import { errorMessage } from './utils';
@@ -13,7 +12,7 @@ export async function loadProjectConfig(cwd: string): Promise<ExpoConfig> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which('expo', true), ['config', '--json', '--type', 'public'], {
+    ({ stdout } = await getExecOutput('npx', ['expo', 'config', '--json', '--type', 'public'], {
       cwd,
       silent: true,
     }));

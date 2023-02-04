@@ -16,44 +16,66 @@ inputs:
     description: If the action should create comments on PRs
     required: false
     default: true
-  message:
-    description: The PR comment message template
-    required: false
-  message-id:
+  comment-id:
     description: The unique comment ID template to reuse existing comments on PRs
   working-directory:
     description: Path to the Expo project, relative from the repository root
     required: false
+    default: ${{ github.workspace }}
   github-token:
     description: GitHub access token to create comment on PRs
     required: false
     default: ${{ github.token }}
 outputs:
-  easProjectId:
+  projectId:
     description: EAS project ID from the `app.json` `extra.eas.projectId` section
   projectName:
     description: The resolved project name
   projectSlug:
     description: The resolved project slug
-  updateGroupId:
-    description: The EAS Update group ID
+
+  groupId:
+    description: The shared update group id, when runtime versions are equal for both platforms.
+  runtimeVersion:
+    description: The shared runtime version, when they are equal for both platforms.
+  qr:
+    description: The shared QR code url, when runtime versions are equal for both platforms.
+  branchName:
+    description: The branch name where this update was created on.
+  message:
+    description: The description of the update that was created.
+  createdAt:
+    description: The date of when the update was created.
+  gitCommitHash:
+    description: The git commit hash that was used when creating the update
+
   androidId:
-    description: The EAS Update ID created for Android
+    description: The update id created for Android
+  androidGroupId:
+    description: The update group id created for Android
+  androidBranchName:
+    description: The branch name where this update was created on.
+  androidMessage:
+    description: The description of the update that was created.
   androidRuntimeVersion:
     description: The EAS Update runtimeVersion created for Android
   androidQR:
     description: The EAS Update QR code to open the update on Android
-  androidLink:
-    description: The EAS Update URL to open the update on Android
+
   iosId:
-    description: The EAS Update ID created for iOS
+    description: The update id created for iOS
+  iosGroupId:
+    description: The update group id created for iOS
+  iosBranchName:
+    description: The branch name where this update was created on.
+  iosMessage:
+    description: The description of the update that was created.
   iosRuntimeVersion:
     description: The EAS Update runtimeVersion created for iOS
   iosQR:
     description: The EAS Update QR code to open the update on iOS
-  iosLink:
-    description: The EAS Update URL to open the update on ios
-  messageId:
-    description: The resolved message id
-  message:
-    description: The resolved message content
+
+  commentId:
+    description: The resolved comment id
+  comment:
+    description: The resolved comment content

@@ -20413,15 +20413,6 @@ function template(template, replacements) {
     }
     return result;
 }
-/**
- * Create a template to interpolate template strings from another string.
- * This uses `new Function` and should not be used with untrusted input.
- * Note, this action is executed in the user's own action, by the user or a contributor with access.
- */
-function templateLiteral(template, variables) {
-    /* eslint-disable no-new-func */
-    return new Function(`return \`${template}\`;`).call(variables);
-}
 function utils_errorMessage(error) {
     if (error instanceof Error) {
         return error.message;
@@ -20660,6 +20651,15 @@ function pullContext() {
     }
     (0,external_assert_.ok)(github.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
     return github.context.issue;
+}
+function hasPullContext() {
+    try {
+        pullContext();
+        return true;
+    }
+    catch {
+        return false;
+    }
 }
 async function createReaction(options) {
     const github = githubApi(options);
