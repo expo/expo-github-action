@@ -1,7 +1,6 @@
-import { getBooleanInput, getInput, setOutput, group } from '@actions/core';
-import { info } from 'console';
+import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@actions/core';
 
-import { createUpdate, getUpdateQr } from '../eas';
+import { assertEasVersion, createUpdate, getUpdateGroupQr } from '../eas';
 import { createIssueComment, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { templateLiteral } from '../utils';
@@ -28,38 +27,66 @@ export function previewInput() {
 executeAction(previewAction);
 
 export async function previewAction(input = previewInput()) {
-  const config = await loadProjectConfig(input.workingDirectory);
-  const scheme = config.scheme || 'exp';
-  const projectId = config.extra?.eas?.projectId || '';
+  // See: https://github.com/expo/eas-cli/releases/tag/v3.3.2
+  // See: https://github.com/expo/eas-cli/releases/tag/v3.4.0
+  // We need the revised `eas update --json` output to parse the update information.
+  assertEasVersion('>=3.4.0');
 
+  // Create the update before loading project information.
+  // When the project needs to be set up, EAS project ID won't be available before this command.
   const command = sanitizeCommand(input.command);
   const updates = await group(`Creating preview using "eas ${command}"`, () =>
     createUpdate(input.workingDirectory, command)
   );
 
-  const updateGroupId = updates[0].group;
+  const update = updates.find(update => !!update);
+  if (!update) {
+    return setFailed(`No update found in command output.`);
+  }
+
+  const config = await loadProjectConfig(input.workingDirectory);
+  const scheme = config.scheme;
+  const projectId = config.extra?.eas?.projectId;
+  if (!projectId) {
+    return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
+  }
+
   const updateAndroid = updates.find(update => update.platform === 'android');
   const updateIos = updates.find(update => update.platform === 'ios');
+  const hasSingleUpdateGroup = updates.every(platform => platform.group === update.group);
 
   const outputs: Record<string, string> = {
-    // EAS specific
-    easProjectId: projectId,
-    // Project (expo) specific
+    // Template specific
+    templateType: hasSingleUpdateGroup ? 'single' : 'multiple',
+    // EAS / Expo specific
+    projectId,
     projectName: config.name,
     projectSlug: config.slug,
-    projectFullName: config.currentFullName || '',
-    // Update group
-    updateGroupId,
+    // Shared update properties
+    // Note, only use these properties when the update groups are identical
+    updateId: update.id,
+    groupId: update.group,
+    branchName: update.branch,
+    message: update.message,
+    runtimeVersion: update.runtimeVersion,
+    qr: getUpdateGroupQr({ updateGroupId: update.group, appScheme: scheme }),
+    // These are safe to access regardless of the update groups
+    createdAt: update.createdAt,
+    gitCommitHash: update.gitCommitHash,
     // Android update
-    androidId: updateAndroid?.id || '',
+    androidUpdateId: updateAndroid?.id || '',
+    androidGroupId: updateAndroid?.group || '',
+    androidBranchName: updateAndroid?.branch || '',
+    androidMessage: updateAndroid?.message || '',
     androidRuntimeVersion: updateAndroid?.runtimeVersion || '',
-    androidQR: updateAndroid ? getUpdateQr({ projectId, updateId: updateAndroid.id, appScheme: scheme }) : '',
-    androidUpdateLink: updateAndroid?.manifestPermalink || '',
+    androidQR: updateAndroid ? getUpdateGroupQr({ updateGroupId: updateAndroid.group, appScheme: scheme }) : '',
     // iOS update
-    iosId: updateIos?.id || '',
+    iosUpdateId: updateIos?.id || '',
+    iosGroupId: updateIos?.group || '',
+    iosBranchName: updateIos?.branch || '',
+    iosMessage: updateIos?.message || '',
     iosRuntimeVersion: updateIos?.runtimeVersion || '',
-    iosQR: updateIos ? getUpdateQr({ projectId, updateId: updateIos.id, appScheme: scheme }) : '',
-    iosUpdateLink: updateIos?.manifestPermalink || '',
+    iosQR: updateIos ? getUpdateGroupQr({ updateGroupId: updateIos.group, appScheme: scheme }) : '',
   };
 
   const messageId = templateLiteral(input.messageId, { ...outputs, projectDir: input.workingDirectory });
@@ -81,7 +108,7 @@ export async function previewAction(input = previewInput()) {
   }
 
   setOutput('messageId', messageId);
-  setOutput('message', messageBody);
+  setOutput('messageBody', messageBody);
 }
 
 /**
