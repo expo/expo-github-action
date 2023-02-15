@@ -90,3 +90,14 @@ export function getUpdateGroupQr({
 
   return url.toString();
 }
+
+/** Create the absolute link to the update group on expo.dev */
+export function getUpdateGroupWebsite({
+  projectId,
+  updateGroupId,
+}: {
+  projectId: string;
+  updateGroupId: string;
+}): string {
+  return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
+}

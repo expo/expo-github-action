@@ -1,7 +1,7 @@
 import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@actions/core';
 import { ExpoConfig } from '@expo/config';
 
-import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr } from '../eas';
+import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { template } from '../utils';
@@ -112,6 +112,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
     qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme: config.scheme }),
+    link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
     message: updates[0].message,
@@ -124,6 +125,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
     androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme: config.scheme }) : '',
+    androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
     iosId: ios?.id || '',
     iosGroupId: ios?.group || '',
@@ -131,6 +133,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
     iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme: config.scheme }) : '',
+    iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
 }
 
@@ -148,6 +151,7 @@ export function getMessage(updates: EasUpdate[], vars: ReturnType<typeof getVari
 - Project → **${vars.projectSlug}**
 - Platform${updates.length === 1 ? '' : 's'} → ${updates.map(update => `**${update.platform}**`).join(', ')}
 - Runtime Version → **${vars.runtimeVersion}**
+- **[More info](${vars.link})**
 
 <a href="${vars.qr}"><img src="${vars.qr}" width="250px" height="250px" /></a>
 
@@ -159,7 +163,7 @@ export function getMessage(updates: EasUpdate[], vars: ReturnType<typeof getVari
 
 - Project → **${vars.projectSlug}**
 
-Android <br /> ${vars.androidId ? `_(${vars.androidRuntimeVersion})_` : ''} | iOS <br /> ${vars.iosId ? `_(${vars.iosRuntimeVersion})_` : ''}
+Android <br /> ${vars.androidId ? `_(${vars.androidRuntimeVersion})_ <br />` : ''} ${vars.androidLink ? `**[More info](${vars.androidLink})**` : ''} | iOS <br /> ${vars.iosId ? `_(${vars.iosRuntimeVersion})_ <br />` : ''} ${vars.iosLink ? `**[More info](${vars.iosLink})**` : ''}
 --- | ---
 ${vars.androidId ? `<a href="${vars.androidQR}"><img src="${vars.androidQR}" width="250px" height="250px" /></a>` : '_not created_'} | ${vars.iosId ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>` : '_not created_'}
 

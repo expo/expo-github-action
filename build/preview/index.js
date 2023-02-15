@@ -23635,6 +23635,10 @@ function getUpdateGroupQr({ projectId, updateGroupId, appScheme, }) {
     url.searchParams.append('groupId', updateGroupId);
     return url.toString();
 }
+/** Create the absolute link to the update group on expo.dev */
+function getUpdateGroupWebsite({ projectId, updateGroupId, }) {
+    return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
+}
 
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
@@ -23940,6 +23944,7 @@ function getVariables(config, updates) {
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
         qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme: config.scheme }),
+        link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
         message: updates[0].message,
@@ -23952,6 +23957,7 @@ function getVariables(config, updates) {
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
         androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme: config.scheme }) : '',
+        androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
         // iOS update
         iosId: ios?.id || '',
         iosGroupId: ios?.group || '',
@@ -23959,6 +23965,7 @@ function getVariables(config, updates) {
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
         iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme: config.scheme }) : '',
+        iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
     };
 }
 /**
@@ -23974,6 +23981,7 @@ function getMessage(updates, vars) {
 - Project → **${vars.projectSlug}**
 - Platform${updates.length === 1 ? '' : 's'} → ${updates.map(update => `**${update.platform}**`).join(', ')}
 - Runtime Version → **${vars.runtimeVersion}**
+- **[More info](${vars.link})**
 
 <a href="${vars.qr}"><img src="${vars.qr}" width="250px" height="250px" /></a>
 
@@ -23984,7 +23992,7 @@ function getMessage(updates, vars) {
 
 - Project → **${vars.projectSlug}**
 
-Android <br /> ${vars.androidId ? `_(${vars.androidRuntimeVersion})_` : ''} | iOS <br /> ${vars.iosId ? `_(${vars.iosRuntimeVersion})_` : ''}
+Android <br /> ${vars.androidId ? `_(${vars.androidRuntimeVersion})_ <br />` : ''} ${vars.androidLink ? `**[More info](${vars.androidLink})**` : ''} | iOS <br /> ${vars.iosId ? `_(${vars.iosRuntimeVersion})_ <br />` : ''} ${vars.iosLink ? `**[More info](${vars.iosLink})**` : ''}
 --- | ---
 ${vars.androidId ? `<a href="${vars.androidQR}"><img src="${vars.androidQR}" width="250px" height="250px" /></a>` : '_not created_'} | ${vars.iosId ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>` : '_not created_'}
 
