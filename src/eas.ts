@@ -99,5 +99,5 @@ export function getUpdateGroupWebsite({
   projectId: string;
   updateGroupId: string;
 }): string {
-  return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
+  return `https://expo.dev/redirect/projects/${projectId}/updates/${updateGroupId}`;
 }
