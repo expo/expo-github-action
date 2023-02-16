@@ -23545,7 +23545,7 @@ __nccwpck_require__.r(__webpack_exports__);
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
   "MESSAGE_ID": () => (/* binding */ MESSAGE_ID),
-  "getMessage": () => (/* binding */ getMessage),
+  "createSummary": () => (/* binding */ createSummary),
   "getVariables": () => (/* binding */ getVariables),
   "previewAction": () => (/* binding */ previewAction),
   "previewInput": () => (/* binding */ previewInput)
@@ -23885,7 +23885,7 @@ async function previewAction(input = previewInput()) {
     }
     const variables = getVariables(config, updates);
     const messageId = template(input.commentId, variables);
-    const messageBody = getMessage(updates, variables);
+    const messageBody = createSummary(updates, variables);
     if (!input.shouldComment) {
         (0,core.info)(`Skipped comment: 'comment' is disabled`);
     }
@@ -23972,29 +23972,55 @@ function getVariables(config, updates) {
  * Generate the message body for a single update.
  * Note, this is not configurable, but you can use the variables used to construct your own.
  */
-function getMessage(updates, vars) {
-    /* eslint-disable prettier/prettier */
+function createSummary(updates, vars) {
     // If all updates are in the same group, we can unify QR codes
     if (updates.every(update => update.group === updates[0].group)) {
-        return `🚀 Expo preview is ready!
+        return createSingleQrSummary(updates, vars);
+    }
+    return createMultipleQrSummary(updates, vars);
+}
+function createSingleQrSummary(updates, vars) {
+    const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
+    const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
+    return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
-- Platform${updates.length === 1 ? '' : 's'} → ${updates.map(update => `**${update.platform}**`).join(', ')}
+- ${platformName} → ${platformValue}
 - Runtime Version → **${vars.runtimeVersion}**
 - **[More info](${vars.link})**
 
 <a href="${vars.qr}"><img src="${vars.qr}" width="250px" height="250px" /></a>
 
 > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)`;
-    }
-    // If the updates are in different groups, we need to split the QR codes
+}
+function createMultipleQrSummary(updates, vars) {
+    const createTableHeader = (segments) => segments.filter(Boolean).join(' <br /> ');
+    const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
+    const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
+    const androidHeader = createTableHeader([
+        'Android',
+        vars.androidId && vars.androidRuntimeVersion ? `_(${vars.androidRuntimeVersion})_` : '',
+        vars.androidId && vars.androidLink ? `**[More info](${vars.androidLink})**` : '',
+    ]);
+    const androidQr = vars.androidId && vars.androidQR
+        ? `<a href="${vars.androidQR}"><img src="${vars.androidQR}" width="250px" height="250px" /></a>`
+        : null;
+    const iosHeader = createTableHeader([
+        'iOS',
+        vars.iosId && vars.iosRuntimeVersion ? `_(${vars.iosRuntimeVersion})_` : '',
+        vars.iosId && vars.iosLink ? `**[More info](${vars.iosLink})**` : '',
+    ]);
+    const iosQr = vars.iosId && vars.iosQR
+        ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>`
+        : null;
     return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
+- ${platformName} → ${platformValue}
 
-Android <br /> ${vars.androidId ? `_(${vars.androidRuntimeVersion})_ <br />` : ''} ${vars.androidLink ? `**[More info](${vars.androidLink})**` : ''} | iOS <br /> ${vars.iosId ? `_(${vars.iosRuntimeVersion})_ <br />` : ''} ${vars.iosLink ? `**[More info](${vars.iosLink})**` : ''}
+${androidHeader} | ${iosHeader}
 --- | ---
-${vars.androidId ? `<a href="${vars.androidQR}"><img src="${vars.androidQR}" width="250px" height="250px" /></a>` : '_not created_'} | ${vars.iosId ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>` : '_not created_'}
+${androidQr || '_not created_'} | ${iosQr || '_not created_'}
 
 > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)`;
 }

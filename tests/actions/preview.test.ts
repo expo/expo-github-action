@@ -1,6 +1,6 @@
 import { ExpoConfig } from '@expo/config';
 
-import { getMessage, getVariables } from '../../src/actions/preview';
+import { createSummary, getVariables } from '../../src/actions/preview';
 import { EasUpdate } from '../../src/eas';
 
 const fakeExpoConfig = {
@@ -37,10 +37,10 @@ const fakeUpdatesSingle: EasUpdate[] = [
 
 const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({ ...update, group: `fake-group-${update.id}` }));
 
-describe(getMessage, () => {
+describe(createSummary, () => {
   describe('single update group', () => {
     it('returns expected message for both platforms', () => {
-      expect(getMessage(fakeUpdatesSingle, getVariables(fakeExpoConfig, fakeUpdatesSingle))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdatesSingle, getVariables(fakeExpoConfig, fakeUpdatesSingle))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -55,7 +55,7 @@ describe(getMessage, () => {
 
     it('returns expected message for android only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'android');
-      expect(getMessage(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -70,7 +70,7 @@ describe(getMessage, () => {
 
     it('returns expected message for ios only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'ios');
-      expect(getMessage(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -86,7 +86,7 @@ describe(getMessage, () => {
 
   describe('mutliple update groups', () => {
     it('returns expected message for both platforms', () => {
-      expect(getMessage(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -101,7 +101,7 @@ describe(getMessage, () => {
 
     it('returns expected message for android only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'android');
-      expect(getMessage(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -116,7 +116,7 @@ describe(getMessage, () => {
 
     it('returns expected message for ios only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'ios');
-      expect(getMessage(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
