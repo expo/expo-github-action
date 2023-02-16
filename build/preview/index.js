@@ -23637,7 +23637,7 @@ function getUpdateGroupQr({ projectId, updateGroupId, appScheme, }) {
 }
 /** Create the absolute link to the update group on expo.dev */
 function getUpdateGroupWebsite({ projectId, updateGroupId, }) {
-    return `https://expo.dev/redirect/projects/${projectId}/updates/${updateGroupId}`;
+    return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
 }
 
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
