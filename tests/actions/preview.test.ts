@@ -50,7 +50,7 @@ describe(createSummary, () => {
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
 
@@ -66,7 +66,7 @@ describe(createSummary, () => {
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
 
@@ -82,7 +82,7 @@ describe(createSummary, () => {
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
   });
@@ -100,7 +100,7 @@ describe(createSummary, () => {
         --- | ---
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-android-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-android-id" width="250px" height="250px" /></a> | <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-ios-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-ios-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
 
@@ -116,7 +116,7 @@ describe(createSummary, () => {
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
 
@@ -132,7 +132,7 @@ describe(createSummary, () => {
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
-        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)"
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);
     });
   });

@@ -107,6 +107,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     projectId,
     projectName: config.name,
     projectSlug: config.slug,
+    projectScheme: config.scheme || '',
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
@@ -163,7 +164,7 @@ function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof get
 
 <a href="${vars.qr}"><img src="${vars.qr}" width="250px" height="250px" /></a>
 
-> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)`;
+> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)`;
 }
 
 function createMultipleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
@@ -203,5 +204,5 @@ ${androidHeader} | ${iosHeader}
 --- | ---
 ${androidQr || '_not created_'} | ${iosQr || '_not created_'}
 
-> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action#publish-a-preview-from-pr)`;
+> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)`;
 }
