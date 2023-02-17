@@ -63,6 +63,13 @@ describe(commentAction, () => {
     jest.mocked(expo.projectOwner).mockResolvedValue('fakeuser');
   });
 
+  it('warns users for deprecated publish', async () => {
+    await commentAction({ ...input });
+    expect(core.warning).toBeCalledWith(
+      'Expo publish is deprecated, but will be suported until 2024. Read more: https://blog.expo.dev/sunsetting-expo-publish-and-classic-updates-6cb9cd295378'
+    );
+  });
+
   it('resolves project info by project path', async () => {
     await commentAction({ ...input, project: 'fake/path' });
     expect(expo.projectInfo).toBeCalledWith('fake/path');
