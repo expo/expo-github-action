@@ -46,6 +46,7 @@ describe(createSummary, () => {
         - Project → **fake-project**
         - Platforms → **android**, **ios**
         - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
@@ -61,6 +62,7 @@ describe(createSummary, () => {
         - Project → **fake-project**
         - Platform → **android**
         - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
@@ -76,6 +78,7 @@ describe(createSummary, () => {
         - Project → **fake-project**
         - Platform → **ios**
         - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
@@ -86,12 +89,14 @@ describe(createSummary, () => {
 
   describe('mutliple update groups', () => {
     it('returns expected message for both platforms', () => {
-      expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple)))
+        .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
+        - Platforms → **android**, **ios**
 
-        Android <br /> _(exposdk:47.0.0)_ | iOS <br /> _(exposdk:47.0.0)_
+        Android <br /> _(exposdk:47.0.0)_ <br /> **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-fake-android-id)** | iOS <br /> _(exposdk:47.0.0)_ <br /> **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-fake-ios-id)**
         --- | ---
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-android-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-android-id" width="250px" height="250px" /></a> | <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-ios-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-fake-ios-id" width="250px" height="250px" /></a>
 
@@ -107,6 +112,7 @@ describe(createSummary, () => {
         - Project → **fake-project**
         - Platform → **android**
         - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
@@ -122,6 +128,7 @@ describe(createSummary, () => {
         - Project → **fake-project**
         - Platform → **ios**
         - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
         <a href="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
