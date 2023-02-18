@@ -145,6 +145,7 @@ jobs:
           echo $(jq 'del(.expo.runtimeVersion)' app.json) > app.json
           echo $(jq '.expo.android.runtimeVersion.policy = "sdkVersion"' app.json) > app.json
           echo $(jq '.expo.ios.runtimeVersion.policy = "appVersion"' app.json) > app.json
+          echo $(jq '.expo.scheme = "expogithubaction"' app.json) > app.json
 
       - name: 🚀 Create preview (multi QR)
         if: ${{ env.hasAuth == 'true' }}

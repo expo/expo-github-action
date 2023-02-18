@@ -23874,7 +23874,7 @@ async function previewAction(input = previewInput()) {
     // Create the update before loading project information.
     // When the project needs to be set up, EAS project ID won't be available before this command.
     const command = sanitizeCommand(input.command);
-    const updates = await (0,core.group)(`Creating preview using "eas ${command}"`, () => createUpdate(input.workingDirectory, command));
+    const updates = await (0,core.group)(`Run eas ${command}"`, () => createUpdate(input.workingDirectory, command));
     const update = updates.find(update => !!update);
     if (!update) {
         return (0,core.setFailed)(`No update found in command output.`);
@@ -23903,8 +23903,8 @@ async function previewAction(input = previewInput()) {
     for (const [name, value] of Object.entries(variables)) {
         (0,core.setOutput)(name, value);
     }
-    (0,core.setOutput)('messageId', messageId);
-    (0,core.setOutput)('messageBody', messageBody);
+    (0,core.setOutput)('commentId', messageId);
+    (0,core.setOutput)('comment', messageBody);
 }
 /**
  * Validate and sanitize the command that creates the update.
@@ -23980,13 +23980,22 @@ function createSummary(updates, vars) {
     }
     return createMultipleQrSummary(updates, vars);
 }
-function createSingleQrSummary(updates, vars) {
+function createSummaryHeader(updates, vars) {
     const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
-    const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
+    const platformValue = updates
+        .map(update => update.platform)
+        .sort((a, b) => a.localeCompare(b))
+        .map(platform => `**${platform}**`)
+        .join(', ');
+    const appScheme = vars.projectScheme ? `- Scheme → **${vars.projectScheme}**` : '';
     return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
 - ${platformName} → ${platformValue}
+${appScheme}`.trim();
+}
+function createSingleQrSummary(updates, vars) {
+    return `${createSummaryHeader(updates, vars)}
 - Runtime Version → **${vars.runtimeVersion}**
 - **[More info](${vars.link})**
 
@@ -23996,8 +24005,6 @@ function createSingleQrSummary(updates, vars) {
 }
 function createMultipleQrSummary(updates, vars) {
     const createTableHeader = (segments) => segments.filter(Boolean).join(' <br /> ');
-    const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
-    const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
     const androidHeader = createTableHeader([
         'Android',
         vars.androidId && vars.androidRuntimeVersion ? `_(${vars.androidRuntimeVersion})_` : '',
@@ -24014,10 +24021,7 @@ function createMultipleQrSummary(updates, vars) {
     const iosQr = vars.iosId && vars.iosQR
         ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>`
         : null;
-    return `🚀 Expo preview is ready!
-
-- Project → **${vars.projectSlug}**
-- ${platformName} → ${platformValue}
+    return `${createSummaryHeader(updates, vars)}
 
 ${androidHeader} | ${iosHeader}
 --- | ---

@@ -54,6 +54,24 @@ describe(createSummary, () => {
       `);
     });
 
+    it('returns expected message for both platforms with custom app scheme', () => {
+      const customSchemeConfig = { ...fakeExpoConfig, scheme: 'expogithubaction' };
+      expect(createSummary(fakeUpdatesSingle, getVariables(customSchemeConfig, fakeUpdatesSingle)))
+        .toMatchInlineSnapshot(`
+        "🚀 Expo preview is ready!
+
+        - Project → **fake-project**
+        - Platforms → **android**, **ios**
+        - Scheme → **expogithubaction**
+        - Runtime Version → **exposdk:47.0.0**
+        - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
+
+        <a href="https://qr.expo.dev/eas-update?appScheme=expogithubaction&projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?appScheme=expogithubaction&projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
+
+        > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
+      `);
+    });
+
     it('returns expected message for android only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'android');
       expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate))).toMatchInlineSnapshot(`

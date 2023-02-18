@@ -30,9 +30,7 @@ export async function previewAction(input = previewInput()) {
   // Create the update before loading project information.
   // When the project needs to be set up, EAS project ID won't be available before this command.
   const command = sanitizeCommand(input.command);
-  const updates = await group(`Creating preview using "eas ${command}"`, () =>
-    createUpdate(input.workingDirectory, command)
-  );
+  const updates = await group(`Run eas ${command}"`, () => createUpdate(input.workingDirectory, command));
 
   const update = updates.find(update => !!update);
   if (!update) {
@@ -65,8 +63,8 @@ export async function previewAction(input = previewInput()) {
     setOutput(name, value);
   }
 
-  setOutput('messageId', messageId);
-  setOutput('messageBody', messageBody);
+  setOutput('commentId', messageId);
+  setOutput('comment', messageBody);
 }
 
 /**
@@ -151,14 +149,25 @@ export function createSummary(updates: EasUpdate[], vars: ReturnType<typeof getV
   return createMultipleQrSummary(updates, vars);
 }
 
-function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
+function createSummaryHeader(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
   const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
-  const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
+  const platformValue = updates
+    .map(update => update.platform)
+    .sort((a, b) => a.localeCompare(b))
+    .map(platform => `**${platform}**`)
+    .join(', ');
+
+  const appScheme = vars.projectScheme ? `- Scheme → **${vars.projectScheme}**` : '';
 
   return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
 - ${platformName} → ${platformValue}
+${appScheme}`.trim();
+}
+
+function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
+  return `${createSummaryHeader(updates, vars)}
 - Runtime Version → **${vars.runtimeVersion}**
 - **[More info](${vars.link})**
 
@@ -169,9 +178,6 @@ function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof get
 
 function createMultipleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
   const createTableHeader = (segments: string[]) => segments.filter(Boolean).join(' <br /> ');
-
-  const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
-  const platformValue = updates.map(update => `**${update.platform}**`).join(', ');
 
   const androidHeader = createTableHeader([
     'Android',
@@ -195,10 +201,7 @@ function createMultipleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof g
       ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>`
       : null;
 
-  return `🚀 Expo preview is ready!
-
-- Project → **${vars.projectSlug}**
-- ${platformName} → ${platformValue}
+  return `${createSummaryHeader(updates, vars)}
 
 ${androidHeader} | ${iosHeader}
 --- | ---
