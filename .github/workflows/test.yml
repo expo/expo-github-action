@@ -21,25 +21,25 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
+          - ubuntu
+          - windows
+          - macos
         cache:
-          - with-cache
-          - without-cache
+          - cache
+          - no-cache
         packager:
           - yarn
         include:
-          - os: ubuntu-latest
-            cache: without-cache
+          - os: ubuntu
+            cache: no-cache
             packager: npm
-          - os: windows-latest
-            cache: without-cache
+          - os: windows
+            cache: no-cache
             packager: npm
-          - os: macos-latest
-            cache: without-cache
+          - os: macos
+            cache: no-cache
             packager: npm
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v3
@@ -48,9 +48,9 @@ jobs:
         uses: ./
         with:
           eas-version: latest
-          eas-cache: ${{ matrix.cache == 'with-cache' }}
+          eas-cache: ${{ matrix.cache == 'cache' }}
           expo-version: latest
-          expo-cache: ${{ matrix.cache == 'with-cache' }}
+          expo-cache: ${{ matrix.cache == 'cache' }}
           packager: ${{ matrix.packager }}
           token: ${{ secrets.EXPO_TOKEN }}
 
