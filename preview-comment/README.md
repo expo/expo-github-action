@@ -32,6 +32,8 @@
 
 <br />
 
+> Expo publish is deprecated, but will be supported until 2024. ([read more](https://blog.expo.dev/sunsetting-expo-publish-and-classic-updates-6cb9cd295378))
+
 ## What's inside?
 
 This (sub)action allows you to comment on pull requests containing Expo QR codes.

@@ -1,4 +1,4 @@
-import { getBooleanInput, getInput, setOutput, info } from '@actions/core';
+import { getBooleanInput, getInput, setOutput, info, warning } from '@actions/core';
 
 import { projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';
@@ -26,6 +26,10 @@ export function commentInput() {
 executeAction(commentAction);
 
 export async function commentAction(input = commentInput()) {
+  warning(
+    'Expo publish is deprecated, but will be suported until 2024. Read more: https://blog.expo.dev/sunsetting-expo-publish-and-classic-updates-6cb9cd295378'
+  );
+
   const project = await projectInfo(input.project);
   if (!project.owner) {
     project.owner = await projectOwner();
