@@ -77,11 +77,11 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           expo-version: latest
@@ -91,7 +91,7 @@ jobs:
         run: yarn install
 
       - name: 🤖 Run expo bot
-        uses: expo/expo-github-action/command@v7
+        uses: expo/expo-github-action/command@v8
 ```
 
 ## Things to know

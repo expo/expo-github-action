@@ -84,11 +84,11 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -123,11 +123,11 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -159,11 +159,11 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: yarn
 
       - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -172,7 +172,7 @@ jobs:
         run: yarn install
 
       - name: 🚀 Create preview
-        uses: expo/expo-github-action/preview@v7
+        uses: expo/expo-github-action/preview@v8
         with:
           command: eas update --auto
 ```
