@@ -58,11 +58,11 @@ Here is a summary of all the input options you can use.
 Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
-1. [Publish on any push to main](#publish-on-any-push-to-main)
-2. [Creating a new EAS build](#creating-a-new-eas-build)
-3. [Publish a preview from PR](#publish-a-preview-from-PR)
+1. [Create new EAS Update on push to main](#create-new-eas-update-on-push-to-main)
+2. [Create new EAS build on push to main](#create-new-eas-build-on-push-to-main)
+3. [Create previews on PRs](#create-previews-on-prs)
 
-### Publish on any push to main
+### Create new EAS Update on push to main
 
 This workflow listens to the `push` event on the `main` branch.
 It sets up all required components to publish the app, including authentication with a [token][link-expo-token].
@@ -75,7 +75,7 @@ on:
     branches:
       - main
 jobs:
-  publish:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -87,20 +87,20 @@ jobs:
           node-version: 16.x
           cache: yarn
 
-      - name: 🏗 Setup Expo
+      - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v7
         with:
-          expo-version: latest
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Publish app
-        run: expo publish --non-interactive
+      - name: 🚀 Create update
+        run: eas update --auto --non-interactive
 ```
 
-### Creating a new EAS build
+### Creating new EAS build on push to main
 
 This action also allows you to install the EAS CLI.
 To do this, add the **eas-version** property, and the action will install it.
@@ -126,10 +126,9 @@ jobs:
           node-version: 16.x
           cache: yarn
 
-      - name: 🏗 Setup Expo and EAS
+      - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v7
         with:
-          expo-version: latest
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
@@ -140,20 +139,18 @@ jobs:
         run: eas build --non-interactive
 ```
 
-### Publish a preview from PR
+### Create previews on PRs
 
 Reviewing pull requests can take some time.
 The reviewer needs to check out the branch, install the changes, and run the bundler to review the results.
 You can also automatically publish the project for the reviewer to skip those manual steps.
 
-This workflow publishes the changes on the `pr-#` [release channel][link-expo-release-channels] and adds a comment to the pull request once it's ready for review.
-
-> See the [preview-comment docs](./preview-comment).
+> See the [preview docs](./preview#create-previews-on-pull-requests) for more information.
 
 ```yml
 on: [pull_request]
 jobs:
-  publish:
+  preview:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
@@ -165,7 +162,7 @@ jobs:
           node-version: 16.x
           cache: yarn
 
-      - name: 🏗 Setup Expo
+      - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v7
         with:
           expo-version: latest
@@ -174,13 +171,10 @@ jobs:
       - name: 📦 Install dependencies
         run: yarn install
 
-      - name: 🚀 Publish preview
-        run: expo publish --release-channel=pr-${{ github.event.number }} --non-interactive
-
-      - name: 💬 Comment preview
-        uses: expo/expo-github-action/preview-comment@v7
+      - name: 🚀 Create preview
+        uses: expo/expo-github-action/preview@v7
         with:
-          channel: pr-${{ github.event.number }}
+          command: eas update --auto
 ```
 
 ## Things to know
