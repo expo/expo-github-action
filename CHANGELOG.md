@@ -1,3 +1,31 @@
+## [8.0.0](https://github.com/expo/expo-github-action/compare/7.2.1...8.0.0) (2023-02-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **preview-comment:** add deprecation notice with blog post (#207)
+
+### New features
+
+* **preview:** add eas update preview sub-action ([#206](https://github.com/expo/expo-github-action/issues/206)) ([f4d6037](https://github.com/expo/expo-github-action/commit/f4d6037f42d672db10e7818c8bd1211fb26a27b3))
+
+
+### Code changes
+
+* **preview-comment:** add deprecation notice with blog post ([#207](https://github.com/expo/expo-github-action/issues/207)) ([d2b3e6c](https://github.com/expo/expo-github-action/commit/d2b3e6c7848afe984ee32bfad1b05aac374a79e3))
+
+
+### Other chores
+
+* bump http-cache-semantics from 4.1.0 to 4.1.1 ([#205](https://github.com/expo/expo-github-action/issues/205)) ([b1a8c06](https://github.com/expo/expo-github-action/commit/b1a8c06f1cd42cf6b9dde48c88d08a9421d8768c))
+
+
+### Documentation changes
+
+* **preview-comment:** emphasize that this sub-action is now deprecated ([f4af238](https://github.com/expo/expo-github-action/commit/f4af2383c1d07f127157450bc44c34e0378587ac))
+* update examples for v8 ([#210](https://github.com/expo/expo-github-action/issues/210)) ([3d1cf9a](https://github.com/expo/expo-github-action/commit/3d1cf9ab88f78450c67865a77c36e04be7a0517c))
+* update the readme with new examples ([#208](https://github.com/expo/expo-github-action/issues/208)) ([ae5d1a1](https://github.com/expo/expo-github-action/commit/ae5d1a19547903399b413298b87a86df814c5b9b))
+
 ## [7.2.1](https://github.com/expo/expo-github-action/compare/7.2.0...7.2.1) (2023-01-04)
 
 
