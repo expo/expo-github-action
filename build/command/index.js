@@ -20651,6 +20651,15 @@ function pullContext() {
     assert(context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
     return context.issue;
 }
+function hasPullContext() {
+    try {
+        pullContext();
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
 async function createReaction(options) {
     const github = githubApi(options);
     if (options.comment_id) {

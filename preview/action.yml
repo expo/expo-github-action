@@ -1,0 +1,89 @@
+---
+name: Expo GitHub Action - Preview
+author: Expo
+description: Create Expo previews with EAS Update
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/preview/index.js
+inputs:
+  command:
+    description: EAS CLI command to run when creating updates
+    required: true
+  comment:
+    description: If the action should summarize the EAS Update information as comment on a pull request
+    required: false
+    default: true
+  comment-id:
+    description: unique id template to prevent duplicate comments
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+  github-token:
+    description: GitHub token to use when commenting on PR
+    required: false
+    default: ${{ github.token }}
+outputs:
+  projectId:
+    description: The resolved EAS project ID
+  projectName:
+    description: The name of your project
+  projectSlug:
+    description: The slug of your project
+  projectScheme:
+    description: The (custom) app scheme
+
+  commentId:
+    description: The unique comment ID to prevent duplicate comments
+  comment:
+    description: The comment with information about the updates
+
+  groupId:
+    description: Update group ID that contains one or more platform-specific updates
+  runtimeVersion:
+    description: Runtime version used for one or more platform-specific updates
+  qr:
+    description: Absolute URL to the QR code to load this update
+  link:
+    description: Absolute URL to platform-independent update on expo.dev
+  branchName:
+    description: Branch name that was used when creating this update
+  message:
+    description: Custom message to describe the update
+  createdAt:
+    description: When the update was created
+  gitCommitHash:
+    description: Git commit hash that was found when creating this update
+
+  androidId:
+    description: Android-specific update id
+  androidGroupId:
+    description: Update group ID that contains one or more platform-specific updates
+  androidBranchName:
+    description: Branch name that was used when creating this update
+  androidMessage:
+    description: Custom message to describe the Android-specific update
+  androidRuntimeVersion:
+    description: Runtime version used for the Android-specific update
+  androidQR:
+    description: Absolute URL to the QR code to load this Android-specific update
+  androidLink:
+    description: Absolute URL to the Android-specific update on expo.dev
+
+  iosId:
+    description: iOS-specific update id
+  iosGroupId:
+    description: Update group ID that contains one or more platform-specific updates
+  iosBranchName:
+    description: Branch name that was used when creating this update
+  iosMessage:
+    description: Custom message to describe the iOS-specific update
+  iosRuntimeVersion:
+    description: Runtime version used for the iOS-specific update
+  iosQR:
+    description: Absolute URL to the QR code to load this iOS-specific update
+  iosLink:
+    description: Absolute URL to the iOS-specific update on expo.dev
