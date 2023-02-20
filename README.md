@@ -25,7 +25,7 @@
   &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
   <a href="#things-to-know"><b>Caveats</b></a>
   &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+  <a href="./CHANGELOG.md"><b>Changelog</b></a>
 </p>
 
 <br />
