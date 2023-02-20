@@ -108,7 +108,7 @@ jobs:
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
         run: expo publish --release-channel=pr-${{ github.event.number }} --non-interactive
 
       - name: 💬 Comment in preview
-        uses: expo/expo-github-action/preview-comment@v7
+        uses: expo/expo-github-action/preview-comment@v8
         with:
           channel: pr-${{ github.event.number }}
 ```
@@ -153,7 +153,7 @@ jobs:
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -165,7 +165,7 @@ jobs:
         run: expo publish --release-channel=production --non-interactive
 
       - name: 👷 Create preview comment
-        uses: expo/expo-github-action/preview-comment@v7
+        uses: expo/expo-github-action/preview-comment@v8
         id: preview
         with:
           comment: false

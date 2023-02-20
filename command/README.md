@@ -81,7 +81,7 @@ jobs:
           cache: yarn
 
       - name: 🏗 Setup Expo
-        uses: expo/expo-github-action@v7
+        uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           expo-version: latest
@@ -91,7 +91,7 @@ jobs:
         run: yarn install
 
       - name: 🤖 Run expo bot
-        uses: expo/expo-github-action/command@v7
+        uses: expo/expo-github-action/command@v8
 ```
 
 ## Things to know
