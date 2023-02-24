@@ -3,7 +3,7 @@
 
 ### ⚠ BREAKING CHANGES
 
-* **preview-comment:** add deprecation notice with blog post (#207)
+* **preview-comment:** add deprecation notice with blog post ([#207](https://github.com/expo/expo-github-action/issues/207))
 
 ### New features
 
