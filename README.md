@@ -165,7 +165,7 @@ jobs:
       - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v8
         with:
-          expo-version: latest
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
