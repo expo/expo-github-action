@@ -93,6 +93,7 @@ When skipping the Android update, these variables are empty strings.
 | **androidRuntimeVersion** | Runtime version used for the Android-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                 |
 | **androidQR**             | Absolute URL to the QR code to load this Android-specific update                                                                       |
 | **androidLink**           | Absolute URL to the Android-specific update on [expo.dev](https://expo.dev)                                                            |
+| **andriodManifestPermalink**           | Absolute URL to the Android-specific update manifest                                                            |
 
 #### iOS-specific update information
 
@@ -108,6 +109,7 @@ When skipping the iOS update, these variables are empty strings.
 | **iosRuntimeVersion** | Runtime version used for the iOS-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                     |
 | **iosQR**             | Absolute URL to the QR code to load this iOS-specific update                                                                           |
 | **iosLink**           | Absolute URL to the iOS-specific update on [expo.dev](https://expo.dev)                                                                |
+| **iosManifestPermalink**           | Absolute URL to the ios-specific update manifest                                                            |
 
 ## Example workflows
 
