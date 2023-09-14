@@ -1,0 +1,68 @@
+---
+name: Expo GitHub Action - Preview EAS Build for Pull Requests
+author: Expo
+description: Create Expo previews with EAS Build
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/preview-build/index.js
+inputs:
+  command:
+    description: EAS CLI command to run when creating builds
+    required: true
+  comment:
+    description: If the action should summarize the EAS Build information as comment on a pull request
+    required: false
+    default: true
+  comment-id:
+    description: unique id template to prevent duplicate comments
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+  packager:
+    description: The package manager used to install the fingerprint tools
+    default: yarn
+  github-token:
+    description: GitHub token to use when commenting on PR
+    required: false
+    default: ${{ github.token }}
+  fingerprint-version:
+    description: Fingerprint version to install
+    required: false
+    default: latest
+  fingerprint-installation-cache:
+    description: If fingerprint should be cached to speed up installation
+    default: true
+  fingerprint-db-cache-key:
+    description: A cache key to use for saving the fingerprint database
+    required: false
+    default: fingerprint-db
+  eas-build-message:
+    description: A short message describing the build
+
+outputs:
+  projectId:
+    description: The resolved EAS project ID
+  commentId:
+    description: The unique comment ID to prevent duplicate comments
+  comment:
+    description: The comment with information about the build
+  gitCommitHash:
+    description: Git commit hash that was found when creating this build
+
+  androidBuildId:
+    description: EAS Build ID
+  androidLink:
+    description: Absolute URL to platform-independent build on expo.dev
+  androidAppVersion:
+    description: Version of the app
+
+  iosBuildId:
+    description: EAS Build ID
+  iosLink:
+    description: Absolute URL to platform-independent build on expo.dev
+  iosAppVersion:
+    description: iOS build number

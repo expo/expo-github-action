@@ -141,3 +141,39 @@ export function issueComment() {
     },
   ] as const;
 }
+
+/**
+ * Get the commit message for a specific commit hash.
+ */
+export async function getGitCommandMessageAsync(options: AuthContext, gitCommitHash: string): Promise<string> {
+  const github = githubApi({ token: options.token });
+  const result = await github.rest.git.getCommit({
+    ...context.repo,
+    commit_sha: gitCommitHash,
+  });
+  return result.data.message;
+}
+
+/**
+ * True if the current event is a push to the default branch.
+ */
+export function isPushDefaultBranchContext() {
+  return context.eventName === 'push' && context.ref === `refs/heads/${context.payload?.repository?.default_branch}`;
+}
+
+/**
+ * Get the pull request information that associated with a specific commit hash.
+ */
+export async function getPullRequestFromGitCommitShaAsync(options: AuthContext, gitCommitHash: string) {
+  const github = githubApi({ token: options.token });
+  const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+    ...context.repo,
+    commit_sha: gitCommitHash,
+  });
+  return results.data.map(pr => ({
+    id: pr.id,
+    prNumber: pr.number,
+    prHeadCommitSha: pr.head.sha,
+    mergeCommitSha: pr.merge_commit_sha,
+  }));
+}

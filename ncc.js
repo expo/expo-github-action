@@ -26,6 +26,7 @@ async function build() {
 
 async function compile(entry) {
   const { code, map, assets } = await ncc(entry, {
+    externals: ['@expo/fingerprint', 'module', 'sqlite3'],
     cache: false,
     license: 'license.txt',
     quiet: true,

@@ -1,0 +1,39 @@
+---
+name: Expo GitHub Action - Fingerprint
+author: Expo
+description: Check project fingerprint
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node16
+  main: ../build/fingerprint/index.js
+  post: ../build/fingerprint-post/index.js
+  post-if: success()
+inputs:
+  packager:
+    description: The package manager used to install the fingerprint tools
+    default: yarn
+  github-token:
+    description: GitHub token to use when commenting on PR
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+  fingerprint-version:
+    description: Fingerprint version to install
+    required: false
+    default: latest
+  fingerprint-installation-cache:
+    description: If fingerprint should be cached to speed up installation
+    default: true
+  fingerprint-db-cache-key:
+    description: A cache key to use for saving the fingerprint database
+    required: false
+    default: fingerprint-db
+
+outputs:
+  fingerprint-diff:
+    description: The diff between the current and the previous fingerprint

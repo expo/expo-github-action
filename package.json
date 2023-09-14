@@ -27,16 +27,20 @@
     "@actions/github": "^5.1.1",
     "@actions/io": "^1.1.2",
     "@actions/tool-cache": "^2.0.1",
-    "semver": "^7.3.8"
+    "semver": "^7.3.8",
+    "sqlite3": "^5.1.6",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@expo/config": "^7.0.3",
+    "@expo/fingerprint": "^0.1.0",
     "@semantic-release/changelog": "^6.0.2",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@tsconfig/node16": "^1.0.3",
     "@types/jest": "^29.2.5",
     "@types/node": "^16.18.11",
+    "@types/uuid": "^9.0.3",
     "@typescript-eslint/eslint-plugin": "^5.48.0",
     "@typescript-eslint/parser": "^5.48.0",
     "@vercel/ncc": "^0.36.0",

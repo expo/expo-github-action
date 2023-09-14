@@ -74,3 +74,15 @@ export function toolPath(name: string, version: string): string {
   assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
   return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
 }
+
+/**
+ * Add extra `searchPath` to the global search path for require()
+ */
+export function addGlobalNodeSearchPath(searchPath: string) {
+  const nodePath = process.env['NODE_PATH'] || '';
+  const delimiter = process.platform === 'win32' ? ';' : ':';
+  const nodePaths = nodePath.split(delimiter);
+  nodePaths.push(searchPath);
+  process.env['NODE_PATH'] = nodePaths.join(delimiter);
+  require('module').Module._initPaths();
+}

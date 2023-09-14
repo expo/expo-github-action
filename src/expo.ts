@@ -140,6 +140,43 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
   return JSON.parse(stdout);
 }
 
+export async function createEasBuildFromRawCommandAsync(
+  cwd: string,
+  command: string,
+  extraArgs: string[] = []
+): Promise<BuildInfo[]> {
+  let stdout = '';
+
+  let cmd = command;
+  if (!cmd.includes('--json')) {
+    cmd += ' --json';
+  }
+  if (!cmd.includes('--non-interactive')) {
+    cmd += ' --non-interactive';
+  }
+  if (!cmd.includes('--no-wait')) {
+    cmd += ' --no-wait';
+  }
+
+  try {
+    ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${cmd}`, extraArgs, {
+      cwd,
+    }));
+  } catch (error) {
+    throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+  }
+
+  return JSON.parse(stdout);
+}
+
+export async function cancelEasBuildAsync(cwd: string, buildId: string): Promise<void> {
+  try {
+    await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
+  } catch (e) {
+    info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
+  }
+}
+
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */

@@ -58,7 +58,7 @@ export async function setupAction(input = setupInput()) {
 }
 
 async function installCli(name: string, version: string, packager: string, useCache = true) {
-  let cliPath = findTool(name, version) || undefined;
+  let cliPath = findTool(name, version) || null;
 
   if (!cliPath && useCache) {
     cliPath = await restoreFromCache(name, version, packager);
