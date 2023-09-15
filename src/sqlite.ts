@@ -50,7 +50,7 @@ export function openDatabaseAsync(filename: string): Promise<Database> {
  * Install the sqlite3
  */
 export async function installSQLiteAsync(packager: string): Promise<string> {
-  const sqliteVersion = require('../package.json').dependencies.sqlite3;
+  const sqliteVersion = require('../package.json').devDependencies.sqlite3;
   assert(sqliteVersion);
   const packageName = 'sqlite3';
   const version = await resolvePackage(packageName, sqliteVersion);
