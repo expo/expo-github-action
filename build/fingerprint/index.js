@@ -75280,7 +75280,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"HO":{"xp":"^5.1.6"}}');
+module.exports = JSON.parse('{"v6":{"xp":"^5.1.6"}}');
 
 /***/ })
 
@@ -75820,7 +75820,7 @@ function openDatabaseAsync(filename) {
  * Install the sqlite3
  */
 async function installSQLiteAsync(packager) {
-    const sqliteVersion = (__nccwpck_require__(4147)/* .dependencies.sqlite3 */ .HO.xp);
+    const sqliteVersion = (__nccwpck_require__(4147)/* .devDependencies.sqlite3 */ .v6.xp);
     external_assert_default()(sqliteVersion);
     const packageName = 'sqlite3';
     const version = await resolvePackage(packageName, sqliteVersion);
