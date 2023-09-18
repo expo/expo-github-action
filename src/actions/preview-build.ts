@@ -12,6 +12,7 @@ import {
   getBuildLogsUrl,
   appPlatformEmojis,
   cancelEasBuildAsync,
+  queryEasBuildInfoAsync,
 } from '../expo';
 import {
   FingerprintDbManager,
@@ -74,7 +75,11 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
     await maybeCancelPreviousBuildsAsync(config, input);
     const variables = getVariables(config, []);
     const messageId = template(input.commentId, variables);
-    const messageBody = createMessageBodyFingerprintCompatible();
+    const latestEasEntity = await dbManager.getLatestEasEntityFromFingerprintAsync(currentFingerprint.hash);
+    const latestEasBuildInfo = latestEasEntity?.easBuildId
+      ? await queryEasBuildInfoAsync(input.workingDirectory, latestEasEntity.easBuildId)
+      : null;
+    const messageBody = createMessageBodyFingerprintCompatible(latestEasBuildInfo);
     await maybeCreateCommentAsync(input, messageId, messageBody);
     setOutputs(variables, messageId, messageBody);
     return;
@@ -259,9 +264,16 @@ function createMessageBodyInBuilding(
   ].join('\n');
 }
 
-function createMessageBodyFingerprintCompatible() {
+function createMessageBodyFingerprintCompatible(latestEasBuildInfo: BuildInfo | null) {
+  const easBuildMessage =
+    latestEasBuildInfo != null
+      ? `Latest compatible build on EAS found. You can download the build from the [EAS build page](${getBuildLogsUrl(
+          latestEasBuildInfo
+        )}).`
+      : '';
   return [
     `Fingerprint is compatible, no new builds are required.`,
+    easBuildMessage,
     '',
     `> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview-build#example-workflows)`,
   ].join('\n');
