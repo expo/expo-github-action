@@ -115,4 +115,36 @@ describe(FingerprintDbManager, () => {
     expect(result?.fingerprintHash).toEqual('hash2');
     expect(result?.fingerprint).toEqual({ sources: [], hash: 'hash2' });
   });
+
+  it('createdAt value should be auto generated', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash', {
+      easBuildId: '',
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+    const result = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash');
+    expect(result?.createdAt).not.toBe(null);
+  });
+
+  it('updatedAt value should be auto updated', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash', {
+      easBuildId: '',
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+    let result = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash');
+    expect(result?.updatedAt).not.toBe(null);
+    const previousUpdatedAt = result?.updatedAt;
+
+    await delayAsync(2000);
+
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash', {
+      easBuildId: 'buildId',
+      fingerprint: { sources: [], hash: 'hash2' },
+    });
+    result = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash');
+    expect(result?.updatedAt).not.toEqual(previousUpdatedAt);
+  });
 });
+
+async function delayAsync(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

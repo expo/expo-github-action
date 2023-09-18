@@ -17,6 +17,9 @@ export class FingerprintDbManager {
     for (const index of FingerprintDbManager.INDEXES) {
       await db.runAsync(index);
     }
+    for (const extraStatement of FingerprintDbManager.EXTRA_CREATE_DB_STATEMENTS) {
+      await db.runAsync(extraStatement);
+    }
     await db.runAsync(`PRAGMA fingerprint_schema_version = ${FingerprintDbManager.SCHEMA_VERSION}`);
     this.db = db;
     return db;
@@ -122,13 +125,21 @@ export class FingerprintDbManager {
     'git_commit_hash TEXT NOT NULL',
     'fingerprint_hash TEXT NOT NULL',
     'fingerprint TEXT NOT NULL',
+    "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
+    "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
   ];
 
   private static readonly INDEXES = [
-    'CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON fingerprint (git_commit_hash)',
-    'CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON fingerprint (fingerprint_hash)',
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON ${this.TABLE_NAME} (git_commit_hash)`,
+    `CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON ${this.TABLE_NAME} (fingerprint_hash)`,
   ];
 
+  private static readonly EXTRA_CREATE_DB_STATEMENTS = [
+    `CREATE TRIGGER IF NOT EXISTS update_fingerprint_updated_at AFTER UPDATE ON ${this.TABLE_NAME}
+BEGIN
+  UPDATE ${this.TABLE_NAME} SET updated_at = DATETIME('now', 'utc') WHERE id = NEW.id;
+END`,
+  ];
   private db: Database | null = null;
 
   private static serialize(rawEntity: RawFingerprintDbEntity): FingerprintDbEntity {
@@ -138,6 +149,8 @@ export class FingerprintDbManager {
       gitCommitHash: rawEntity.git_commit_hash,
       fingerprintHash: rawEntity.fingerprint_hash,
       fingerprint: JSON.parse(rawEntity.fingerprint),
+      createdAt: rawEntity.created_at,
+      updatedAt: rawEntity.updated_at,
     };
   }
 
@@ -150,6 +163,8 @@ interface RawFingerprintDbEntity {
   git_commit_hash: string;
   fingerprint_hash: string;
   fingerprint: string;
+  created_at: string;
+  updated_at: string;
 }
 
 //#region TypeScript utilities
