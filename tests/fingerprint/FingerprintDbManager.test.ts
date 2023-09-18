@@ -134,7 +134,7 @@ describe(FingerprintDbManager, () => {
     expect(result?.updatedAt).not.toBe(null);
     const previousUpdatedAt = result?.updatedAt;
 
-    await delayAsync(2000);
+    await delayAsync(1000);
 
     await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash', {
       easBuildId: 'buildId',
@@ -142,6 +142,30 @@ describe(FingerprintDbManager, () => {
     });
     result = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash');
     expect(result?.updatedAt).not.toEqual(previousUpdatedAt);
+  });
+
+  it('getLatestEasEntityFromFingerprintAsync should return the latest entity', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash2', {
+      easBuildId: '',
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+
+    await delayAsync(1000);
+
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash1', {
+      easBuildId: 'buildId',
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+
+    await delayAsync(1000);
+
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash3', {
+      easBuildId: '',
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+
+    const result = await fingerprintDbManager.getLatestEasEntityFromFingerprintAsync('hash1');
+    expect(result?.gitCommitHash).toEqual('gitHash1');
   });
 });
 

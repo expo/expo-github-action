@@ -61,6 +61,22 @@ export class FingerprintDbManager {
     return rows.map(row => row['eas_build_id']);
   }
 
+  /**
+   * Get the latest entity from the fingerprint hash where the eas_build_id is not null.
+   */
+  public async getLatestEasEntityFromFingerprintAsync(fingerprintHash: string): Promise<FingerprintDbEntity | null> {
+    if (!this.db) {
+      throw new Error('Database not initialized. Call initAsync() first.');
+    }
+    const row = await this.db.getAsync<RawFingerprintDbEntity>(
+      `SELECT * FROM ${FingerprintDbManager.TABLE_NAME}
+      WHERE eas_build_id IS NOT NULL AND eas_build_id != "" AND fingerprint_hash = ?
+      ORDER BY updated_at DESC LIMIT 1`,
+      fingerprintHash
+    );
+    return row ? FingerprintDbManager.serialize(row) : null;
+  }
+
   public async getEntityFromGitCommitHashAsync(gitCommitHash: string): Promise<FingerprintDbEntity | null> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
