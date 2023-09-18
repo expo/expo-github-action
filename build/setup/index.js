@@ -75810,6 +75810,9 @@ async function easBuild(cmd) {
     }
     return JSON.parse(stdout);
 }
+/**
+ * Create an new EAS build using the user-provided command.
+ */
 async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
     let stdout = '';
     let cmd = command;
@@ -75832,6 +75835,9 @@ async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
     }
     return JSON.parse(stdout);
 }
+/**
+ * Cancel an EAS build.
+ */
 async function cancelEasBuildAsync(cwd, buildId) {
     try {
         await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
@@ -75839,6 +75845,22 @@ async function cancelEasBuildAsync(cwd, buildId) {
     catch (e) {
         info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
     }
+}
+/**
+ * Query the EAS BuildInfo from given buildId.
+ */
+async function queryEasBuildInfoAsync(cwd, buildId) {
+    try {
+        const { stdout } = await getExecOutput(await which('eas', true), ['build:view', buildId, '--json'], {
+            cwd,
+            silent: true,
+        });
+        return JSON.parse(stdout);
+    }
+    catch (e) {
+        info(`Failed to query eas build ${buildId}: ${errorMessage(e)}`);
+    }
+    return null;
 }
 /**
  * Try to resolve the project info, by running 'expo config --type prebuild'.

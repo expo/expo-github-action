@@ -75852,6 +75852,9 @@ class FingerprintDbManager {
         for (const index of FingerprintDbManager.INDEXES) {
             await db.runAsync(index);
         }
+        for (const extraStatement of FingerprintDbManager.EXTRA_CREATE_DB_STATEMENTS) {
+            await db.runAsync(extraStatement);
+        }
         await db.runAsync(`PRAGMA fingerprint_schema_version = ${FingerprintDbManager.SCHEMA_VERSION}`);
         this.db = db;
         return db;
@@ -75871,6 +75874,18 @@ class FingerprintDbManager {
         }
         const rows = await this.db.allAsync(`SELECT eas_build_id FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
         return rows.map(row => row['eas_build_id']);
+    }
+    /**
+     * Get the latest entity from the fingerprint hash where the eas_build_id is not null.
+     */
+    async getLatestEasEntityFromFingerprintAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager.TABLE_NAME}
+      WHERE eas_build_id IS NOT NULL AND eas_build_id != "" AND fingerprint_hash = ?
+      ORDER BY updated_at DESC LIMIT 1`, fingerprintHash);
+        return row ? FingerprintDbManager.serialize(row) : null;
     }
     async getEntityFromGitCommitHashAsync(gitCommitHash) {
         if (!this.db) {
@@ -75916,10 +75931,18 @@ class FingerprintDbManager {
         'git_commit_hash TEXT NOT NULL',
         'fingerprint_hash TEXT NOT NULL',
         'fingerprint TEXT NOT NULL',
+        "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
+        "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
     ];
     static INDEXES = [
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON fingerprint (git_commit_hash)',
-        'CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON fingerprint (fingerprint_hash)',
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON ${this.TABLE_NAME} (git_commit_hash)`,
+        `CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON ${this.TABLE_NAME} (fingerprint_hash)`,
+    ];
+    static EXTRA_CREATE_DB_STATEMENTS = [
+        `CREATE TRIGGER IF NOT EXISTS update_fingerprint_updated_at AFTER UPDATE ON ${this.TABLE_NAME}
+BEGIN
+  UPDATE ${this.TABLE_NAME} SET updated_at = DATETIME('now', 'utc') WHERE id = NEW.id;
+END`,
     ];
     db = null;
     static serialize(rawEntity) {
@@ -75929,6 +75952,8 @@ class FingerprintDbManager {
             gitCommitHash: rawEntity.git_commit_hash,
             fingerprintHash: rawEntity.fingerprint_hash,
             fingerprint: JSON.parse(rawEntity.fingerprint),
+            createdAt: rawEntity.created_at,
+            updatedAt: rawEntity.updated_at,
         };
     }
 }
