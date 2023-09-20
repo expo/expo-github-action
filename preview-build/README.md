@@ -1,6 +1,6 @@
 <div align="center">
   <h1>preview-build</h1>
-  <p>Create [EAS Builds](https://docs.expo.dev/build/introduction/) for pull requests using [`@expo/fingerprint`](https://www.npmjs.com/package/@expo/fingerprint)</p>
+  <p>Checking project fingerprinting for pull requests using <a href="https://www.npmjs.com/package/@expo/fingerprint"><code>@expo/fingerprint</code></a></p>
 </div>
 
 <p align="center">
@@ -72,7 +72,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Create preview builds if fingerprint changed
-        uses: expo/expo-github-action/preview-build
+        uses: expo/expo-github-action/preview-build@main
         with:
           command: eas build --profile development --platform all
 ```
@@ -88,7 +88,7 @@ Here is a summary of all the input options you can use.
 | **comment**                        | `true`                                         | If the action should summarize the EAS Update information as comment on a pull request         |
 | **comment-id**                     | _[see code][code-defaults]_                    | unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
 | **working-directory**              | -                                              | The relative directory of your Expo app                                                        |
-| **packager**                       | - `yarn`                                       | The package manager used to install the fingerprint tools                                      |
+| **packager**                       | `yarn`                                       | The package manager used to install the fingerprint tools                                      |
 | **github-token**                   | `github.token`                                 | GitHub token to use when commenting on PR ([read more](#github-tokens))                        |
 | **fingerprint-version**            | `latest`                                       | `@expo/fingerprint` version to install                                                         |
 | **fingerprint-installation-cache** | `true`                                         | If the `@expo/fingerprint` should be cached to speed up installation                           |
@@ -141,7 +141,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: 🏗  Setup EAS
-        uses: expo/expo-github-action
+        uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -150,7 +150,7 @@ jobs:
         run: yarn install
 
       - name: Create preview builds if needed
-        uses: expo/expo-github-action/preview-build
+        uses: expo/expo-github-action/preview-build@main
         with:
           command: eas build --profile development --platform all
 ```
@@ -169,3 +169,9 @@ Every comment contains a generated **message-id** to identify previously made co
 When using the GitHub API, you always need to be authenticated.
 This action tries to auto-authenticate using the [Automatic token authentication][link-gha-token] from GitHub.
 You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or add the **github-token** input.
+
+<div align="center">
+  <br />
+  with :heart:&nbsp;<strong>Expo</strong>
+  <br />
+</div>

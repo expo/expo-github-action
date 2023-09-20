@@ -1,6 +1,6 @@
 <div align="center">
   <h1>fingerprint</h1>
-  <p>Checking project fingerprinting for pull requests using [`@expo/fingerprint`](https://www.npmjs.com/package/@expo/fingerprint)</p>
+  <p>Checking project fingerprinting for pull requests using <a href="https://www.npmjs.com/package/@expo/fingerprint"><code>@expo/fingerprint</code></a></p>
 </div>
 
 <p align="center">
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check fingerprint
-        uses: expo/expo-github-action/fingerprint
+        uses: expo/expo-github-action/fingerprint@main
 ```
 
 ### Configuration options
@@ -77,7 +77,7 @@ Here is a summary of all the input options you can use.
 | variable                           | default          | description                                                             |
 | ---------------------------------- | ---------------- | ----------------------------------------------------------------------- |
 | **working-directory**              | -                | The relative directory of your Expo app                                 |
-| **packager**                       | - `yarn`         | The package manager used to install the fingerprint tools               |
+| **packager**                       | `yarn`         | The package manager used to install the fingerprint tools               |
 | **github-token**                   | `github.token`   | GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 | **fingerprint-version**            | `latest`         | `@expo/fingerprint` version to install                                  |
 | **fingerprint-installation-cache** | `true`           | If the `@expo/fingerprint` should be cached to speed up installation    |
@@ -133,7 +133,7 @@ jobs:
 
       - name: Check fingerprint
         id: fingerprint
-        uses: expo/expo-github-action/preview-build
+        uses: expo/expo-github-action/preview-build@main
 
       - uses: actions/github-script@v6
         if: ${{ github.event_name == 'pull_request' && github.steps.fingerprint.outputs.fingerprint-diff == '[]' }}
@@ -191,3 +191,9 @@ This workflow listens for pull request events and generates a fingerprint for ea
 When using the GitHub API, you always need to be authenticated.
 This action tries to auto-authenticate using the [Automatic token authentication][link-gha-token] from GitHub.
 You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or add the **github-token** input.
+
+<div align="center">
+  <br />
+  with :heart:&nbsp;<strong>Expo</strong>
+  <br />
+</div>
