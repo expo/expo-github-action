@@ -20150,6 +20150,14 @@ module.exports = require("https");
 
 /***/ }),
 
+/***/ 8188:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("module");
+
+/***/ }),
+
 /***/ 1808:
 /***/ ((module) => {
 
@@ -20519,6 +20527,58 @@ async function easBuild(cmd) {
     return JSON.parse(stdout);
 }
 /**
+ * Create an new EAS build using the user-provided command.
+ */
+async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
+    let stdout = '';
+    let cmd = command;
+    if (!cmd.includes('--json')) {
+        cmd += ' --json';
+    }
+    if (!cmd.includes('--non-interactive')) {
+        cmd += ' --non-interactive';
+    }
+    if (!cmd.includes('--no-wait')) {
+        cmd += ' --no-wait';
+    }
+    try {
+        ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${cmd}`, extraArgs, {
+            cwd,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+    }
+    return JSON.parse(stdout);
+}
+/**
+ * Cancel an EAS build.
+ */
+async function cancelEasBuildAsync(cwd, buildId) {
+    try {
+        await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
+    }
+    catch (e) {
+        info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
+    }
+}
+/**
+ * Query the EAS BuildInfo from given buildId.
+ */
+async function queryEasBuildInfoAsync(cwd, buildId) {
+    try {
+        const { stdout } = await getExecOutput(await which('eas', true), ['build:view', buildId, '--json'], {
+            cwd,
+            silent: true,
+        });
+        return JSON.parse(stdout);
+    }
+    catch (e) {
+        info(`Failed to query eas build ${buildId}: ${errorMessage(e)}`);
+    }
+    return null;
+}
+/**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
 async function projectInfo(dir) {
@@ -20687,6 +20747,39 @@ function issueComment() {
         },
     ];
 }
+/**
+ * Get the commit message for a specific commit hash.
+ */
+async function getGitCommandMessageAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const result = await github.rest.git.getCommit({
+        ...context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return result.data.message;
+}
+/**
+ * True if the current event is a push to the default branch.
+ */
+function isPushDefaultBranchContext() {
+    return context.eventName === 'push' && context.ref === `refs/heads/${context.payload?.repository?.default_branch}`;
+}
+/**
+ * Get the pull request information that associated with a specific commit hash.
+ */
+async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+        ...context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return results.data.map(pr => ({
+        id: pr.id,
+        prNumber: pr.number,
+        prHeadCommitSha: pr.head.sha,
+        mergeCommitSha: pr.merge_commit_sha,
+    }));
+}
 
 // EXTERNAL MODULE: external "os"
 var external_os_ = __nccwpck_require__(2037);
@@ -20763,6 +20856,17 @@ function tempPath(name, version) {
 function toolPath(name, version) {
     assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
     return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
+}
+/**
+ * Add extra `searchPath` to the global search path for require()
+ */
+function addGlobalNodeSearchPath(searchPath) {
+    const nodePath = process.env['NODE_PATH'] || '';
+    const delimiter = process.platform === 'win32' ? ';' : ':';
+    const nodePaths = nodePath.split(delimiter);
+    nodePaths.push(searchPath);
+    process.env['NODE_PATH'] = nodePaths.join(delimiter);
+    (__nccwpck_require__(8188).Module._initPaths)();
 }
 
 ;// CONCATENATED MODULE: ./src/actions/command.ts

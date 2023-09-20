@@ -141,6 +141,65 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
 }
 
 /**
+ * Create an new EAS build using the user-provided command.
+ */
+export async function createEasBuildFromRawCommandAsync(
+  cwd: string,
+  command: string,
+  extraArgs: string[] = []
+): Promise<BuildInfo[]> {
+  let stdout = '';
+
+  let cmd = command;
+  if (!cmd.includes('--json')) {
+    cmd += ' --json';
+  }
+  if (!cmd.includes('--non-interactive')) {
+    cmd += ' --non-interactive';
+  }
+  if (!cmd.includes('--no-wait')) {
+    cmd += ' --no-wait';
+  }
+
+  try {
+    ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${cmd}`, extraArgs, {
+      cwd,
+    }));
+  } catch (error) {
+    throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+  }
+
+  return JSON.parse(stdout);
+}
+
+/**
+ * Cancel an EAS build.
+ */
+export async function cancelEasBuildAsync(cwd: string, buildId: string): Promise<void> {
+  try {
+    await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
+  } catch (e) {
+    info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
+  }
+}
+
+/**
+ * Query the EAS BuildInfo from given buildId.
+ */
+export async function queryEasBuildInfoAsync(cwd: string, buildId: string): Promise<BuildInfo | null> {
+  try {
+    const { stdout } = await getExecOutput(await which('eas', true), ['build:view', buildId, '--json'], {
+      cwd,
+      silent: true,
+    });
+    return JSON.parse(stdout);
+  } catch (e) {
+    info(`Failed to query eas build ${buildId}: ${errorMessage(e)}`);
+  }
+  return null;
+}
+
+/**
  * Try to resolve the project info, by running 'expo config --type prebuild'.
  */
 export async function projectInfo(dir: string): Promise<ProjectInfo> {

@@ -34,7 +34,7 @@ describe(restoreFromCache, () => {
   it('skips when cache is unavailable', async () => {
     jest.mocked(cache.isFeatureAvailable).mockReturnValue(false);
     jest.mocked(cache.restoreCache).mockRejectedValue(new Error('Cache service url not found'));
-    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).resolves.toBeUndefined();
+    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).resolves.toBeNull();
   });
 
   it('throws when cache has unexpected error', async () => {
@@ -52,7 +52,7 @@ describe(restoreFromCache, () => {
   it('returns nothing when cache is empty', async () => {
     jest.mocked(cache.isFeatureAvailable).mockReturnValue(true);
     jest.mocked(cache.restoreCache).mockResolvedValue(undefined);
-    await expect(restoreFromCache('eas-cli', '0.46.2', 'npm')).resolves.toBeUndefined();
+    await expect(restoreFromCache('eas-cli', '0.46.2', 'npm')).resolves.toBeNull();
   });
 });
 

@@ -2,6 +2,13 @@ const ncc = require('@vercel/ncc');
 const fs = require('fs');
 const path = require('path');
 
+// For some entries, we need to specify externals for ncc to leave their require() as-it.
+const EXTERNAL_REQUIRES = {
+  fingerprint: ['@expo/fingerprint', 'module', 'sqlite3'],
+  'fingerprint-post': ['@expo/fingerprint', 'module', 'sqlite3'],
+  'preview-build': ['@expo/fingerprint', 'module', 'sqlite3'],
+};
+
 build();
 
 async function build() {
@@ -26,6 +33,7 @@ async function build() {
 
 async function compile(entry) {
   const { code, map, assets } = await ncc(entry, {
+    externals: EXTERNAL_REQUIRES[path.parse(entry).name] ?? [],
     cache: false,
     license: 'license.txt',
     quiet: true,

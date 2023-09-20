@@ -1,7 +1,9 @@
 import { saveCache, restoreCache, ReserveCacheError, isFeatureAvailable } from '@actions/cache';
 import { warning } from '@actions/core';
+import { context } from '@actions/github';
 import os from 'os';
 
+import { githubApi } from './github';
 import { toolPath } from './worker';
 
 /**
@@ -20,41 +22,67 @@ export function cacheKey(name: string, version: string, manager: string): string
 }
 
 /**
- * Restore a tool from the remote cache.
- * This will install the tool back into the local tool cache.
+ * Restore a directory from the remote cache.
  */
-export async function restoreFromCache(name: string, version: string, manager: string) {
-  const dir = toolPath(name, version)!;
-
+export async function restoreCacheAsync(cachePath: string, cacheKey: string): Promise<string | null> {
   if (!cacheIsAvailable()) {
     warning(`Skipped restoring from remote cache, not available.`);
-    return undefined;
+    return null;
   }
 
   try {
-    if (await restoreCache([dir], cacheKey(name, version, manager))) {
-      return dir;
+    if (await restoreCache([cachePath], cacheKey)) {
+      return cachePath;
     }
+  } catch (error) {
+    handleCacheError(error);
+  }
+  return null;
+}
+
+/**
+ * Save a directory to the remote cache.
+ */
+export async function saveCacheAsync(cachePath: string, cacheKey: string): Promise<void> {
+  if (!cacheIsAvailable()) {
+    warning(`Skipped saving to remote cache, not available.`);
+    return;
+  }
+
+  try {
+    await saveCache([cachePath], cacheKey);
   } catch (error) {
     handleCacheError(error);
   }
 }
 
 /**
+ * Delete a cache key from the remote cache.
+ * Note that is not using the official API from @actions/cache but using the GitHub API directly.
+ */
+export async function deleteCacheAsync(githubToken: string, cacheKey: string, ref: string): Promise<void> {
+  const github = githubApi({ token: githubToken });
+  await github.rest.actions.deleteActionsCacheByKey({
+    ...context.repo,
+    key: cacheKey,
+    ref,
+  });
+}
+
+/**
+ * Restore a tool from the remote cache.
+ * This will install the tool back into the local tool cache.
+ */
+export function restoreFromCache(name: string, version: string, manager: string) {
+  return restoreCacheAsync(toolPath(name, version), cacheKey(name, version, manager));
+}
+
+/**
  * Save a tool to the remote cache.
  * This will fetch the tool from the local tool cache.
  */
-export async function saveToCache(name: string, version: string, manager: string) {
-  if (!cacheIsAvailable()) {
-    warning(`Skipped saving to remote cache, not available.`);
-    return undefined;
-  }
-
-  try {
-    await saveCache([toolPath(name, version)], cacheKey(name, version, manager));
-  } catch (error) {
-    handleCacheError(error);
-  }
+export function saveToCache(name: string, version: string, manager: string) {
+  return saveCacheAsync(toolPath(name, version), cacheKey(name, version, manager));
 }
 
 /**
