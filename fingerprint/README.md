@@ -136,7 +136,7 @@ jobs:
         uses: expo/expo-github-action/preview-build@main
 
       - uses: actions/github-script@v6
-        if: ${{ github.event_name == 'pull_request' && github.steps.fingerprint.outputs.fingerprint-diff == '[]' }}
+        if: ${{ github.event_name == 'pull_request' && steps.fingerprint.outputs.fingerprint-diff == '[]' }}
         with:
           script: |
             try {
