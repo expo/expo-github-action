@@ -42,7 +42,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🏗 Setup Expo
         uses: ./
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
@@ -108,7 +108,7 @@ jobs:
 
       - name: 🧪 Comment has content
         if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const comment = `${{ steps.no-comment.outputs.comment }}`
@@ -130,7 +130,7 @@ jobs:
 
       - name: 🧪 Single QR has content
         if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const comment = `${{ steps.single-qr.outputs.comment }}`
@@ -160,7 +160,7 @@ jobs:
 
       - name: 🧪 Multi QR has content
         if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const comment = `${{ steps.multi-qr.outputs.comment }}`
@@ -173,7 +173,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🏗 Setup Expo
         uses: ./
@@ -195,7 +195,7 @@ jobs:
 
       - name: 🧪 Output has content
         if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const message = `${{ steps.preview.outputs.message }}`
