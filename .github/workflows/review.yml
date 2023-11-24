@@ -7,43 +7,37 @@ on:
     types: [opened, synchronize]
 
 concurrency:
-  group: review-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    strategy:
-      matrix:
-        node: [18.x]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile --check-files
+        run: bun install
 
       - name: ✅ Lint code
-        run: yarn lint --max-warnings=0
+        run: bun run lint --max-warnings=0
 
       - name: 🧪 Test code
-        run: yarn test
+        run: bun run test
 
       - name: 👷 Build code
-        run: yarn clean && yarn build
+        run: bun run clean && bun run build
 
       - name: 🕵️ Validate build
         id: diff
         run: |
           if [ "$(git diff --ignore-space-at-eol build/ | wc -l)" -gt "0" ]; then
             echo "⚠️ Build is outdated"
-            echo "    > run 'yarn clean', 'yarn build', and commit changes"
+            echo "    > run 'bun run clean', 'bun run build', and commit changes"
             git diff
             exit 1
           fi

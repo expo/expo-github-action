@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: test-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -20,29 +20,26 @@ jobs:
   setup:
     strategy:
       matrix:
-        os:
-          - ubuntu
-          - windows
-          - macos
-        cache:
-          - cache
-          - no-cache
-        packager:
-          - yarn
-        include:
-          - os: ubuntu
-            cache: no-cache
-            packager: npm
-          - os: windows
-            cache: no-cache
-            packager: npm
+        os: [ubuntu, windows, macos]
+        cache: [cache, no-cache]
+        packager: [bun, npm, yarn]
+        exclude:
+          # Mac can't unpack caches that fast
           - os: macos
-            cache: no-cache
-            packager: npm
+            cache: cache
+          # Windows can't unpack caches that fast
+          - os: windows
+            cache: cache
+          # Bun isn't supported on Windows (yet)
+          - os: windows
+            packager: bun
     runs-on: ${{ matrix.os }}-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
+
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 🏗 Setup Expo
         uses: ./
@@ -74,20 +71,18 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 🏗 Setup EAS
         uses: ./
         with:
           eas-version: latest
+          packager: bun
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗 Setup project
-        run: yarn create expo-app ./temp
+        run: bun create expo ./temp --template blank
 
       - name: 👷 Configure project
         working-directory: ./temp
@@ -175,15 +170,19 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
+
       - name: 🏗 Setup Expo
         uses: ./
         with:
           eas-version: latest
           expo-version: latest
+          packager: bun
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗 Setup project
-        run: expo init -t blank ./temp
+        run: bun create expo ./temp --template blank
 
       - name: 🧪 Without commenting
         if: ${{ env.hasAuth == 'true' }}

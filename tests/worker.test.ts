@@ -3,8 +3,8 @@ import * as exec from '@actions/exec';
 import os from 'os';
 import path from 'path';
 
-import { tempPath, toolPath, installToolFromPackage, patchWatchers, executeAction } from '../src/worker';
 import { resetEnv, setEnv, setPlatform, resetPlatform } from './utils';
+import { tempPath, toolPath, installToolFromPackage, patchWatchers, executeAction } from '../src/worker';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');

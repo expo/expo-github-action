@@ -1,5 +1,7 @@
+const spawn = require('@expo/spawn-async');
 const ncc = require('@vercel/ncc');
 const fs = require('fs');
+const { boolish } = require('getenv');
 const path = require('path');
 
 // For some entries, we need to specify externals for ncc to leave their require() as-it.
@@ -9,11 +11,29 @@ const EXTERNAL_REQUIRES = {
   'preview-build': ['@expo/fingerprint', 'module', 'sqlite3'],
 };
 
-build();
+const actionsDir = path.resolve(__dirname, 'src/actions');
+const buildDir = path.resolve(__dirname, 'build');
+const modulesDir = path.resolve(__dirname, 'node_modules');
+
+prebuild().then(() => build());
+
+async function prebuild() {
+  if (!boolish(process.env.CI, false)) {
+    return console.log('Skipped CI environment simulation');
+  }
+
+  console.log('Preparing build in simulated CI environment');
+
+  await fs.promises.rm(buildDir, { force: true, recursive: true });
+  await fs.promises.rm(modulesDir, { force: true, recursive: true });
+
+  await spawn('bun', ['install', '--frozen-lockfile'], { stdio: 'inherit', env: { ...process.env, CI: true } });
+
+  console.log();
+}
 
 async function build() {
-  const actionsDir = path.resolve(__dirname, 'src/actions');
-  const buildDir = path.resolve(__dirname, 'build');
+  console.log('Building actions');
 
   const actions = fs
     .readdirSync(actionsDir, { withFileTypes: true })
@@ -29,6 +49,9 @@ async function build() {
 
     console.log(`✓ ${path.relative(__dirname, action.file)}`);
   }
+
+  console.log();
+  console.log('All actions built');
 }
 
 async function compile(entry) {
