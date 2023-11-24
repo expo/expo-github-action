@@ -46,6 +46,7 @@ Here is a summary of all the input options you can use.
 | --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
 | **command**           | -                           | EAS CLI command to run when creating updates                                                   |
 | **working-directory** | -                           | The relative directory of your Expo app                                                        |
+| **app-scheme**        | -                           | The (custom) app scheme to use when creating the preview QR code                               |
 | **comment**           | `true`                      | If the action should summarize the EAS Update information as comment on a pull request         |
 | **comment-id**        | _[see code][code-defaults]_ | unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
 | **github-token**      | `github.token`              | GitHub token to use when commenting on PR ([read more](#github-tokens))                        |

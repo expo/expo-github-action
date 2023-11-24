@@ -16,6 +16,7 @@ export function previewInput() {
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
     githubToken: getInput('github-token'),
+    appScheme: getInput('app-scheme'),
   };
 }
 
@@ -42,7 +43,7 @@ export async function previewAction(input = previewInput()) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
 
-  const variables = getVariables(config, updates);
+  const variables = getVariables(config, updates, input);
   const messageId = template(input.commentId, variables);
   const messageBody = createSummary(updates, variables);
 
@@ -95,22 +96,24 @@ function sanitizeCommand(input: string): string {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
+export function getVariables(config: ExpoConfig, updates: EasUpdate[], input: ReturnType<typeof previewInput>) {
   const projectId: string = config.extra?.eas?.projectId;
   const android = updates.find(update => update.platform === 'android');
   const ios = updates.find(update => update.platform === 'ios');
+
+  const appScheme = input.appScheme || getSchemeFromConfig(config) || '';
 
   return {
     // EAS / Expo specific
     projectId,
     projectName: config.name,
     projectSlug: config.slug,
-    projectScheme: config.scheme || '',
+    projectScheme: appScheme,
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme: config.scheme }),
+    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme }),
     link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
@@ -123,7 +126,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     androidBranchName: android?.branch || '',
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
-    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme: config.scheme }) : '',
+    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme }) : '',
     androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
     iosId: ios?.id || '',
@@ -131,9 +134,27 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
     iosBranchName: ios?.branch || '',
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme: config.scheme }) : '',
+    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
+}
+
+/**
+ * Retrieve the app scheme from project config, using the following criteria:
+ *   - If the scheme is a string, return that.
+ *   - If the scheme is an array, return the longest scheme.
+ */
+export function getSchemeFromConfig(config: ExpoConfig) {
+  if (typeof config.scheme === 'string') {
+    return config.scheme;
+  }
+
+  if (Array.isArray(config.scheme) && config.scheme.length > 0) {
+    const longestToShortest = config.scheme.sort((a, b) => b.length - a.length);
+    return longestToShortest[0];
+  }
+
+  return null;
 }
 
 /**
