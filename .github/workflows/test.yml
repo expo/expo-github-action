@@ -39,6 +39,12 @@ jobs:
           - os: macos
             cache: no-cache
             packager: npm
+          - os: ubuntu
+            cache: no-cache
+            packager: bun
+          - os: macos
+            cache: no-cache
+            packager: bun
     runs-on: ${{ matrix.os }}-latest
     steps:
       - name: 🏗 Setup repo
