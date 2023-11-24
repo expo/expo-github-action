@@ -24,9 +24,12 @@ jobs:
         cache: [cache, no-cache]
         packager: [bun, npm, yarn]
         exclude:
-          # npm isn't particularly faster with a cache
-          - cache: cache
-            packager: npm
+          # Mac can't unpack caches that fast
+          - os: macos
+            cache: cache
+          # Windows can't unpack caches that fast
+          - os: windows
+            cache: cache
           # Bun isn't supported on Windows (yet)
           - os: windows
             packager: bun
