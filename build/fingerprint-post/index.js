@@ -88792,6 +88792,823 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 2049:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runAction = void 0;
+const core_1 = __nccwpck_require__(2186);
+const assert_1 = __importDefault(__nccwpck_require__(9491));
+const cacher_1 = __nccwpck_require__(331);
+const fingerprint_1 = __nccwpck_require__(3111);
+const github_1 = __nccwpck_require__(978);
+const worker_1 = __nccwpck_require__(8912);
+(0, worker_1.executeAction)(runAction);
+async function runAction(input = (0, fingerprint_1.collectFingerprintActionInput)()) {
+    if (!(0, github_1.isPushDefaultBranchContext)()) {
+        return;
+    }
+    try {
+        const ref = process.env.GITHUB_REF;
+        (0, assert_1.default)(ref != null, 'GITHUB_REF is not defined');
+        await (0, cacher_1.deleteCacheAsync)(input.githubToken, input.fingerprintDbCacheKey, ref);
+    }
+    catch (e) {
+        (0, core_1.info)(`Failed to delete the cache: ${e}`);
+    }
+    await (0, fingerprint_1.saveDbToCacheAsync)(input.fingerprintDbCacheKey);
+}
+exports.runAction = runAction;
+
+
+/***/ }),
+
+/***/ 331:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleCacheError = exports.saveToCache = exports.restoreFromCache = exports.deleteCacheAsync = exports.saveCacheAsync = exports.restoreCacheAsync = exports.cacheKey = exports.cacheIsAvailable = void 0;
+const cache_1 = __nccwpck_require__(7799);
+const core_1 = __nccwpck_require__(2186);
+const github_1 = __nccwpck_require__(5438);
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const github_2 = __nccwpck_require__(978);
+const worker_1 = __nccwpck_require__(8912);
+/**
+ * Determine if the remote cache is available and can be used.
+ */
+function cacheIsAvailable() {
+    return (0, cache_1.isFeatureAvailable)();
+}
+exports.cacheIsAvailable = cacheIsAvailable;
+/**
+ * Get the exact cache key for the package.
+ * We can prefix this when there are breaking changes in this action.
+ */
+function cacheKey(name, version, manager) {
+    return `${name}-${process.platform}-${os_1.default.arch()}-${manager}-${version}`;
+}
+exports.cacheKey = cacheKey;
+/**
+ * Restore a directory from the remote cache.
+ */
+async function restoreCacheAsync(cachePath, cacheKey) {
+    if (!cacheIsAvailable()) {
+        (0, core_1.warning)(`Skipped restoring from remote cache, not available.`);
+        return null;
+    }
+    try {
+        if (await (0, cache_1.restoreCache)([cachePath], cacheKey)) {
+            return cachePath;
+        }
+    }
+    catch (error) {
+        handleCacheError(error);
+    }
+    return null;
+}
+exports.restoreCacheAsync = restoreCacheAsync;
+/**
+ * Save a directory to the remote cache.
+ */
+async function saveCacheAsync(cachePath, cacheKey) {
+    if (!cacheIsAvailable()) {
+        (0, core_1.warning)(`Skipped saving to remote cache, not available.`);
+        return;
+    }
+    try {
+        await (0, cache_1.saveCache)([cachePath], cacheKey);
+    }
+    catch (error) {
+        handleCacheError(error);
+    }
+}
+exports.saveCacheAsync = saveCacheAsync;
+/**
+ * Delete a cache key from the remote cache.
+ * Note that is not using the official API from @actions/cache but using the GitHub API directly.
+ */
+async function deleteCacheAsync(githubToken, cacheKey, ref) {
+    const github = (0, github_2.githubApi)({ token: githubToken });
+    await github.rest.actions.deleteActionsCacheByKey({
+        ...github_1.context.repo,
+        key: cacheKey,
+        ref,
+    });
+}
+exports.deleteCacheAsync = deleteCacheAsync;
+/**
+ * Restore a tool from the remote cache.
+ * This will install the tool back into the local tool cache.
+ */
+function restoreFromCache(name, version, manager) {
+    return restoreCacheAsync((0, worker_1.toolPath)(name, version), cacheKey(name, version, manager));
+}
+exports.restoreFromCache = restoreFromCache;
+/**
+ * Save a tool to the remote cache.
+ * This will fetch the tool from the local tool cache.
+ */
+function saveToCache(name, version, manager) {
+    return saveCacheAsync((0, worker_1.toolPath)(name, version), cacheKey(name, version, manager));
+}
+exports.saveToCache = saveToCache;
+/**
+ * Try to handle incoming cache errors.
+ * Because workers can operate in environments without cache configured,
+ * we need to make sure to only skip the cache instead of fail.
+ *
+ * Currently we handle these types of errors:
+ *   - ReserveCacheError
+ *   - "cache service url not found"
+ */
+function handleCacheError(error) {
+    const isReserveCacheError = error instanceof cache_1.ReserveCacheError;
+    if (isReserveCacheError) {
+        (0, core_1.warning)('Skipped remote cache, encountered error:');
+        (0, core_1.warning)(error.message);
+    }
+    else {
+        throw error;
+    }
+}
+exports.handleCacheError = handleCacheError;
+
+
+/***/ }),
+
+/***/ 7070:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FingerprintDbManager = void 0;
+const sqlite_1 = __nccwpck_require__(280);
+class FingerprintDbManager {
+    dbPath;
+    constructor(dbPath) {
+        this.dbPath = dbPath;
+    }
+    async initAsync() {
+        const db = await (0, sqlite_1.openDatabaseAsync)(this.dbPath);
+        await db.runAsync(`CREATE TABLE IF NOT EXISTS ${FingerprintDbManager.TABLE_NAME} (${FingerprintDbManager.SCHEMA.join(', ')})`);
+        for (const index of FingerprintDbManager.INDEXES) {
+            await db.runAsync(index);
+        }
+        for (const extraStatement of FingerprintDbManager.EXTRA_CREATE_DB_STATEMENTS) {
+            await db.runAsync(extraStatement);
+        }
+        await db.runAsync(`PRAGMA fingerprint_schema_version = ${FingerprintDbManager.SCHEMA_VERSION}`);
+        this.db = db;
+        return db;
+    }
+    async upsertFingerprintByGitCommitHashAsync(gitCommitHash, params) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const easBuildId = params.easBuildId ?? '';
+        const fingerprintString = JSON.stringify(params.fingerprint);
+        await this.db.runAsync(`INSERT INTO ${FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint) VALUES (?, ?, ?, json(?)) \
+       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?)`, gitCommitHash, easBuildId, params.fingerprint.hash, fingerprintString, easBuildId, params.fingerprint.hash, fingerprintString);
+    }
+    async queryEasBuildIdsFromFingerprintAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const rows = await this.db.allAsync(`SELECT eas_build_id FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
+        return rows.map(row => row['eas_build_id']);
+    }
+    /**
+     * Get the latest entity from the fingerprint hash where the eas_build_id is not null.
+     */
+    async getLatestEasEntityFromFingerprintAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager.TABLE_NAME}
+      WHERE eas_build_id IS NOT NULL AND eas_build_id != "" AND fingerprint_hash = ?
+      ORDER BY updated_at DESC LIMIT 1`, fingerprintHash);
+        return row ? FingerprintDbManager.serialize(row) : null;
+    }
+    async getEntityFromGitCommitHashAsync(gitCommitHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager.TABLE_NAME} WHERE git_commit_hash = ?`, gitCommitHash);
+        return row ? FingerprintDbManager.serialize(row) : null;
+    }
+    async getFirstEntityFromFingerprintHashAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
+        return row ? FingerprintDbManager.serialize(row) : null;
+    }
+    async queryEntitiesFromFingerprintHashAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const rows = await this.db.allAsync(`SELECT * FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
+        return rows.map(row => FingerprintDbManager.serialize(row));
+    }
+    async getFingerprintSourcesAsync(fingerprintHash) {
+        if (!this.db) {
+            throw new Error('Database not initialized. Call initAsync() first.');
+        }
+        const row = await this.db.getAsync(`SELECT json_extract(fingerprint, '$.sources') as sources FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
+        const result = row?.['sources'];
+        if (!result) {
+            return null;
+        }
+        return JSON.parse(result);
+    }
+    async closeAsync() {
+        this.db?.closeAsync();
+    }
+    //#region private
+    static SCHEMA_VERSION = 0;
+    static TABLE_NAME = 'fingerprint';
+    static SCHEMA = [
+        'id INTEGER PRIMARY KEY AUTOINCREMENT',
+        'eas_build_id TEXT',
+        'git_commit_hash TEXT NOT NULL',
+        'fingerprint_hash TEXT NOT NULL',
+        'fingerprint TEXT NOT NULL',
+        "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
+        "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
+    ];
+    static INDEXES = [
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON ${this.TABLE_NAME} (git_commit_hash)`,
+        `CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON ${this.TABLE_NAME} (fingerprint_hash)`,
+    ];
+    static EXTRA_CREATE_DB_STATEMENTS = [
+        `CREATE TRIGGER IF NOT EXISTS update_fingerprint_updated_at AFTER UPDATE ON ${this.TABLE_NAME}
+BEGIN
+  UPDATE ${this.TABLE_NAME} SET updated_at = DATETIME('now', 'utc') WHERE id = NEW.id;
+END`,
+    ];
+    db = null;
+    static serialize(rawEntity) {
+        return {
+            id: rawEntity.id,
+            easBuildId: rawEntity.eas_build_id,
+            gitCommitHash: rawEntity.git_commit_hash,
+            fingerprintHash: rawEntity.fingerprint_hash,
+            fingerprint: JSON.parse(rawEntity.fingerprint),
+            createdAt: rawEntity.created_at,
+            updatedAt: rawEntity.updated_at,
+        };
+    }
+}
+exports.FingerprintDbManager = FingerprintDbManager;
+//#endregion
+
+
+/***/ }),
+
+/***/ 3111:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.saveDbToCacheAsync = exports.restoreDbFromCacheAsync = exports.installFingerprintAsync = exports.collectFingerprintActionInput = exports.createFingerprintDbManagerAsync = exports.createFingerprintOutputAsync = void 0;
+const core_1 = __nccwpck_require__(2186);
+const github_1 = __nccwpck_require__(5438);
+const io_1 = __nccwpck_require__(7436);
+const assert_1 = __importDefault(__nccwpck_require__(9491));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const FingerprintDbManager_1 = __nccwpck_require__(7070);
+const cacher_1 = __nccwpck_require__(331);
+const packager_1 = __nccwpck_require__(6466);
+const sqlite_1 = __nccwpck_require__(280);
+const worker_1 = __nccwpck_require__(8912);
+__exportStar(__nccwpck_require__(7070), exports);
+/**
+ * Shared logic to create a fingerprint diff for fingerprint actions
+ */
+async function createFingerprintOutputAsync(dbManager, input) {
+    await installFingerprintAsync(input.fingerprintVersion, input.packager, input.fingerprintInstallationCache);
+    const fingerprint = __nccwpck_require__(1351);
+    const currentFingerprint = await fingerprint.createFingerprintAsync(input.workingDirectory);
+    let previousFingerprint = null;
+    if (input.previousGitCommitHash) {
+        previousFingerprint = await dbManager.getEntityFromGitCommitHashAsync(input.previousGitCommitHash);
+    }
+    const diff = previousFingerprint != null
+        ? await fingerprint.diffFingerprints(previousFingerprint.fingerprint, currentFingerprint)
+        : await fingerprint.diffFingerprints({ sources: [], hash: '' }, currentFingerprint);
+    return {
+        currentFingerprint,
+        previousFingerprint: previousFingerprint?.fingerprint ?? null,
+        diff,
+    };
+}
+exports.createFingerprintOutputAsync = createFingerprintOutputAsync;
+/**
+ * Create a FingerprintDbManager instance
+ */
+async function createFingerprintDbManagerAsync(packager, cacheKey) {
+    await (0, sqlite_1.installSQLiteAsync)(packager);
+    const dbPath = await getDbPathAsync();
+    const cacheHit = (await restoreDbFromCacheAsync(cacheKey)) != null;
+    if (cacheHit) {
+        (0, core_1.info)(`Restored fingerprint database from cache - cacheKey[${cacheKey}]`);
+    }
+    else {
+        (0, core_1.info)(`Missing fingerprint database from cache - will create a new database - cacheKey[${cacheKey}]`);
+    }
+    const dbManager = new FingerprintDbManager_1.FingerprintDbManager(dbPath);
+    await dbManager.initAsync();
+    return dbManager;
+}
+exports.createFingerprintDbManagerAsync = createFingerprintDbManagerAsync;
+/**
+ * Common inputs for fingerprint actions
+ */
+function collectFingerprintActionInput() {
+    return {
+        packager: (0, core_1.getInput)('packager') || 'yarn',
+        githubToken: (0, core_1.getInput)('github-token'),
+        workingDirectory: (0, core_1.getInput)('working-directory'),
+        fingerprintVersion: (0, core_1.getInput)('fingerprint-version') || 'latest',
+        fingerprintInstallationCache: !(0, core_1.getInput)('fingerprint-installation-cache') || (0, core_1.getBooleanInput)('fingerprint-installation-cache'),
+        fingerprintDbCacheKey: (0, core_1.getInput)('fingerprint-db-cache-key'),
+        previousGitCommitHash: github_1.context.eventName === 'pull_request'
+            ? github_1.context.payload.pull_request?.base?.sha
+            : github_1.context.payload.before,
+        currentGitCommitHash: github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha,
+    };
+}
+exports.collectFingerprintActionInput = collectFingerprintActionInput;
+/**
+ * Install @expo/fingerprint based on given input
+ */
+async function installFingerprintAsync(fingerprintVersion, packager, useCache = true) {
+    const packageName = '@expo/fingerprint';
+    const version = await (0, packager_1.resolvePackage)(packageName, fingerprintVersion);
+    const message = useCache
+        ? `Installing ${packageName} (${version}) from cache or with ${packager}`
+        : `Installing ${packageName} (${version}) with ${packager}`;
+    return await (0, core_1.group)(message, async () => {
+        let libRoot = (0, worker_1.findTool)(packageName, version) || null;
+        if (!libRoot && useCache) {
+            libRoot = await (0, cacher_1.restoreFromCache)(packageName, version, packager);
+        }
+        if (!libRoot) {
+            libRoot = await (0, packager_1.installPackage)(packageName, version, packager);
+            if (useCache) {
+                await (0, cacher_1.saveToCache)(packageName, version, packager);
+            }
+        }
+        (0, worker_1.installToolFromPackage)(libRoot);
+        (0, worker_1.addGlobalNodeSearchPath)(path_1.default.join(libRoot, 'node_modules'));
+        return libRoot;
+    });
+}
+exports.installFingerprintAsync = installFingerprintAsync;
+/**
+ * Restore database from the remote cache.
+ * This will install the tool back into the local tool cache.
+ */
+async function restoreDbFromCacheAsync(cacheKey) {
+    return (0, cacher_1.restoreCacheAsync)(path_1.default.dirname(await getDbPathAsync()), cacheKey);
+}
+exports.restoreDbFromCacheAsync = restoreDbFromCacheAsync;
+/**
+ * Save database to the remote cache.
+ * This will fetch from the local tool cache.
+ */
+async function saveDbToCacheAsync(cacheKey) {
+    (0, core_1.info)(`Saving fingerprint database to cache: ${cacheKey}`);
+    return (0, cacher_1.saveCacheAsync)(path_1.default.dirname(await getDbPathAsync()), cacheKey);
+}
+exports.saveDbToCacheAsync = saveDbToCacheAsync;
+/**
+ * Get the path to the fingerprint database
+ */
+async function getDbPathAsync() {
+    (0, assert_1.default)(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+    const result = path_1.default.join(process.env['RUNNER_TOOL_CACHE'], 'fingerprint-storage', 'fingerprint.db');
+    const dir = path_1.default.dirname(result);
+    if (!(await fs_1.default.promises.stat(dir).catch(() => null))) {
+        await (0, io_1.mkdirP)(dir);
+    }
+    return result;
+}
+
+
+/***/ }),
+
+/***/ 978:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPullRequestFromGitCommitShaAsync = exports.isPushDefaultBranchContext = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+const github_1 = __nccwpck_require__(5438);
+const assert_1 = __nccwpck_require__(9491);
+/**
+ * Determine if a comment exists on an issue or pull with the provided identifier.
+ * This will iterate all comments received from GitHub, and try to exit early if it exists.
+ */
+async function fetchIssueComment(options) {
+    const github = githubApi(options);
+    const iterator = github.paginate.iterator(github.rest.issues.listComments, {
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+    });
+    for await (const { data: batch } of iterator) {
+        for (const item of batch) {
+            if ((item.body || '').includes(options.id)) {
+                return item;
+            }
+        }
+    }
+}
+exports.fetchIssueComment = fetchIssueComment;
+/**
+ * Create a new comment on an existing issue or pull.
+ * This includes a hidden identifier (markdown comment) to identify the comment later.
+ * It will also update the comment when a previous comment id was found.
+ */
+async function createIssueComment(options) {
+    const github = githubApi(options);
+    const body = `<!-- ${options.id} -->\n${options.body}`;
+    const existing = await fetchIssueComment(options);
+    if (existing) {
+        return github.rest.issues.updateComment({
+            owner: options.owner,
+            repo: options.repo,
+            comment_id: existing.id,
+            body,
+        });
+    }
+    return github.rest.issues.createComment({
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+        body,
+    });
+}
+exports.createIssueComment = createIssueComment;
+/**
+ * Get an authenticated octokit instance.
+ * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
+ */
+function githubApi(options = {}) {
+    const token = process.env['GITHUB_TOKEN'] || options.token;
+    (0, assert_1.ok)(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
+    return (0, github_1.getOctokit)(token);
+}
+exports.githubApi = githubApi;
+/**
+ * Validate and extract the pull reference from context.
+ * If it's not a supported event, e.g. not a pull, it will throw an error.
+ * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
+ */
+function pullContext() {
+    // see .github/workflows/test.yml in 'comment'
+    if (process.env['EXPO_TEST_GITHUB_PULL']) {
+        return { ...github_1.context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
+    }
+    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
+    return github_1.context.issue;
+}
+exports.pullContext = pullContext;
+function hasPullContext() {
+    try {
+        pullContext();
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+exports.hasPullContext = hasPullContext;
+async function createReaction(options) {
+    const github = githubApi(options);
+    if (options.comment_id) {
+        return github.rest.reactions.createForIssueComment({
+            owner: options.owner,
+            repo: options.repo,
+            comment_id: options.comment_id,
+            content: options.content,
+        });
+    }
+    return github.rest.reactions.createForIssue({
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+        content: options.content,
+    });
+}
+exports.createReaction = createReaction;
+function issueComment() {
+    (0, assert_1.ok)(github_1.context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
+    return [
+        (github_1.context.payload?.comment?.body ?? ''),
+        {
+            ...github_1.context.issue,
+            comment_id: github_1.context.payload?.comment?.id,
+        },
+    ];
+}
+exports.issueComment = issueComment;
+/**
+ * Get the commit message for a specific commit hash.
+ */
+async function getGitCommandMessageAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const result = await github.rest.git.getCommit({
+        ...github_1.context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return result.data.message;
+}
+exports.getGitCommandMessageAsync = getGitCommandMessageAsync;
+/**
+ * True if the current event is a push to the default branch.
+ */
+function isPushDefaultBranchContext() {
+    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${github_1.context.payload?.repository?.default_branch}`;
+}
+exports.isPushDefaultBranchContext = isPushDefaultBranchContext;
+/**
+ * Get the pull request information that associated with a specific commit hash.
+ */
+async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+        ...github_1.context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return results.data.map(pr => ({
+        id: pr.id,
+        prNumber: pr.number,
+        prHeadCommitSha: pr.head.sha,
+        mergeCommitSha: pr.merge_commit_sha,
+    }));
+}
+exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsync;
+
+
+/***/ }),
+
+/***/ 6466:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.installPackage = exports.resolvePackage = void 0;
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const worker_1 = __nccwpck_require__(8912);
+/**
+ * Resolve a package with version range to an exact version.
+ * This is useful to invalidate the cache _and_ using dist-tags or version ranges.
+ * It executes `npm info` and parses the latest manifest.
+ */
+async function resolvePackage(name, range) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
+    }
+    catch (error) {
+        throw new Error(`Could not resolve ${name}@${range}`, { cause: error });
+    }
+    // thanks npm, for returning a "" json string value for invalid versions
+    if (!stdout) {
+        throw new Error(`Could not resolve ${name}@${range}, reason:\nInvalid version`);
+    }
+    // thanks npm, for returning a "x.x.x" json value...
+    if (stdout.startsWith('"')) {
+        stdout = `[${stdout}]`;
+    }
+    return JSON.parse(stdout).at(-1);
+}
+exports.resolvePackage = resolvePackage;
+/**
+ * Install a module using a node package manager, inside a temporary directory.
+ * If that's successful, move the module into the worker's tool cache.
+ *
+ * Note, we do assume that the packager is globally available AND has the `add <pkgspec>` command.
+ */
+async function installPackage(name, version, manager) {
+    const temp = (0, worker_1.tempPath)(name, version);
+    await (0, io_1.mkdirP)(temp);
+    await (0, exec_1.exec)(manager, ['add', `${name}@${version}`], { cwd: temp });
+    return (0, worker_1.cacheTool)(temp, name, version);
+}
+exports.installPackage = installPackage;
+
+
+/***/ }),
+
+/***/ 280:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.installSQLiteAsync = exports.openDatabaseAsync = void 0;
+const core_1 = __nccwpck_require__(2186);
+const assert_1 = __importDefault(__nccwpck_require__(9491));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const util_1 = __nccwpck_require__(3837);
+const cacher_1 = __nccwpck_require__(331);
+const packager_1 = __nccwpck_require__(6466);
+const worker_1 = __nccwpck_require__(8912);
+/**
+ * Open a database and return a promise that resolves to a database object.
+ */
+function openDatabaseAsync(filename) {
+    return new Promise((resolve, reject) => {
+        const sqlite3 = __nccwpck_require__(7299);
+        const db = new sqlite3.Database(filename, err => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(db);
+            }
+        });
+    }).then(db => {
+        return {
+            ...db,
+            closeAsync: (0, util_1.promisify)(db.close.bind(db)),
+            runAsync: (0, util_1.promisify)(db.run.bind(db)),
+            execAsync: (0, util_1.promisify)(db.exec.bind(db)),
+            prepareAsync: (0, util_1.promisify)(db.prepare.bind(db)),
+            getAsync: (0, util_1.promisify)(db.get.bind(db)),
+            allAsync: (0, util_1.promisify)(db.all.bind(db)),
+        };
+    });
+}
+exports.openDatabaseAsync = openDatabaseAsync;
+/**
+ * Install the sqlite3
+ */
+async function installSQLiteAsync(packager) {
+    const sqliteVersion = (__nccwpck_require__(4147)/* .devDependencies.sqlite3 */ .v6.xp);
+    (0, assert_1.default)(sqliteVersion);
+    const packageName = 'sqlite3';
+    const version = await (0, packager_1.resolvePackage)(packageName, sqliteVersion);
+    const message = `Installing ${packageName} (${version}) from cache or with ${packager}`;
+    return await (0, core_1.group)(message, async () => {
+        let libRoot = (0, worker_1.findTool)(packageName, version) || null;
+        if (!libRoot) {
+            libRoot = await (0, cacher_1.restoreFromCache)(packageName, version, packager);
+        }
+        if (!libRoot) {
+            libRoot = await (0, packager_1.installPackage)(packageName, version, packager);
+            await (0, cacher_1.saveToCache)(packageName, version, packager);
+        }
+        (0, worker_1.addGlobalNodeSearchPath)(path_1.default.join(libRoot, 'node_modules'));
+        return libRoot;
+    });
+}
+exports.installSQLiteAsync = installSQLiteAsync;
+
+
+/***/ }),
+
+/***/ 8912:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addGlobalNodeSearchPath = exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const assert_1 = __nccwpck_require__(9491);
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+var tool_cache_1 = __nccwpck_require__(7784);
+Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function () { return tool_cache_1.find; } }));
+Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
+/**
+ * Auto-execute the action and pass errors to 'core.setFailed'.
+ * It also passes the full error, with stacktrace, to 'core.debug'.
+ * You'll need to enable debugging to view these full errors.
+ *
+ * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
+ */
+function executeAction(action) {
+    return action().catch((error) => {
+        (0, core_1.setFailed)(error.message || error);
+        (0, core_1.debug)(error.stack || 'No stacktrace available');
+    });
+}
+exports.executeAction = executeAction;
+/**
+ * Install a "tool" from a node package.
+ * This will add the folder, containing the `node_modules`, to the global path.
+ */
+function installToolFromPackage(dir) {
+    return (0, core_1.addPath)(path_1.default.join(dir, 'node_modules', '.bin'));
+}
+exports.installToolFromPackage = installToolFromPackage;
+/**
+ * Try to patch Linux's inotify limits to a more sensible setting on Linux.
+ * This limitation could cause `ENOSPC` errors when bundling Expo or React Native projects.
+ *
+ * It will try to change these `fs.inotify.` limits:
+ *   - .max_user_instances = 524288
+ *   - .max_user_watches = 524288
+ *   - .max_queued_events = 524288
+ *
+ * @see https://github.com/expo/expo-github-action/issues/20
+ */
+async function patchWatchers() {
+    if (process.platform !== 'linux') {
+        return (0, core_1.info)('Skipped patching watchers: not running on Linux.');
+    }
+    try {
+        // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_user_instances=524288');
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_user_watches=524288');
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_queued_events=524288');
+        await (0, exec_1.exec)('sudo sysctl -p');
+        (0, core_1.info)('Patched system watchers for the `ENOSPC` error.');
+    }
+    catch (error) {
+        (0, core_1.warning)(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
+        (0, core_1.warning)('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
+        (0, core_1.warning)(String(error));
+    }
+}
+exports.patchWatchers = patchWatchers;
+function tempPath(name, version) {
+    (0, assert_1.ok)(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
+    return path_1.default.join(process.env['RUNNER_TEMP'], name, version, os_1.default.arch());
+}
+exports.tempPath = tempPath;
+/**
+ * Get the package path to the tool cache.
+ *
+ * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+ */
+function toolPath(name, version) {
+    (0, assert_1.ok)(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+    return path_1.default.join(process.env['RUNNER_TOOL_CACHE'], name, version, os_1.default.arch());
+}
+exports.toolPath = toolPath;
+/**
+ * Add extra `searchPath` to the global search path for require()
+ */
+function addGlobalNodeSearchPath(searchPath) {
+    const nodePath = process.env['NODE_PATH'] || '';
+    const delimiter = process.platform === 'win32' ? ';' : ':';
+    const nodePaths = nodePath.split(delimiter);
+    nodePaths.push(searchPath);
+    process.env['NODE_PATH'] = nodePaths.join(delimiter);
+    (__nccwpck_require__(8188).Module._initPaths)();
+}
+exports.addGlobalNodeSearchPath = addGlobalNodeSearchPath;
+
+
+/***/ }),
+
 /***/ 1351:
 /***/ ((module) => {
 
@@ -90812,770 +91629,17 @@ module.exports = JSON.parse('{"v6":{"xp":"^5.1.6"}}');
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "runAction": () => (/* binding */ runAction)
-});
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: external "assert"
-var external_assert_ = __nccwpck_require__(9491);
-var external_assert_default = /*#__PURE__*/__nccwpck_require__.n(external_assert_);
-// EXTERNAL MODULE: ./node_modules/@actions/cache/lib/cache.js
-var cache = __nccwpck_require__(7799);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var lib_github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: external "os"
-var external_os_ = __nccwpck_require__(2037);
-;// CONCATENATED MODULE: ./src/github.ts
-
-
-/**
- * Determine if a comment exists on an issue or pull with the provided identifier.
- * This will iterate all comments received from GitHub, and try to exit early if it exists.
- */
-async function fetchIssueComment(options) {
-    const github = githubApi(options);
-    const iterator = github.paginate.iterator(github.rest.issues.listComments, {
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-    });
-    for await (const { data: batch } of iterator) {
-        for (const item of batch) {
-            if ((item.body || '').includes(options.id)) {
-                return item;
-            }
-        }
-    }
-}
-/**
- * Create a new comment on an existing issue or pull.
- * This includes a hidden identifier (markdown comment) to identify the comment later.
- * It will also update the comment when a previous comment id was found.
- */
-async function createIssueComment(options) {
-    const github = githubApi(options);
-    const body = `<!-- ${options.id} -->\n${options.body}`;
-    const existing = await fetchIssueComment(options);
-    if (existing) {
-        return github.rest.issues.updateComment({
-            owner: options.owner,
-            repo: options.repo,
-            comment_id: existing.id,
-            body,
-        });
-    }
-    return github.rest.issues.createComment({
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-        body,
-    });
-}
-/**
- * Get an authenticated octokit instance.
- * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
- */
-function githubApi(options = {}) {
-    const token = process.env['GITHUB_TOKEN'] || options.token;
-    (0,external_assert_.ok)(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
-    return (0,lib_github.getOctokit)(token);
-}
-/**
- * Validate and extract the pull reference from context.
- * If it's not a supported event, e.g. not a pull, it will throw an error.
- * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
- */
-function pullContext() {
-    // see .github/workflows/test.yml in 'comment'
-    if (process.env['EXPO_TEST_GITHUB_PULL']) {
-        return { ...context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
-    }
-    assert(context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
-    return context.issue;
-}
-function hasPullContext() {
-    try {
-        pullContext();
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
-async function createReaction(options) {
-    const github = githubApi(options);
-    if (options.comment_id) {
-        return github.rest.reactions.createForIssueComment({
-            owner: options.owner,
-            repo: options.repo,
-            comment_id: options.comment_id,
-            content: options.content,
-        });
-    }
-    return github.rest.reactions.createForIssue({
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-        content: options.content,
-    });
-}
-function issueComment() {
-    assert(context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
-    return [
-        (context.payload?.comment?.body ?? ''),
-        {
-            ...context.issue,
-            comment_id: context.payload?.comment?.id,
-        },
-    ];
-}
-/**
- * Get the commit message for a specific commit hash.
- */
-async function getGitCommandMessageAsync(options, gitCommitHash) {
-    const github = githubApi({ token: options.token });
-    const result = await github.rest.git.getCommit({
-        ...context.repo,
-        commit_sha: gitCommitHash,
-    });
-    return result.data.message;
-}
-/**
- * True if the current event is a push to the default branch.
- */
-function isPushDefaultBranchContext() {
-    return lib_github.context.eventName === 'push' && lib_github.context.ref === `refs/heads/${lib_github.context.payload?.repository?.default_branch}`;
-}
-/**
- * Get the pull request information that associated with a specific commit hash.
- */
-async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
-    const github = githubApi({ token: options.token });
-    const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-        ...context.repo,
-        commit_sha: gitCommitHash,
-    });
-    return results.data.map(pr => ({
-        id: pr.id,
-        prNumber: pr.number,
-        prHeadCommitSha: pr.head.sha,
-        mergeCommitSha: pr.merge_commit_sha,
-    }));
-}
-
-// EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
-var lib_exec = __nccwpck_require__(1514);
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(1017);
-var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_);
-// EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
-var tool_cache = __nccwpck_require__(7784);
-;// CONCATENATED MODULE: ./src/worker.ts
-
-
-
-
-
-
-
-/**
- * Auto-execute the action and pass errors to 'core.setFailed'.
- * It also passes the full error, with stacktrace, to 'core.debug'.
- * You'll need to enable debugging to view these full errors.
- *
- * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
- */
-function executeAction(action) {
-    return action().catch((error) => {
-        (0,core.setFailed)(error.message || error);
-        (0,core.debug)(error.stack || 'No stacktrace available');
-    });
-}
-/**
- * Install a "tool" from a node package.
- * This will add the folder, containing the `node_modules`, to the global path.
- */
-function worker_installToolFromPackage(dir) {
-    return addPath(path.join(dir, 'node_modules', '.bin'));
-}
-/**
- * Try to patch Linux's inotify limits to a more sensible setting on Linux.
- * This limitation could cause `ENOSPC` errors when bundling Expo or React Native projects.
- *
- * It will try to change these `fs.inotify.` limits:
- *   - .max_user_instances = 524288
- *   - .max_user_watches = 524288
- *   - .max_queued_events = 524288
- *
- * @see https://github.com/expo/expo-github-action/issues/20
- */
-async function patchWatchers() {
-    if (process.platform !== 'linux') {
-        return info('Skipped patching watchers: not running on Linux.');
-    }
-    try {
-        // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
-        await exec('sudo sysctl fs.inotify.max_user_instances=524288');
-        await exec('sudo sysctl fs.inotify.max_user_watches=524288');
-        await exec('sudo sysctl fs.inotify.max_queued_events=524288');
-        await exec('sudo sysctl -p');
-        info('Patched system watchers for the `ENOSPC` error.');
-    }
-    catch (error) {
-        warning(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
-        warning('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
-        warning(errorMessage(error));
-    }
-}
-function worker_tempPath(name, version) {
-    assert(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
-    return path.join(process.env['RUNNER_TEMP'], name, version, os.arch());
-}
-/**
- * Get the package path to the tool cache.
- *
- * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
- */
-function worker_toolPath(name, version) {
-    assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
-    return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
-}
-/**
- * Add extra `searchPath` to the global search path for require()
- */
-function worker_addGlobalNodeSearchPath(searchPath) {
-    const nodePath = process.env['NODE_PATH'] || '';
-    const delimiter = process.platform === 'win32' ? ';' : ':';
-    const nodePaths = nodePath.split(delimiter);
-    nodePaths.push(searchPath);
-    process.env['NODE_PATH'] = nodePaths.join(delimiter);
-    (__nccwpck_require__(8188).Module._initPaths)();
-}
-
-;// CONCATENATED MODULE: ./src/cacher.ts
-
-
-
-
-
-
-/**
- * Determine if the remote cache is available and can be used.
- */
-function cacheIsAvailable() {
-    return (0,cache.isFeatureAvailable)();
-}
-/**
- * Get the exact cache key for the package.
- * We can prefix this when there are breaking changes in this action.
- */
-function cacheKey(name, version, manager) {
-    return `${name}-${process.platform}-${os.arch()}-${manager}-${version}`;
-}
-/**
- * Restore a directory from the remote cache.
- */
-async function cacher_restoreCacheAsync(cachePath, cacheKey) {
-    if (!cacheIsAvailable()) {
-        warning(`Skipped restoring from remote cache, not available.`);
-        return null;
-    }
-    try {
-        if (await restoreCache([cachePath], cacheKey)) {
-            return cachePath;
-        }
-    }
-    catch (error) {
-        handleCacheError(error);
-    }
-    return null;
-}
-/**
- * Save a directory to the remote cache.
- */
-async function saveCacheAsync(cachePath, cacheKey) {
-    if (!cacheIsAvailable()) {
-        (0,core.warning)(`Skipped saving to remote cache, not available.`);
-        return;
-    }
-    try {
-        await (0,cache.saveCache)([cachePath], cacheKey);
-    }
-    catch (error) {
-        handleCacheError(error);
-    }
-}
-/**
- * Delete a cache key from the remote cache.
- * Note that is not using the official API from @actions/cache but using the GitHub API directly.
- */
-async function deleteCacheAsync(githubToken, cacheKey, ref) {
-    const github = githubApi({ token: githubToken });
-    await github.rest.actions.deleteActionsCacheByKey({
-        ...lib_github.context.repo,
-        key: cacheKey,
-        ref,
-    });
-}
-/**
- * Restore a tool from the remote cache.
- * This will install the tool back into the local tool cache.
- */
-function cacher_restoreFromCache(name, version, manager) {
-    return cacher_restoreCacheAsync(toolPath(name, version), cacheKey(name, version, manager));
-}
-/**
- * Save a tool to the remote cache.
- * This will fetch the tool from the local tool cache.
- */
-function cacher_saveToCache(name, version, manager) {
-    return saveCacheAsync(toolPath(name, version), cacheKey(name, version, manager));
-}
-/**
- * Try to handle incoming cache errors.
- * Because workers can operate in environments without cache configured,
- * we need to make sure to only skip the cache instead of fail.
- *
- * Currently we handle these types of errors:
- *   - ReserveCacheError
- *   - "cache service url not found"
- */
-function handleCacheError(error) {
-    const isReserveCacheError = error instanceof cache.ReserveCacheError;
-    if (isReserveCacheError) {
-        (0,core.warning)('Skipped remote cache, encountered error:');
-        (0,core.warning)(error.message);
-    }
-    else {
-        throw error;
-    }
-}
-
-// EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
-var io = __nccwpck_require__(7436);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-// EXTERNAL MODULE: external "util"
-var external_util_ = __nccwpck_require__(3837);
-;// CONCATENATED MODULE: ./src/packager.ts
-
-
-
-
-/**
- * Resolve a package with version range to an exact version.
- * This is useful to invalidate the cache _and_ using dist-tags or version ranges.
- * It executes `npm info` and parses the latest manifest.
- */
-async function packager_resolvePackage(name, range) {
-    let stdout = '';
-    try {
-        ({ stdout } = await getExecOutput('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
-    }
-    catch (error) {
-        throw new Error(`Could not resolve ${name}@${range}, reason:\n${errorMessage(error)}`);
-    }
-    // thanks npm, for returning a "" json string value for invalid versions
-    if (!stdout) {
-        throw new Error(`Could not resolve ${name}@${range}, reason:\nInvalid version`);
-    }
-    // thanks npm, for returning a "x.x.x" json value...
-    if (stdout.startsWith('"')) {
-        stdout = `[${stdout}]`;
-    }
-    return JSON.parse(stdout).at(-1);
-}
-/**
- * Install a module using a node package manager, inside a temporary directory.
- * If that's successful, move the module into the worker's tool cache.
- *
- * Note, we do assume that the packager is globally available AND has the `add <pkgspec>` command.
- */
-async function packager_installPackage(name, version, manager) {
-    const temp = tempPath(name, version);
-    await mkdirP(temp);
-    await exec(manager, ['add', `${name}@${version}`], { cwd: temp });
-    return cacheTool(temp, name, version);
-}
-
-;// CONCATENATED MODULE: ./src/sqlite.ts
-
-
-
-
-
-
-
-/**
- * Open a database and return a promise that resolves to a database object.
- */
-function sqlite_openDatabaseAsync(filename) {
-    return new Promise((resolve, reject) => {
-        const sqlite3 = __nccwpck_require__(7299);
-        const db = new sqlite3.Database(filename, err => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve(db);
-            }
-        });
-    }).then(db => {
-        return {
-            ...db,
-            closeAsync: promisify(db.close.bind(db)),
-            runAsync: promisify(db.run.bind(db)),
-            execAsync: promisify(db.exec.bind(db)),
-            prepareAsync: promisify(db.prepare.bind(db)),
-            getAsync: promisify(db.get.bind(db)),
-            allAsync: promisify(db.all.bind(db)),
-        };
-    });
-}
-/**
- * Install the sqlite3
- */
-async function sqlite_installSQLiteAsync(packager) {
-    const sqliteVersion = (__nccwpck_require__(4147)/* .devDependencies.sqlite3 */ .v6.xp);
-    assert(sqliteVersion);
-    const packageName = 'sqlite3';
-    const version = await resolvePackage(packageName, sqliteVersion);
-    const message = `Installing ${packageName} (${version}) from cache or with ${packager}`;
-    return await group(message, async () => {
-        let libRoot = findTool(packageName, version) || null;
-        if (!libRoot) {
-            libRoot = await restoreFromCache(packageName, version, packager);
-        }
-        if (!libRoot) {
-            libRoot = await installPackage(packageName, version, packager);
-            await saveToCache(packageName, version, packager);
-        }
-        addGlobalNodeSearchPath(path.join(libRoot, 'node_modules'));
-        return libRoot;
-    });
-}
-
-;// CONCATENATED MODULE: ./src/fingerprint/FingerprintDbManager.ts
-
-class FingerprintDbManager_FingerprintDbManager {
-    dbPath;
-    constructor(dbPath) {
-        this.dbPath = dbPath;
-    }
-    async initAsync() {
-        const db = await openDatabaseAsync(this.dbPath);
-        await db.runAsync(`CREATE TABLE IF NOT EXISTS ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} (${FingerprintDbManager_FingerprintDbManager.SCHEMA.join(', ')})`);
-        for (const index of FingerprintDbManager_FingerprintDbManager.INDEXES) {
-            await db.runAsync(index);
-        }
-        for (const extraStatement of FingerprintDbManager_FingerprintDbManager.EXTRA_CREATE_DB_STATEMENTS) {
-            await db.runAsync(extraStatement);
-        }
-        await db.runAsync(`PRAGMA fingerprint_schema_version = ${FingerprintDbManager_FingerprintDbManager.SCHEMA_VERSION}`);
-        this.db = db;
-        return db;
-    }
-    async upsertFingerprintByGitCommitHashAsync(gitCommitHash, params) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const easBuildId = params.easBuildId ?? '';
-        const fingerprintString = JSON.stringify(params.fingerprint);
-        await this.db.runAsync(`INSERT INTO ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint) VALUES (?, ?, ?, json(?)) \
-       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?)`, gitCommitHash, easBuildId, params.fingerprint.hash, fingerprintString, easBuildId, params.fingerprint.hash, fingerprintString);
-    }
-    async queryEasBuildIdsFromFingerprintAsync(fingerprintHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const rows = await this.db.allAsync(`SELECT eas_build_id FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
-        return rows.map(row => row['eas_build_id']);
-    }
-    /**
-     * Get the latest entity from the fingerprint hash where the eas_build_id is not null.
-     */
-    async getLatestEasEntityFromFingerprintAsync(fingerprintHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME}
-      WHERE eas_build_id IS NOT NULL AND eas_build_id != "" AND fingerprint_hash = ?
-      ORDER BY updated_at DESC LIMIT 1`, fingerprintHash);
-        return row ? FingerprintDbManager_FingerprintDbManager.serialize(row) : null;
-    }
-    async getEntityFromGitCommitHashAsync(gitCommitHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} WHERE git_commit_hash = ?`, gitCommitHash);
-        return row ? FingerprintDbManager_FingerprintDbManager.serialize(row) : null;
-    }
-    async getFirstEntityFromFingerprintHashAsync(fingerprintHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const row = await this.db.getAsync(`SELECT * FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
-        return row ? FingerprintDbManager_FingerprintDbManager.serialize(row) : null;
-    }
-    async queryEntitiesFromFingerprintHashAsync(fingerprintHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const rows = await this.db.allAsync(`SELECT * FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
-        return rows.map(row => FingerprintDbManager_FingerprintDbManager.serialize(row));
-    }
-    async getFingerprintSourcesAsync(fingerprintHash) {
-        if (!this.db) {
-            throw new Error('Database not initialized. Call initAsync() first.');
-        }
-        const row = await this.db.getAsync(`SELECT json_extract(fingerprint, '$.sources') as sources FROM ${FingerprintDbManager_FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`, fingerprintHash);
-        const result = row?.['sources'];
-        if (!result) {
-            return null;
-        }
-        return JSON.parse(result);
-    }
-    async closeAsync() {
-        this.db?.closeAsync();
-    }
-    //#region private
-    static SCHEMA_VERSION = (/* unused pure expression or super */ null && (0));
-    static TABLE_NAME = (/* unused pure expression or super */ null && ('fingerprint'));
-    static SCHEMA = (/* unused pure expression or super */ null && ([
-        'id INTEGER PRIMARY KEY AUTOINCREMENT',
-        'eas_build_id TEXT',
-        'git_commit_hash TEXT NOT NULL',
-        'fingerprint_hash TEXT NOT NULL',
-        'fingerprint TEXT NOT NULL',
-        "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
-        "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
-    ]));
-    static INDEXES = [
-        `CREATE UNIQUE INDEX IF NOT EXISTS idx_git_commit_hash ON ${this.TABLE_NAME} (git_commit_hash)`,
-        `CREATE INDEX IF NOT EXISTS idx_fingerprint_hash ON ${this.TABLE_NAME} (fingerprint_hash)`,
-    ];
-    static EXTRA_CREATE_DB_STATEMENTS = [
-        `CREATE TRIGGER IF NOT EXISTS update_fingerprint_updated_at AFTER UPDATE ON ${this.TABLE_NAME}
-BEGIN
-  UPDATE ${this.TABLE_NAME} SET updated_at = DATETIME('now', 'utc') WHERE id = NEW.id;
-END`,
-    ];
-    db = null;
-    static serialize(rawEntity) {
-        return {
-            id: rawEntity.id,
-            easBuildId: rawEntity.eas_build_id,
-            gitCommitHash: rawEntity.git_commit_hash,
-            fingerprintHash: rawEntity.fingerprint_hash,
-            fingerprint: JSON.parse(rawEntity.fingerprint),
-            createdAt: rawEntity.created_at,
-            updatedAt: rawEntity.updated_at,
-        };
-    }
-}
-//#endregion
-
-;// CONCATENATED MODULE: ./src/fingerprint/index.ts
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Shared logic to create a fingerprint diff for fingerprint actions
- */
-async function createFingerprintOutputAsync(dbManager, input) {
-    await installFingerprintAsync(input.fingerprintVersion, input.packager, input.fingerprintInstallationCache);
-    const fingerprint = __nccwpck_require__(1351);
-    const currentFingerprint = await fingerprint.createFingerprintAsync(input.workingDirectory);
-    let previousFingerprint = null;
-    if (input.previousGitCommitHash) {
-        previousFingerprint = await dbManager.getEntityFromGitCommitHashAsync(input.previousGitCommitHash);
-    }
-    const diff = previousFingerprint != null
-        ? await fingerprint.diffFingerprints(previousFingerprint.fingerprint, currentFingerprint)
-        : await fingerprint.diffFingerprints({ sources: [], hash: '' }, currentFingerprint);
-    return {
-        currentFingerprint,
-        previousFingerprint: previousFingerprint?.fingerprint ?? null,
-        diff,
-    };
-}
-/**
- * Create a FingerprintDbManager instance
- */
-async function createFingerprintDbManagerAsync(packager, cacheKey) {
-    await installSQLiteAsync(packager);
-    const dbPath = await getDbPathAsync();
-    const cacheHit = (await restoreDbFromCacheAsync(cacheKey)) != null;
-    if (cacheHit) {
-        info(`Restored fingerprint database from cache - cacheKey[${cacheKey}]`);
-    }
-    else {
-        info(`Missing fingerprint database from cache - will create a new database - cacheKey[${cacheKey}]`);
-    }
-    const dbManager = new FingerprintDbManager(dbPath);
-    await dbManager.initAsync();
-    return dbManager;
-}
-/**
- * Common inputs for fingerprint actions
- */
-function collectFingerprintActionInput() {
-    return {
-        packager: (0,core.getInput)('packager') || 'yarn',
-        githubToken: (0,core.getInput)('github-token'),
-        workingDirectory: (0,core.getInput)('working-directory'),
-        fingerprintVersion: (0,core.getInput)('fingerprint-version') || 'latest',
-        fingerprintInstallationCache: !(0,core.getInput)('fingerprint-installation-cache') || (0,core.getBooleanInput)('fingerprint-installation-cache'),
-        fingerprintDbCacheKey: (0,core.getInput)('fingerprint-db-cache-key'),
-        previousGitCommitHash: lib_github.context.eventName === 'pull_request'
-            ? lib_github.context.payload.pull_request?.base?.sha
-            : lib_github.context.payload.before,
-        currentGitCommitHash: lib_github.context.eventName === 'pull_request' ? lib_github.context.payload.pull_request?.head?.sha : lib_github.context.sha,
-    };
-}
-/**
- * Install @expo/fingerprint based on given input
- */
-async function installFingerprintAsync(fingerprintVersion, packager, useCache = true) {
-    const packageName = '@expo/fingerprint';
-    const version = await resolvePackage(packageName, fingerprintVersion);
-    const message = useCache
-        ? `Installing ${packageName} (${version}) from cache or with ${packager}`
-        : `Installing ${packageName} (${version}) with ${packager}`;
-    return await group(message, async () => {
-        let libRoot = findTool(packageName, version) || null;
-        if (!libRoot && useCache) {
-            libRoot = await restoreFromCache(packageName, version, packager);
-        }
-        if (!libRoot) {
-            libRoot = await installPackage(packageName, version, packager);
-            if (useCache) {
-                await saveToCache(packageName, version, packager);
-            }
-        }
-        installToolFromPackage(libRoot);
-        addGlobalNodeSearchPath(path.join(libRoot, 'node_modules'));
-        return libRoot;
-    });
-}
-/**
- * Restore database from the remote cache.
- * This will install the tool back into the local tool cache.
- */
-async function restoreDbFromCacheAsync(cacheKey) {
-    return restoreCacheAsync(path.dirname(await getDbPathAsync()), cacheKey);
-}
-/**
- * Save database to the remote cache.
- * This will fetch from the local tool cache.
- */
-async function saveDbToCacheAsync(cacheKey) {
-    (0,core.info)(`Saving fingerprint database to cache: ${cacheKey}`);
-    return saveCacheAsync(external_path_default().dirname(await getDbPathAsync()), cacheKey);
-}
-/**
- * Get the path to the fingerprint database
- */
-async function getDbPathAsync() {
-    external_assert_default()(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
-    const result = external_path_default().join(process.env['RUNNER_TOOL_CACHE'], 'fingerprint-storage', 'fingerprint.db');
-    const dir = external_path_default().dirname(result);
-    if (!(await external_fs_default().promises.stat(dir).catch(() => null))) {
-        await (0,io.mkdirP)(dir);
-    }
-    return result;
-}
-
-;// CONCATENATED MODULE: ./src/actions/fingerprint-post.ts
-
-
-
-
-
-
-executeAction(runAction);
-async function runAction(input = collectFingerprintActionInput()) {
-    if (!isPushDefaultBranchContext()) {
-        return;
-    }
-    try {
-        const ref = process.env.GITHUB_REF;
-        external_assert_default()(ref != null, 'GITHUB_REF is not defined');
-        await deleteCacheAsync(input.githubToken, input.fingerprintDbCacheKey, ref);
-    }
-    catch (e) {
-        (0,core.info)(`Failed to delete the cache: ${e}`);
-    }
-    await saveDbToCacheAsync(input.fingerprintDbCacheKey);
-}
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(2049);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
