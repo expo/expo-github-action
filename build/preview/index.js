@@ -41838,7 +41838,7 @@ try {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createSummary = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
+exports.createSummary = exports.getSchemeFromConfig = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const eas_1 = __nccwpck_require__(3251);
 const github_1 = __nccwpck_require__(978);
@@ -41853,6 +41853,7 @@ function previewInput() {
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
         githubToken: (0, core_1.getInput)('github-token'),
+        appScheme: (0, core_1.getInput)('app-scheme'),
     };
 }
 exports.previewInput = previewInput;
@@ -41874,7 +41875,7 @@ async function previewAction(input = previewInput()) {
     if (!config.extra?.eas?.projectId) {
         return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
     }
-    const variables = getVariables(config, updates);
+    const variables = getVariables(config, updates, input);
     const messageId = (0, utils_1.template)(input.commentId, variables);
     const messageBody = createSummary(updates, variables);
     if (!input.shouldComment) {
@@ -41922,21 +41923,22 @@ function sanitizeCommand(input) {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-function getVariables(config, updates) {
+function getVariables(config, updates, input) {
     const projectId = config.extra?.eas?.projectId;
     const android = updates.find(update => update.platform === 'android');
     const ios = updates.find(update => update.platform === 'ios');
+    const appScheme = input.appScheme || getSchemeFromConfig(config) || '';
     return {
         // EAS / Expo specific
         projectId,
         projectName: config.name,
         projectSlug: config.slug,
-        projectScheme: config.scheme || '',
+        projectScheme: appScheme,
         // Shared update properties
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appScheme: config.scheme }),
+        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appScheme }),
         link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
@@ -41949,7 +41951,7 @@ function getVariables(config, updates) {
         androidBranchName: android?.branch || '',
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
-        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appScheme: config.scheme }) : '',
+        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appScheme }) : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
         iosId: ios?.id || '',
@@ -41957,11 +41959,27 @@ function getVariables(config, updates) {
         iosBranchName: ios?.branch || '',
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appScheme: config.scheme }) : '',
+        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appScheme }) : '',
         iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
     };
 }
 exports.getVariables = getVariables;
+/**
+ * Retrieve the app scheme from project config, using the following criteria:
+ *   - If the scheme is a string, return that.
+ *   - If the scheme is an array, return the longest scheme.
+ */
+function getSchemeFromConfig(config) {
+    if (typeof config.scheme === 'string') {
+        return config.scheme;
+    }
+    if (Array.isArray(config.scheme) && config.scheme.length > 0) {
+        const longestToShortest = config.scheme.sort((a, b) => b.length - a.length);
+        return longestToShortest[0];
+    }
+    return null;
+}
+exports.getSchemeFromConfig = getSchemeFromConfig;
 /**
  * Generate the message body for a single update.
  * Note, this is not configurable, but you can use the variables used to construct your own.
