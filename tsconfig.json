@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./build",
     "rootDir": "./src",
+    "module": "CommonJS",
     "moduleResolution": "node"
   },
   "exclude": [

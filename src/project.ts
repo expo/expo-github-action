@@ -1,8 +1,6 @@
 import { getExecOutput } from '@actions/exec';
 import { ExpoConfig } from '@expo/config';
 
-import { errorMessage } from './utils';
-
 /**
  * Load the Expo app project config in the given directory.
  * This runs `expo config` command instead of using `@expo/config` directly,
@@ -16,8 +14,8 @@ export async function loadProjectConfig(cwd: string): Promise<ExpoConfig> {
       cwd,
       silent: true,
     }));
-  } catch (error) {
-    throw new Error(`Could not fetch the project info from ${cwd}, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not fetch the project info from ${cwd}`, { cause: error });
   }
 
   return JSON.parse(stdout);

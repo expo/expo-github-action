@@ -38566,6 +38566,643 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 4350:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commandAction = exports.commandInput = exports.MESSAGE_ID = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const utils_1 = __nccwpck_require__(1314);
+const worker_1 = __nccwpck_require__(8912);
+exports.MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
+function commandInput() {
+    return {
+        reaction: '+1',
+        githubToken: (0, core_1.getInput)('github-token'),
+    };
+}
+exports.commandInput = commandInput;
+(0, worker_1.executeAction)(commandAction);
+async function commandAction(input = commandInput()) {
+    const [comment, context] = (0, github_1.issueComment)();
+    if (!comment) {
+        return;
+    }
+    const command = (0, expo_1.parseCommand)(comment);
+    if (!command) {
+        (0, core_1.info)("Comment didn't contain a valid expo/eas command");
+        return;
+    }
+    const cmdName = command.args[0];
+    if (command.cli !== 'eas' || cmdName !== 'build') {
+        (0, core_1.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
+        await (0, github_1.createIssueComment)({
+            ...context,
+            token: input.githubToken,
+            id: `${context.comment_id ?? context.number}`,
+            body: createHelpComment({
+                input: comment,
+                buildProfiles: [],
+            }),
+        });
+        return;
+    }
+    if (input.reaction) {
+        await (0, github_1.createReaction)({
+            ...context,
+            token: input.githubToken,
+            content: input.reaction,
+        });
+    }
+    const project = await (0, expo_1.projectInfo)('');
+    if (!project.owner) {
+        project.owner = await (0, expo_1.projectOwner)();
+    }
+    const variables = {
+        projectName: project.name,
+        projectOwner: project.owner || '',
+        projectSlug: project.slug,
+        cli: command.cli,
+        cmdName,
+    };
+    const messageId = (0, utils_1.template)(exports.MESSAGE_ID, variables);
+    const result = await (0, expo_1.easBuild)(command);
+    await (0, github_1.createIssueComment)({
+        ...context,
+        token: input.githubToken,
+        id: messageId,
+        body: createBuildComment(result),
+    });
+}
+exports.commandAction = commandAction;
+function createHelpComment(input) {
+    const buildArgs = ['build'];
+    if (input.buildProfiles.length) {
+        buildArgs.push(`--profile <${input.buildProfiles.join('|')}>`);
+    }
+    return [
+        `> ${input.input}`,
+        '',
+        `I didn't recognize your command, please retry with one of the commands below.`,
+        createDetails({
+            summary: 'Available commands',
+            details: [
+                '### EAS-CLI',
+                `- \`eas ${buildArgs.join(' ')}\` start a build.`,
+                // '',
+                // '### EXPO-CLI',
+                // '- `expo publish` deploy a project to Expo hosting',
+            ].join('\n'),
+        }),
+    ].join('\n');
+}
+function createDetails({ summary, details }) {
+    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
+}
+function createBuildComment(builds) {
+    const buildLinks = builds.map(build => ` ${expo_1.appPlatformEmojis[build.platform]} [${expo_1.appPlatformDisplayNames[build.platform]} build details](${(0, expo_1.getBuildLogsUrl)(build)}) `);
+    const firstBuild = builds[0];
+    return [
+        `Commit ${firstBuild.gitCommitHash} is building...`,
+        '',
+        `|${buildLinks.join('|')}|`,
+        `|${Array(buildLinks.length).fill(':-:').join('|')}`,
+        '',
+        createDetails({
+            summary: 'Build Details',
+            details: [
+                '## Summary',
+                '',
+                `- **Distribution**: \`${firstBuild.distribution}\``,
+                `- **Build profile**: \`${firstBuild.buildProfile}\``,
+                `- **SDK version**: \`${firstBuild.sdkVersion}\``,
+                `- **App version**: \`${firstBuild.appVersion}\``,
+                `- **Release channel**: \`${firstBuild.appVersion}\``,
+            ].join('\n'),
+        }),
+    ].join('\n');
+}
+
+
+/***/ }),
+
+/***/ 2489:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const assert_1 = __nccwpck_require__(9491);
+const url_1 = __nccwpck_require__(7310);
+var AppPlatform;
+(function (AppPlatform) {
+    AppPlatform["Android"] = "ANDROID";
+    AppPlatform["Ios"] = "IOS";
+})(AppPlatform || (exports.AppPlatform = AppPlatform = {}));
+exports.appPlatformDisplayNames = {
+    [AppPlatform.Android]: 'Android',
+    [AppPlatform.Ios]: 'iOS',
+};
+exports.appPlatformEmojis = {
+    [AppPlatform.Ios]: '🍎',
+    [AppPlatform.Android]: '🤖',
+};
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
+function parseCommand(input) {
+    const matches = CommandRegExp.exec(input);
+    if (matches != null) {
+        return {
+            cli: matches[1],
+            raw: input.trimStart().substring(1).trim(),
+            args: matches[2]
+                ?.split(' ')
+                .map(s => s.trim())
+                .filter(Boolean) ?? [],
+        };
+    }
+    return null;
+}
+exports.parseCommand = parseCommand;
+/**
+ * Try to authenticate the user using either Expo or EAS CLI.
+ * This method tries to invoke 'whoami' to validate if the token is valid.
+ * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
+ */
+async function authenticate(token, cli = 'expo') {
+    if (!cli) {
+        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
+    }
+    else {
+        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
+            env: { ...process.env, EXPO_TOKEN: token },
+        });
+    }
+    (0, core_1.exportVariable)('EXPO_TOKEN', token);
+}
+exports.authenticate = authenticate;
+/**
+ * Try to resolve the project owner, by running 'eas|expo whoami'.
+ */
+async function projectOwner(cli = 'expo') {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project owner`, { cause: error });
+    }
+    if (!stdout) {
+        throw new Error(`Could not fetch the project owner, not authenticated`);
+    }
+    else if (stdout.endsWith(' (robot)')) {
+        throw new Error(`Could not fetch the project owner, used robot account`);
+    }
+    return stdout.trim();
+}
+exports.projectOwner = projectOwner;
+async function runCommand(cmd) {
+    let stdout = '';
+    let stderr = '';
+    try {
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command ${cmd.args.join(' ')}`, { cause: error });
+    }
+    return [stdout.trim(), stderr.trim()];
+}
+exports.runCommand = runCommand;
+async function easBuild(cmd) {
+    let stdout = '';
+    try {
+        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build`, { cause: error });
+    }
+    return JSON.parse(stdout);
+}
+exports.easBuild = easBuild;
+/**
+ * Create an new EAS build using the user-provided command.
+ */
+async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
+    let stdout = '';
+    let cmd = command;
+    if (!cmd.includes('--json')) {
+        cmd += ' --json';
+    }
+    if (!cmd.includes('--non-interactive')) {
+        cmd += ' --non-interactive';
+    }
+    if (!cmd.includes('--no-wait')) {
+        cmd += ' --no-wait';
+    }
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)((await (0, io_1.which)('eas', true)) + ` ${cmd}`, extraArgs, {
+            cwd,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build`, { cause: error });
+    }
+    return JSON.parse(stdout);
+}
+exports.createEasBuildFromRawCommandAsync = createEasBuildFromRawCommandAsync;
+/**
+ * Cancel an EAS build.
+ */
+async function cancelEasBuildAsync(cwd, buildId) {
+    try {
+        await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build:cancel', buildId], { cwd });
+    }
+    catch (error) {
+        (0, core_1.info)(`Failed to cancel build ${buildId}: ${String(error)}`);
+    }
+}
+exports.cancelEasBuildAsync = cancelEasBuildAsync;
+/**
+ * Query the EAS BuildInfo from given buildId.
+ */
+async function queryEasBuildInfoAsync(cwd, buildId) {
+    try {
+        const { stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build:view', buildId, '--json'], {
+            cwd,
+            silent: true,
+        });
+        return JSON.parse(stdout);
+    }
+    catch (error) {
+        (0, core_1.info)(`Failed to query eas build ${buildId}: ${String(error)}`);
+    }
+    return null;
+}
+exports.queryEasBuildInfoAsync = queryEasBuildInfoAsync;
+/**
+ * Try to resolve the project info, by running 'expo config --type prebuild'.
+ */
+async function projectInfo(dir) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
+            cwd: dir,
+            silent: true,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project info from ${dir}`, { cause: error });
+    }
+    const { name, slug, owner } = JSON.parse(stdout);
+    return { name, slug, owner };
+}
+exports.projectInfo = projectInfo;
+/**
+ * Create a QR code for an update on project, with an optional release channel.
+ */
+function projectQR(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
+    const url = new url_1.URL('https://qr.expo.dev/expo-go');
+    url.searchParams.append('owner', project.owner);
+    url.searchParams.append('slug', project.slug);
+    if (channel) {
+        url.searchParams.append('releaseChannel', channel);
+    }
+    return url.toString();
+}
+exports.projectQR = projectQR;
+/**
+ * Create a link for the project in Expo.
+ */
+function projectLink(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
+    const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectLink = projectLink;
+/**
+ * Create a deep link to open the project in Expo Go
+ */
+function projectDeepLink(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a deep link for project without owner');
+    const url = new url_1.URL(`exp://exp.host/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectDeepLink = projectDeepLink;
+function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
+    const { project } = build;
+    const path = project
+        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+        : `/builds/${build.id}`;
+    const url = new url_1.URL(path, 'https://expo.dev');
+    return url.toString();
+}
+exports.getBuildLogsUrl = getBuildLogsUrl;
+
+
+/***/ }),
+
+/***/ 978:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPullRequestFromGitCommitShaAsync = exports.isPushDefaultBranchContext = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+const github_1 = __nccwpck_require__(5438);
+const assert_1 = __nccwpck_require__(9491);
+/**
+ * Determine if a comment exists on an issue or pull with the provided identifier.
+ * This will iterate all comments received from GitHub, and try to exit early if it exists.
+ */
+async function fetchIssueComment(options) {
+    const github = githubApi(options);
+    const iterator = github.paginate.iterator(github.rest.issues.listComments, {
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+    });
+    for await (const { data: batch } of iterator) {
+        for (const item of batch) {
+            if ((item.body || '').includes(options.id)) {
+                return item;
+            }
+        }
+    }
+}
+exports.fetchIssueComment = fetchIssueComment;
+/**
+ * Create a new comment on an existing issue or pull.
+ * This includes a hidden identifier (markdown comment) to identify the comment later.
+ * It will also update the comment when a previous comment id was found.
+ */
+async function createIssueComment(options) {
+    const github = githubApi(options);
+    const body = `<!-- ${options.id} -->\n${options.body}`;
+    const existing = await fetchIssueComment(options);
+    if (existing) {
+        return github.rest.issues.updateComment({
+            owner: options.owner,
+            repo: options.repo,
+            comment_id: existing.id,
+            body,
+        });
+    }
+    return github.rest.issues.createComment({
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+        body,
+    });
+}
+exports.createIssueComment = createIssueComment;
+/**
+ * Get an authenticated octokit instance.
+ * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
+ */
+function githubApi(options = {}) {
+    const token = process.env['GITHUB_TOKEN'] || options.token;
+    (0, assert_1.ok)(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
+    return (0, github_1.getOctokit)(token);
+}
+exports.githubApi = githubApi;
+/**
+ * Validate and extract the pull reference from context.
+ * If it's not a supported event, e.g. not a pull, it will throw an error.
+ * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
+ */
+function pullContext() {
+    // see .github/workflows/test.yml in 'comment'
+    if (process.env['EXPO_TEST_GITHUB_PULL']) {
+        return { ...github_1.context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
+    }
+    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
+    return github_1.context.issue;
+}
+exports.pullContext = pullContext;
+function hasPullContext() {
+    try {
+        pullContext();
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+exports.hasPullContext = hasPullContext;
+async function createReaction(options) {
+    const github = githubApi(options);
+    if (options.comment_id) {
+        return github.rest.reactions.createForIssueComment({
+            owner: options.owner,
+            repo: options.repo,
+            comment_id: options.comment_id,
+            content: options.content,
+        });
+    }
+    return github.rest.reactions.createForIssue({
+        owner: options.owner,
+        repo: options.repo,
+        issue_number: options.number,
+        content: options.content,
+    });
+}
+exports.createReaction = createReaction;
+function issueComment() {
+    (0, assert_1.ok)(github_1.context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
+    return [
+        (github_1.context.payload?.comment?.body ?? ''),
+        {
+            ...github_1.context.issue,
+            comment_id: github_1.context.payload?.comment?.id,
+        },
+    ];
+}
+exports.issueComment = issueComment;
+/**
+ * Get the commit message for a specific commit hash.
+ */
+async function getGitCommandMessageAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const result = await github.rest.git.getCommit({
+        ...github_1.context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return result.data.message;
+}
+exports.getGitCommandMessageAsync = getGitCommandMessageAsync;
+/**
+ * True if the current event is a push to the default branch.
+ */
+function isPushDefaultBranchContext() {
+    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${github_1.context.payload?.repository?.default_branch}`;
+}
+exports.isPushDefaultBranchContext = isPushDefaultBranchContext;
+/**
+ * Get the pull request information that associated with a specific commit hash.
+ */
+async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
+    const github = githubApi({ token: options.token });
+    const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+        ...github_1.context.repo,
+        commit_sha: gitCommitHash,
+    });
+    return results.data.map(pr => ({
+        id: pr.id,
+        prNumber: pr.number,
+        prHeadCommitSha: pr.head.sha,
+        mergeCommitSha: pr.merge_commit_sha,
+    }));
+}
+exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsync;
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.template = void 0;
+/**
+ * Replace all template variables in a string.
+ * This uses the notation of `{varname}`, which can be defined as object.
+ */
+function template(template, replacements) {
+    let result = template;
+    for (const name in replacements) {
+        result = result.replaceAll(`{${name}}`, replacements[name]);
+    }
+    return result;
+}
+exports.template = template;
+
+
+/***/ }),
+
+/***/ 8912:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addGlobalNodeSearchPath = exports.toolPath = exports.tempPath = exports.patchWatchers = exports.installToolFromPackage = exports.executeAction = exports.cacheTool = exports.findTool = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const assert_1 = __nccwpck_require__(9491);
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+var tool_cache_1 = __nccwpck_require__(7784);
+Object.defineProperty(exports, "findTool", ({ enumerable: true, get: function () { return tool_cache_1.find; } }));
+Object.defineProperty(exports, "cacheTool", ({ enumerable: true, get: function () { return tool_cache_1.cacheDir; } }));
+/**
+ * Auto-execute the action and pass errors to 'core.setFailed'.
+ * It also passes the full error, with stacktrace, to 'core.debug'.
+ * You'll need to enable debugging to view these full errors.
+ *
+ * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
+ */
+function executeAction(action) {
+    return action().catch((error) => {
+        (0, core_1.setFailed)(error.message || error);
+        (0, core_1.debug)(error.stack || 'No stacktrace available');
+    });
+}
+exports.executeAction = executeAction;
+/**
+ * Install a "tool" from a node package.
+ * This will add the folder, containing the `node_modules`, to the global path.
+ */
+function installToolFromPackage(dir) {
+    return (0, core_1.addPath)(path_1.default.join(dir, 'node_modules', '.bin'));
+}
+exports.installToolFromPackage = installToolFromPackage;
+/**
+ * Try to patch Linux's inotify limits to a more sensible setting on Linux.
+ * This limitation could cause `ENOSPC` errors when bundling Expo or React Native projects.
+ *
+ * It will try to change these `fs.inotify.` limits:
+ *   - .max_user_instances = 524288
+ *   - .max_user_watches = 524288
+ *   - .max_queued_events = 524288
+ *
+ * @see https://github.com/expo/expo-github-action/issues/20
+ */
+async function patchWatchers() {
+    if (process.platform !== 'linux') {
+        return (0, core_1.info)('Skipped patching watchers: not running on Linux.');
+    }
+    try {
+        // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_user_instances=524288');
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_user_watches=524288');
+        await (0, exec_1.exec)('sudo sysctl fs.inotify.max_queued_events=524288');
+        await (0, exec_1.exec)('sudo sysctl -p');
+        (0, core_1.info)('Patched system watchers for the `ENOSPC` error.');
+    }
+    catch (error) {
+        (0, core_1.warning)(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
+        (0, core_1.warning)('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
+        (0, core_1.warning)(String(error));
+    }
+}
+exports.patchWatchers = patchWatchers;
+function tempPath(name, version) {
+    (0, assert_1.ok)(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
+    return path_1.default.join(process.env['RUNNER_TEMP'], name, version, os_1.default.arch());
+}
+exports.tempPath = tempPath;
+/**
+ * Get the package path to the tool cache.
+ *
+ * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
+ */
+function toolPath(name, version) {
+    (0, assert_1.ok)(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+    return path_1.default.join(process.env['RUNNER_TOOL_CACHE'], name, version, os_1.default.arch());
+}
+exports.toolPath = toolPath;
+/**
+ * Add extra `searchPath` to the global search path for require()
+ */
+function addGlobalNodeSearchPath(searchPath) {
+    const nodePath = process.env['NODE_PATH'] || '';
+    const delimiter = process.platform === 'win32' ? ';' : ':';
+    const nodePaths = nodePath.split(delimiter);
+    nodePaths.push(searchPath);
+    process.env['NODE_PATH'] = nodePaths.join(delimiter);
+    (__nccwpck_require__(8188).Module._initPaths)();
+}
+exports.addGlobalNodeSearchPath = addGlobalNodeSearchPath;
+
+
+/***/ }),
+
 /***/ 9491:
 /***/ ((module) => {
 
@@ -40554,639 +41191,17 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "MESSAGE_ID": () => (/* binding */ MESSAGE_ID),
-  "commandAction": () => (/* binding */ commandAction),
-  "commandInput": () => (/* binding */ commandInput)
-});
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
-var lib_exec = __nccwpck_require__(1514);
-// EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
-var io = __nccwpck_require__(7436);
-// EXTERNAL MODULE: external "assert"
-var external_assert_ = __nccwpck_require__(9491);
-// EXTERNAL MODULE: external "url"
-var external_url_ = __nccwpck_require__(7310);
-;// CONCATENATED MODULE: ./src/utils.ts
-/**
- * Replace all template variables in a string.
- * This uses the notation of `{varname}`, which can be defined as object.
- */
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
-}
-function utils_errorMessage(error) {
-    if (error instanceof Error) {
-        return error.message;
-    }
-    if (typeof error === 'string') {
-        return error;
-    }
-    return 'Unknown error';
-}
-
-;// CONCATENATED MODULE: ./src/expo.ts
-
-
-
-
-
-
-var AppPlatform;
-(function (AppPlatform) {
-    AppPlatform["Android"] = "ANDROID";
-    AppPlatform["Ios"] = "IOS";
-})(AppPlatform || (AppPlatform = {}));
-const appPlatformDisplayNames = {
-    [AppPlatform.Android]: 'Android',
-    [AppPlatform.Ios]: 'iOS',
-};
-const appPlatformEmojis = {
-    [AppPlatform.Ios]: '🍎',
-    [AppPlatform.Android]: '🤖',
-};
-const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
-function parseCommand(input) {
-    const matches = CommandRegExp.exec(input);
-    if (matches != null) {
-        return {
-            cli: matches[1],
-            raw: input.trimStart().substring(1).trim(),
-            args: matches[2]
-                ?.split(' ')
-                .map(s => s.trim())
-                .filter(Boolean) ?? [],
-        };
-    }
-    return null;
-}
-/**
- * Try to authenticate the user using either Expo or EAS CLI.
- * This method tries to invoke 'whoami' to validate if the token is valid.
- * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
- */
-async function authenticate(token, cli = 'expo') {
-    if (!cli) {
-        info(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
-    }
-    else {
-        await exec(await which(cli), ['whoami'], {
-            env: { ...process.env, EXPO_TOKEN: token },
-        });
-    }
-    exportVariable('EXPO_TOKEN', token);
-}
-/**
- * Try to resolve the project owner, by running 'eas|expo whoami'.
- */
-async function projectOwner(cli = 'expo') {
-    let stdout = '';
-    try {
-        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)(cli), ['whoami'], { silent: true }));
-    }
-    catch (error) {
-        throw new Error(`Could not fetch the project owner, reason:\n${utils_errorMessage(error)}`);
-    }
-    if (!stdout) {
-        throw new Error(`Could not fetch the project owner, not authenticated`);
-    }
-    else if (stdout.endsWith(' (robot)')) {
-        throw new Error(`Could not fetch the project owner, used robot account`);
-    }
-    return stdout.trim();
-}
-async function runCommand(cmd) {
-    let stdout = '';
-    let stderr = '';
-    try {
-        ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), {
-            silent: false,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${errorMessage(error)}`);
-    }
-    return [stdout.trim(), stderr.trim()];
-}
-async function easBuild(cmd) {
-    let stdout = '';
-    try {
-        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
-        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)('eas', true), args, {
-            silent: false,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not run command eas build, reason:\n${utils_errorMessage(error)}`);
-    }
-    return JSON.parse(stdout);
-}
-/**
- * Create an new EAS build using the user-provided command.
- */
-async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
-    let stdout = '';
-    let cmd = command;
-    if (!cmd.includes('--json')) {
-        cmd += ' --json';
-    }
-    if (!cmd.includes('--non-interactive')) {
-        cmd += ' --non-interactive';
-    }
-    if (!cmd.includes('--no-wait')) {
-        cmd += ' --no-wait';
-    }
-    try {
-        ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${cmd}`, extraArgs, {
-            cwd,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
-    }
-    return JSON.parse(stdout);
-}
-/**
- * Cancel an EAS build.
- */
-async function cancelEasBuildAsync(cwd, buildId) {
-    try {
-        await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
-    }
-    catch (e) {
-        info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
-    }
-}
-/**
- * Query the EAS BuildInfo from given buildId.
- */
-async function queryEasBuildInfoAsync(cwd, buildId) {
-    try {
-        const { stdout } = await getExecOutput(await which('eas', true), ['build:view', buildId, '--json'], {
-            cwd,
-            silent: true,
-        });
-        return JSON.parse(stdout);
-    }
-    catch (e) {
-        info(`Failed to query eas build ${buildId}: ${errorMessage(e)}`);
-    }
-    return null;
-}
-/**
- * Try to resolve the project info, by running 'expo config --type prebuild'.
- */
-async function projectInfo(dir) {
-    let stdout = '';
-    try {
-        ({ stdout } = await (0,lib_exec.getExecOutput)(await (0,io.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
-            cwd: dir,
-            silent: true,
-        }));
-    }
-    catch (error) {
-        throw new Error(`Could not fetch the project info from ${dir}, reason:\n${utils_errorMessage(error)}`);
-    }
-    const { name, slug, owner } = JSON.parse(stdout);
-    return { name, slug, owner };
-}
-/**
- * Create a QR code for an update on project, with an optional release channel.
- */
-function projectQR(project, channel) {
-    assert(project.owner, 'Could not create a QR code for project without owner');
-    const url = new URL('https://qr.expo.dev/expo-go');
-    url.searchParams.append('owner', project.owner);
-    url.searchParams.append('slug', project.slug);
-    if (channel) {
-        url.searchParams.append('releaseChannel', channel);
-    }
-    return url.toString();
-}
-/**
- * Create a link for the project in Expo.
- */
-function projectLink(project, channel) {
-    assert(project.owner, 'Could not create a QR code for project without owner');
-    const url = new URL(`https://expo.dev/@${project.owner}/${project.slug}`);
-    if (channel) {
-        url.searchParams.append('release-channel', channel);
-    }
-    return url.toString();
-}
-/**
- * Create a deep link to open the project in Expo Go
- */
-function projectDeepLink(project, channel) {
-    assert(project.owner, 'Could not create a deep link for project without owner');
-    const url = new URL(`exp://exp.host/@${project.owner}/${project.slug}`);
-    if (channel) {
-        url.searchParams.append('release-channel', channel);
-    }
-    return url.toString();
-}
-function getBuildLogsUrl(build) {
-    // TODO: reuse this function from the original source
-    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
-    const { project } = build;
-    const path = project
-        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
-        : `/builds/${build.id}`;
-    const url = new external_url_.URL(path, 'https://expo.dev');
-    return url.toString();
-}
-
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
-;// CONCATENATED MODULE: ./src/github.ts
-
-
-/**
- * Determine if a comment exists on an issue or pull with the provided identifier.
- * This will iterate all comments received from GitHub, and try to exit early if it exists.
- */
-async function fetchIssueComment(options) {
-    const github = githubApi(options);
-    const iterator = github.paginate.iterator(github.rest.issues.listComments, {
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-    });
-    for await (const { data: batch } of iterator) {
-        for (const item of batch) {
-            if ((item.body || '').includes(options.id)) {
-                return item;
-            }
-        }
-    }
-}
-/**
- * Create a new comment on an existing issue or pull.
- * This includes a hidden identifier (markdown comment) to identify the comment later.
- * It will also update the comment when a previous comment id was found.
- */
-async function createIssueComment(options) {
-    const github = githubApi(options);
-    const body = `<!-- ${options.id} -->\n${options.body}`;
-    const existing = await fetchIssueComment(options);
-    if (existing) {
-        return github.rest.issues.updateComment({
-            owner: options.owner,
-            repo: options.repo,
-            comment_id: existing.id,
-            body,
-        });
-    }
-    return github.rest.issues.createComment({
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-        body,
-    });
-}
-/**
- * Get an authenticated octokit instance.
- * This uses the 'GITHUB_TOKEN' environment variable, or 'github-token' input.
- */
-function githubApi(options = {}) {
-    const token = process.env['GITHUB_TOKEN'] || options.token;
-    (0,external_assert_.ok)(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
-    return (0,github.getOctokit)(token);
-}
-/**
- * Validate and extract the pull reference from context.
- * If it's not a supported event, e.g. not a pull, it will throw an error.
- * Unfortunately, we can't overwrite the GitHub event details, it includes some testing code.
- */
-function pullContext() {
-    // see .github/workflows/test.yml in 'comment'
-    if (process.env['EXPO_TEST_GITHUB_PULL']) {
-        return { ...context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
-    }
-    assert(context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
-    return context.issue;
-}
-function hasPullContext() {
-    try {
-        pullContext();
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
-async function createReaction(options) {
-    const github = githubApi(options);
-    if (options.comment_id) {
-        return github.rest.reactions.createForIssueComment({
-            owner: options.owner,
-            repo: options.repo,
-            comment_id: options.comment_id,
-            content: options.content,
-        });
-    }
-    return github.rest.reactions.createForIssue({
-        owner: options.owner,
-        repo: options.repo,
-        issue_number: options.number,
-        content: options.content,
-    });
-}
-function issueComment() {
-    (0,external_assert_.ok)(github.context.eventName === 'issue_comment', 'Could not find the issue comment context, make sure to run this from a issue_comment triggered workflow');
-    return [
-        (github.context.payload?.comment?.body ?? ''),
-        {
-            ...github.context.issue,
-            comment_id: github.context.payload?.comment?.id,
-        },
-    ];
-}
-/**
- * Get the commit message for a specific commit hash.
- */
-async function getGitCommandMessageAsync(options, gitCommitHash) {
-    const github = githubApi({ token: options.token });
-    const result = await github.rest.git.getCommit({
-        ...context.repo,
-        commit_sha: gitCommitHash,
-    });
-    return result.data.message;
-}
-/**
- * True if the current event is a push to the default branch.
- */
-function isPushDefaultBranchContext() {
-    return context.eventName === 'push' && context.ref === `refs/heads/${context.payload?.repository?.default_branch}`;
-}
-/**
- * Get the pull request information that associated with a specific commit hash.
- */
-async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
-    const github = githubApi({ token: options.token });
-    const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-        ...context.repo,
-        commit_sha: gitCommitHash,
-    });
-    return results.data.map(pr => ({
-        id: pr.id,
-        prNumber: pr.number,
-        prHeadCommitSha: pr.head.sha,
-        mergeCommitSha: pr.merge_commit_sha,
-    }));
-}
-
-// EXTERNAL MODULE: external "os"
-var external_os_ = __nccwpck_require__(2037);
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(1017);
-// EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
-var tool_cache = __nccwpck_require__(7784);
-;// CONCATENATED MODULE: ./src/worker.ts
-
-
-
-
-
-
-
-/**
- * Auto-execute the action and pass errors to 'core.setFailed'.
- * It also passes the full error, with stacktrace, to 'core.debug'.
- * You'll need to enable debugging to view these full errors.
- *
- * @see https://github.com/actions/toolkit/blob/main/docs/action-debugging.md#step-debug-logs
- */
-function executeAction(action) {
-    return action().catch((error) => {
-        (0,core.setFailed)(error.message || error);
-        (0,core.debug)(error.stack || 'No stacktrace available');
-    });
-}
-/**
- * Install a "tool" from a node package.
- * This will add the folder, containing the `node_modules`, to the global path.
- */
-function installToolFromPackage(dir) {
-    return addPath(path.join(dir, 'node_modules', '.bin'));
-}
-/**
- * Try to patch Linux's inotify limits to a more sensible setting on Linux.
- * This limitation could cause `ENOSPC` errors when bundling Expo or React Native projects.
- *
- * It will try to change these `fs.inotify.` limits:
- *   - .max_user_instances = 524288
- *   - .max_user_watches = 524288
- *   - .max_queued_events = 524288
- *
- * @see https://github.com/expo/expo-github-action/issues/20
- */
-async function patchWatchers() {
-    if (process.platform !== 'linux') {
-        return info('Skipped patching watchers: not running on Linux.');
-    }
-    try {
-        // see https://github.com/expo/expo-cli/issues/277#issuecomment-452685177
-        await exec('sudo sysctl fs.inotify.max_user_instances=524288');
-        await exec('sudo sysctl fs.inotify.max_user_watches=524288');
-        await exec('sudo sysctl fs.inotify.max_queued_events=524288');
-        await exec('sudo sysctl -p');
-        info('Patched system watchers for the `ENOSPC` error.');
-    }
-    catch (error) {
-        warning(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
-        warning('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
-        warning(errorMessage(error));
-    }
-}
-function tempPath(name, version) {
-    assert(process.env['RUNNER_TEMP'], 'Could not resolve temporary path, RUNNER_TEMP not defined');
-    return path.join(process.env['RUNNER_TEMP'], name, version, os.arch());
-}
-/**
- * Get the package path to the tool cache.
- *
- * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
- */
-function toolPath(name, version) {
-    assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
-    return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
-}
-/**
- * Add extra `searchPath` to the global search path for require()
- */
-function addGlobalNodeSearchPath(searchPath) {
-    const nodePath = process.env['NODE_PATH'] || '';
-    const delimiter = process.platform === 'win32' ? ';' : ':';
-    const nodePaths = nodePath.split(delimiter);
-    nodePaths.push(searchPath);
-    process.env['NODE_PATH'] = nodePaths.join(delimiter);
-    (__nccwpck_require__(8188).Module._initPaths)();
-}
-
-;// CONCATENATED MODULE: ./src/actions/command.ts
-
-
-
-
-
-const MESSAGE_ID = `app:@{projectOwner}/{projectSlug} {cli} {cmdName}`;
-function commandInput() {
-    return {
-        reaction: '+1',
-        githubToken: (0,core.getInput)('github-token'),
-    };
-}
-executeAction(commandAction);
-async function commandAction(input = commandInput()) {
-    const [comment, context] = issueComment();
-    if (!comment) {
-        return;
-    }
-    const command = parseCommand(comment);
-    if (!command) {
-        (0,core.info)("Comment didn't contain a valid expo/eas command");
-        return;
-    }
-    const cmdName = command.args[0];
-    if (command.cli !== 'eas' || cmdName !== 'build') {
-        (0,core.setFailed)(`We don't support \`${command.cli} ${cmdName}\` yet`);
-        await createIssueComment({
-            ...context,
-            token: input.githubToken,
-            id: `${context.comment_id ?? context.number}`,
-            body: createHelpComment({
-                input: comment,
-                buildProfiles: [],
-            }),
-        });
-        return;
-    }
-    if (input.reaction) {
-        await createReaction({
-            ...context,
-            token: input.githubToken,
-            content: input.reaction,
-        });
-    }
-    const project = await projectInfo('');
-    if (!project.owner) {
-        project.owner = await projectOwner();
-    }
-    const variables = {
-        projectName: project.name,
-        projectOwner: project.owner || '',
-        projectSlug: project.slug,
-        cli: command.cli,
-        cmdName,
-    };
-    const messageId = template(MESSAGE_ID, variables);
-    const result = await easBuild(command);
-    await createIssueComment({
-        ...context,
-        token: input.githubToken,
-        id: messageId,
-        body: createBuildComment(result),
-    });
-}
-function createHelpComment(input) {
-    const buildArgs = ['build'];
-    if (input.buildProfiles.length) {
-        buildArgs.push(`--profile <${input.buildProfiles.join('|')}>`);
-    }
-    return [
-        `> ${input.input}`,
-        '',
-        `I didn't recognize your command, please retry with one of the commands below.`,
-        createDetails({
-            summary: 'Available commands',
-            details: [
-                '### EAS-CLI',
-                `- \`eas ${buildArgs.join(' ')}\` start a build.`,
-                // '',
-                // '### EXPO-CLI',
-                // '- `expo publish` deploy a project to Expo hosting',
-            ].join('\n'),
-        }),
-    ].join('\n');
-}
-function createDetails({ summary, details }) {
-    return `<details><summary>${summary}</summary>\n\n${details}\n</details>`;
-}
-function createBuildComment(builds) {
-    const buildLinks = builds.map(build => ` ${appPlatformEmojis[build.platform]} [${appPlatformDisplayNames[build.platform]} build details](${getBuildLogsUrl(build)}) `);
-    const firstBuild = builds[0];
-    return [
-        `Commit ${firstBuild.gitCommitHash} is building...`,
-        '',
-        `|${buildLinks.join('|')}|`,
-        `|${Array(buildLinks.length).fill(':-:').join('|')}`,
-        '',
-        createDetails({
-            summary: 'Build Details',
-            details: [
-                '## Summary',
-                '',
-                `- **Distribution**: \`${firstBuild.distribution}\``,
-                `- **Build profile**: \`${firstBuild.buildProfile}\``,
-                `- **SDK version**: \`${firstBuild.sdkVersion}\``,
-                `- **App version**: \`${firstBuild.appVersion}\``,
-                `- **Release channel**: \`${firstBuild.appVersion}\``,
-            ].join('\n'),
-        }),
-    ].join('\n');
-}
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(4350);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
