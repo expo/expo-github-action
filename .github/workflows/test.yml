@@ -50,6 +50,9 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
+
       - name: 🏗 Setup Expo
         uses: ./
         with:
@@ -80,16 +83,8 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          # TODO(cedric): replace with fixed major version after fixing https://github.com/oven-sh/setup-bun/issues/37
-          bun-version: latest
-
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 🏗 Setup EAS
         uses: ./
@@ -187,16 +182,8 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          # TODO(cedric): replace with fixed major version after fixing https://github.com/oven-sh/setup-bun/issues/37
-          bun-version: latest
-
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 🏗 Setup Expo
         uses: ./
