@@ -89,6 +89,7 @@ jobs:
         run: |
           eas init --id ${{ secrets.EXPO_PROJECT_ID }} --force --non-interactive
           echo $(jq '.expo.runtimeVersion.policy = "sdkVersion"' app.json) > app.json
+          echo $(jq '.expo.scheme = ["expogithubaction", "ega"]' app.json) > app.json
 
       - name: 🚀 Create preview (without comment)
         if: ${{ env.hasAuth == 'true' }}
