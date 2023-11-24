@@ -1,9 +1,9 @@
 import * as cache from '@actions/cache';
 import os from 'os';
 
+import { resetEnv, setEnv } from './utils';
 import { cacheKey, restoreFromCache, saveToCache } from '../src/cacher';
 import { toolPath } from '../src/worker';
-import { resetEnv, setEnv } from './utils';
 
 jest.mock('@actions/cache');
 jest.mock('@actions/core');

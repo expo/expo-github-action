@@ -1,7 +1,7 @@
 import { getOctokit, context } from '@actions/github';
 import { ok as assert } from 'assert';
 
-type IssueContext = typeof context['issue'];
+type IssueContext = (typeof context)['issue'];
 
 type IssueCommentContext = IssueContext & {
   comment_id?: number;

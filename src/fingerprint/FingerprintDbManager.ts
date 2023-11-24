@@ -189,8 +189,8 @@ type CamelizeString<T extends PropertyKey, C extends string = ''> = T extends st
   ? string extends T
     ? string
     : T extends `${infer F}_${infer R}`
-    ? CamelizeString<Capitalize<R>, `${C}${F}`>
-    : `${C}${T}`
+      ? CamelizeString<Capitalize<R>, `${C}${F}`>
+      : `${C}${T}`
   : T;
 
 type Camelize<T> = { [K in keyof T as CamelizeString<K>]: T[K] };
