@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: test-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -20,30 +20,15 @@ jobs:
   setup:
     strategy:
       matrix:
-        os:
-          - ubuntu
-          - windows
-          - macos
-        cache:
-          - cache
-          - no-cache
-        packager:
-          - yarn
-        include:
-          - os: ubuntu
-            cache: no-cache
+        os: [ubuntu, windows, macos]
+        cache: [cache, no-cache]
+        packager: [bun, npm, yarn]
+        exclude:
+          # npm isn't particularly faster with a cache
+          - cache: cache
             packager: npm
+          # Bun isn't supported on Windows (yet)
           - os: windows
-            cache: no-cache
-            packager: npm
-          - os: macos
-            cache: no-cache
-            packager: npm
-          - os: ubuntu
-            cache: no-cache
-            packager: bun
-          - os: macos
-            cache: no-cache
             packager: bun
     runs-on: ${{ matrix.os }}-latest
     steps:
