@@ -8,7 +8,7 @@ inputs:
 
   node-version:
     description: Version of Node to use
-    default: 18.x
+    default: 20.x
 
 runs:
   using: composite
