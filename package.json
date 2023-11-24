@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "expo-github-action",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "description": "Expo CLI in your GitHub Actions workflow",
   "main": "build/index.js",
   "repository": {
@@ -53,7 +53,9 @@
     "ts-jest": "^29.0.3",
     "typescript": "^5.3.2"
   },
-  "trustedDependencies": ["sqlite3"],
+  "trustedDependencies": [
+    "sqlite3"
+  ],
   "eslintConfig": {
     "extends": "universe/node",
     "ignorePatterns": [
