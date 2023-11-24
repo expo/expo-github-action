@@ -80,20 +80,26 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
+      - name: 🏗 Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          # TODO(cedric): replace with fixed major version after fixing https://github.com/oven-sh/setup-bun/issues/37
+          bun-version: latest
+
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: yarn
 
       - name: 🏗 Setup EAS
         uses: ./
         with:
           eas-version: latest
+          packager: bun
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗 Setup project
-        run: yarn create expo-app ./temp
+        run: bun create expo ./temp --template blank
 
       - name: 👷 Configure project
         working-directory: ./temp
@@ -181,15 +187,27 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
+      - name: 🏗 Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          # TODO(cedric): replace with fixed major version after fixing https://github.com/oven-sh/setup-bun/issues/37
+          bun-version: latest
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
       - name: 🏗 Setup Expo
         uses: ./
         with:
           eas-version: latest
           expo-version: latest
+          packager: bun
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗 Setup project
-        run: expo init -t blank ./temp
+        run: bun create expo ./temp --template blank
 
       - name: 🧪 Without commenting
         if: ${{ env.hasAuth == 'true' }}
