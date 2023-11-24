@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
 
       - name: 🏗 Setup runner
         uses: ./.github/actions/setup
