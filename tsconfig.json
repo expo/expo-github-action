@@ -1,8 +1,9 @@
 {
-  "extends": "@tsconfig/node16",
+  "extends": "@tsconfig/node20",
   "compilerOptions": {
     "outDir": "./build",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "moduleResolution": "node"
   },
   "exclude": [
     "build",

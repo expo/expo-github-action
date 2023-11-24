@@ -6,7 +6,7 @@ branding:
   icon: message-circle
   color: gray-dark
 runs:
-  using: node16
+  using: node20
   main: ../build/preview-comment/index.js
 inputs:
   project:
