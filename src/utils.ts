@@ -9,15 +9,3 @@ export function template(template: string, replacements: Record<string, string>)
   }
   return result;
 }
-
-export function errorMessage(error: Error | unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  if (typeof error === 'string') {
-    return error;
-  }
-
-  return 'Unknown error';
-}

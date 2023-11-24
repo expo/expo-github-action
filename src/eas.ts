@@ -4,8 +4,6 @@ import type { Platform } from '@expo/config';
 import semver from 'semver';
 import { URL } from 'url';
 
-import { errorMessage } from './utils';
-
 export interface EasUpdate {
   /** The unique ID of the platform specific update */
   id: string;
@@ -60,8 +58,8 @@ export async function createUpdate(cwd: string, command: string): Promise<EasUpd
     ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${command}`, undefined, {
       cwd,
     }));
-  } catch (error) {
-    throw new Error(`Could not create a new EAS Update, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not create a new EAS Update`, { cause: error });
   }
 
   return JSON.parse(stdout);

@@ -4,8 +4,6 @@ import { which } from '@actions/io';
 import { ok as assert } from 'assert';
 import { URL } from 'url';
 
-import { errorMessage } from './utils';
-
 export type CliName = 'expo' | 'eas';
 
 export type Command = {
@@ -97,8 +95,8 @@ export async function projectOwner(cli: CliName = 'expo'): Promise<string> {
 
   try {
     ({ stdout } = await getExecOutput(await which(cli), ['whoami'], { silent: true }));
-  } catch (error) {
-    throw new Error(`Could not fetch the project owner, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not fetch the project owner`, { cause: error });
   }
 
   if (!stdout) {
@@ -118,8 +116,8 @@ export async function runCommand(cmd: Command) {
     ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), {
       silent: false,
     }));
-  } catch (error) {
-    throw new Error(`Could not run command ${cmd.args.join(' ')}, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not run command ${cmd.args.join(' ')}`, { cause: error });
   }
 
   return [stdout.trim(), stderr.trim()];
@@ -133,8 +131,8 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
     ({ stdout } = await getExecOutput(await which('eas', true), args, {
       silent: false,
     }));
-  } catch (error) {
-    throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not run command eas build`, { cause: error });
   }
 
   return JSON.parse(stdout);
@@ -165,8 +163,8 @@ export async function createEasBuildFromRawCommandAsync(
     ({ stdout } = await getExecOutput((await which('eas', true)) + ` ${cmd}`, extraArgs, {
       cwd,
     }));
-  } catch (error) {
-    throw new Error(`Could not run command eas build, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not run command eas build`, { cause: error });
   }
 
   return JSON.parse(stdout);
@@ -178,8 +176,8 @@ export async function createEasBuildFromRawCommandAsync(
 export async function cancelEasBuildAsync(cwd: string, buildId: string): Promise<void> {
   try {
     await getExecOutput(await which('eas', true), ['build:cancel', buildId], { cwd });
-  } catch (e) {
-    info(`Failed to cancel build ${buildId}: ${errorMessage(e)}`);
+  } catch (error: unknown) {
+    info(`Failed to cancel build ${buildId}: ${String(error)}`);
   }
 }
 
@@ -193,8 +191,8 @@ export async function queryEasBuildInfoAsync(cwd: string, buildId: string): Prom
       silent: true,
     });
     return JSON.parse(stdout);
-  } catch (e) {
-    info(`Failed to query eas build ${buildId}: ${errorMessage(e)}`);
+  } catch (error: unknown) {
+    info(`Failed to query eas build ${buildId}: ${String(error)}`);
   }
   return null;
 }
@@ -210,8 +208,8 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
       cwd: dir,
       silent: true,
     }));
-  } catch (error) {
-    throw new Error(`Could not fetch the project info from ${dir}, reason:\n${errorMessage(error)}`);
+  } catch (error: unknown) {
+    throw new Error(`Could not fetch the project info from ${dir}`, { cause: error });
   }
 
   const { name, slug, owner } = JSON.parse(stdout);
