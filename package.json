@@ -31,7 +31,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@expo/config": "^7.0.3",
+    "@expo/config": "^8.1.2",
     "@expo/fingerprint": "^0.1.0",
     "@expo/spawn-async": "^1.7.2",
     "@semantic-release/changelog": "^6.0.2",
