@@ -85,30 +85,32 @@ Some of the EAS Update variables can be shared for all platforms if the [runtime
 These variables contain Android-specific update information.
 When skipping the Android update, these variables are empty strings.
 
-| output name               | description                                                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **androidId**             | Android-specific update id                                                                                                             |
-| **androidGroupId**        | Update group ID that contains one or more platform-specific updates                                                                    |
-| **androidBranchName**     | Branch name that was used when creating this update ([read more](https://docs.expo.dev/eas-update/getting-started/#publish-an-update)) |
-| **androidMessage**        | Custom message to describe the Android-specific update                                                                                 |
-| **androidRuntimeVersion** | Runtime version used for the Android-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                 |
-| **androidQR**             | Absolute URL to the QR code to load this Android-specific update                                                                       |
-| **androidLink**           | Absolute URL to the Android-specific update on [expo.dev](https://expo.dev)                                                            |
+| output name                  | description                                                                                                                            |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **androidId**                | Android-specific update id                                                                                                             |
+| **androidGroupId**           | Update group ID that contains one or more platform-specific updates                                                                    |
+| **androidBranchName**        | Branch name that was used when creating this update ([read more](https://docs.expo.dev/eas-update/getting-started/#publish-an-update)) |
+| **andriodManifestPermalink** | Absolute URL to the Android-specific update manifest                                                                                   |
+| **androidMessage**           | Custom message to describe the Android-specific update                                                                                 |
+| **androidRuntimeVersion**    | Runtime version used for the Android-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                 |
+| **androidQR**                | Absolute URL to the QR code to load this Android-specific update                                                                       |
+| **androidLink**              | Absolute URL to the Android-specific update on [expo.dev](https://expo.dev)                                                            |
 
 #### iOS-specific update information
 
 These variables contain iOS-specific update information.
 When skipping the iOS update, these variables are empty strings.
 
-| output name           | description                                                                                                                            |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **iosId**             | iOS-specific update id                                                                                                                 |
-| **iosGroupId**        | Update group ID that contains one or more platform-specific updates                                                                    |
-| **iosBranchName**     | Branch name that was used when creating this update ([read more](https://docs.expo.dev/eas-update/getting-started/#publish-an-update)) |
-| **iosMessage**        | Custom message to describe the iOS-specific update                                                                                     |
-| **iosRuntimeVersion** | Runtime version used for the iOS-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                     |
-| **iosQR**             | Absolute URL to the QR code to load this iOS-specific update                                                                           |
-| **iosLink**           | Absolute URL to the iOS-specific update on [expo.dev](https://expo.dev)                                                                |
+| output name              | description                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **iosId**                | iOS-specific update id                                                                                                                 |
+| **iosGroupId**           | Update group ID that contains one or more platform-specific updates                                                                    |
+| **iosBranchName**        | Branch name that was used when creating this update ([read more](https://docs.expo.dev/eas-update/getting-started/#publish-an-update)) |
+| **iosManifestPermalink** | Absolute URL to the ios-specific update manifest                                                                                       |
+| **iosMessage**           | Custom message to describe the iOS-specific update                                                                                     |
+| **iosRuntimeVersion**    | Runtime version used for the iOS-specific update ([read more](https://docs.expo.dev/eas-update/runtime-versions/))                     |
+| **iosQR**                | Absolute URL to the QR code to load this iOS-specific update                                                                           |
+| **iosLink**              | Absolute URL to the iOS-specific update on [expo.dev](https://expo.dev)                                                                |
 
 ## Example workflows
 
