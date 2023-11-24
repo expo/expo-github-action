@@ -11,7 +11,7 @@ on:
 
 concurrency:
   group: release
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   dryrun:
@@ -21,17 +21,14 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install
 
       - name: 📋 Dry-running release
-        run: yarn semantic-release --dry-run
+        run: bun semantic-release --dry-run
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -42,17 +39,14 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install
 
       - name: 📋 Release code
-        run: yarn semantic-release
+        run: bun semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
           GIT_AUTHOR_NAME: Expo CI
@@ -69,20 +63,17 @@ jobs:
         with:
           token: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 👷 Force repo to latest
         run: git fetch --all && git pull
 
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install
 
       - name: 📦 Install semver
-        run: yarn add --dev semver
+        run: bun add --dev semver
 
       - name: 🕵️ Resolve major version
         uses: actions/github-script@v7

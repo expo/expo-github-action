@@ -7,24 +7,18 @@ on:
     types: [opened, synchronize]
 
 concurrency:
-  group: review-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    strategy:
-      matrix:
-        node: [18.x]
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
+      - name: 🏗 Setup runner
+        uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
         run: yarn install --frozen-lockfile --check-files
