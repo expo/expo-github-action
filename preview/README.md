@@ -123,7 +123,12 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 ### Create previews on pull requests
 
 This workflow creates a new EAS Update every time a pull request is created or updated.
-Since we're using the `--auto` flag, the EAS branch will be named after the GitHub branch, and the message for the update will match the commit's message.
+We are using the `--auto`, together with the `--branch`, flag in this example.
+- `--auto` will automatically create an update using the current git commit message and git branch.
+- `--branch` will overwrite this value infere from git with our own value.
+
+> **Warning**
+> GitHub Actions might use a temporary merge branch for PRs. To avoid using this merge branch for our update, we overwrite the branch name from `--auto` with our own `--branch` value.
 
 ```yml
 on:
@@ -156,7 +161,9 @@ jobs:
       - name: 🚀 Create preview
         uses: expo/expo-github-action/preview@v8
         with:
-          command: eas update --auto
+          # `github.event.pull_request.head.ref` is only available on `pull_request` triggers.
+          # Use your own, or keep the automatically infered branch name from `--auto`, when using different triggers.
+          command: eas update --auto --branch ${{ github.event.pull_request.head.ref }}
 ```
 
 ### Sending preview information elsewhere
@@ -197,6 +204,8 @@ jobs:
         uses: expo/expo-github-action/preview@v8
         id: preview
         with:
+          # In this example, we use the `push` trigger which will always use the branch name that was pushed to.
+          # By using `--auto` we both use the git commit message and branch name for the update.
           command: eas update --auto
           comment: false
 
@@ -216,6 +225,13 @@ jobs:
 When automating these preview comments, you have to be careful not to spam a pull request on every successful run.
 Every comment contains a generated **message-id** to identify previously made comments and update them instead of creating a new comment.
 
+### Update branch and workflow triggers
+
+GitHub Actions uses slightly different checkout logic for different workflow triggers.
+When using the `push` trigger, GitHub Actions checks out the branch that was pushed to.
+But for [`pull_request` triggers][link-gha-trigger-pull], GitHub Actions might use a temporary branch name.
+This affects in what "branch" your EAS Update is created when using the `--auto` flag.
+
 ### GitHub tokens
 
 When using the GitHub API, you always need to be authenticated.
@@ -231,3 +247,5 @@ You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or
 [code-defaults]: ../src/actions/preview.ts#L10
 [link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
 [link-gha-token]: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+[link-gha-trigger-pull]: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+[link-gha-trigger-push]: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push
