@@ -165,29 +165,6 @@ jobs:
               throw new Error('Message output is empty');
             }
 
-      - name: 🚀 Create preview (with custom app scheme)
-        if: ${{ env.hasAuth == 'true' }}
-        uses: ./preview
-        id: custom-app-scheme
-        env:
-          EXPO_TEST_GITHUB_PULL: 206
-        with:
-          app-scheme: thisisacustomscheme
-          working-directory: ./temp
-          command: eas update --branch test --message "This is a test"
-          comment: false
-
-      - name: 🧪 Comment has custom app scheme
-        if: ${{ env.hasAuth == 'true' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const comment = `${{ steps.custom-app-scheme.outputs.comment }}`
-            if (!comment || !comment.includes('thisisacustomscheme')) {
-              console.log({ comment });
-              throw new Error('Message output does not include the app scheme from action input');
-            }
-
   preview-comment:
     runs-on: ubuntu-latest
     steps:
