@@ -41841,18 +41841,24 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createSummary = exports.getSchemesInOrderFromConfig = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const eas_1 = __nccwpck_require__(3251);
+const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const project_1 = __nccwpck_require__(7191);
 const utils_1 = __nccwpck_require__(1314);
 const worker_1 = __nccwpck_require__(8912);
 exports.MESSAGE_ID = 'projectId:{projectId}';
 function previewInput() {
+    const qrTarget = (0, core_1.getInput)('qr-target') || undefined;
+    if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
+        throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-client"`);
+    }
     return {
         command: (0, core_1.getInput)('command'),
         shouldComment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
         githubToken: (0, core_1.getInput)('github-token'),
+        qrTarget: qrTarget,
     };
 }
 exports.previewInput = previewInput;
@@ -41874,7 +41880,17 @@ async function previewAction(input = previewInput()) {
     if (!config.extra?.eas?.projectId) {
         return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
     }
-    const variables = getVariables(config, updates);
+    // Resolve the QR code target used, either `expo-go` or `dev-client`.
+    input.qrTarget = await (0, core_1.group)('Resolving QR code target', async () => {
+        if (input.qrTarget) {
+            console.log(`Using QR code target: "${input.qrTarget}"`);
+            return input.qrTarget;
+        }
+        const appType = (0, expo_1.projectAppType)(input.workingDirectory);
+        console.log(`Using inferred QR code target: "${appType}"`);
+        return appType;
+    });
+    const variables = getVariables(config, updates, input);
     const messageId = (0, utils_1.template)(input.commentId, variables);
     const messageBody = createSummary(updates, variables);
     if (!input.shouldComment) {
@@ -41922,12 +41938,13 @@ function sanitizeCommand(input) {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-function getVariables(config, updates) {
+function getVariables(config, updates, options) {
     const projectId = config.extra?.eas?.projectId;
     const android = updates.find(update => update.platform === 'android');
     const ios = updates.find(update => update.platform === 'ios');
-    const appSlug = config.slug;
     const appSchemes = getSchemesInOrderFromConfig(config) || [];
+    const appSlug = config.slug;
+    const qrTarget = options.qrTarget || 'expo-go';
     return {
         // EAS / Expo specific
         projectId,
@@ -41939,7 +41956,7 @@ function getVariables(config, updates) {
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug }),
+        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
         link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
@@ -41953,7 +41970,7 @@ function getVariables(config, updates) {
         androidManifestPermalink: android?.manifestPermalink || '',
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
-        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug }) : '',
+        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget }) : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
         iosId: ios?.id || '',
@@ -41962,7 +41979,7 @@ function getVariables(config, updates) {
         iosManifestPermalink: ios?.manifestPermalink || '',
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug }) : '',
+        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
         iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
     };
 }
@@ -42100,10 +42117,11 @@ exports.createUpdate = createUpdate;
 /**
  * Create a QR code link for an EAS Update.
  */
-function getUpdateGroupQr({ projectId, updateGroupId, appSlug, }) {
+function getUpdateGroupQr({ projectId, updateGroupId, appSlug, qrTarget, }) {
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
-    if (appSlug) {
+    if (qrTarget === 'dev-client' && appSlug) {
         // While the parameter is called `appScheme`, it's actually the app's slug
+        // This should only be added when using dev clients as target
         url.searchParams.append('appScheme', appSlug);
     }
     url.searchParams.append('projectId', projectId);
@@ -42116,6 +42134,263 @@ function getUpdateGroupWebsite({ projectId, updateGroupId, }) {
     return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
 }
 exports.getUpdateGroupWebsite = getUpdateGroupWebsite;
+
+
+/***/ }),
+
+/***/ 2489:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectAppType = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const assert_1 = __nccwpck_require__(9491);
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const url_1 = __nccwpck_require__(7310);
+var AppPlatform;
+(function (AppPlatform) {
+    AppPlatform["Android"] = "ANDROID";
+    AppPlatform["Ios"] = "IOS";
+})(AppPlatform || (exports.AppPlatform = AppPlatform = {}));
+exports.appPlatformDisplayNames = {
+    [AppPlatform.Android]: 'Android',
+    [AppPlatform.Ios]: 'iOS',
+};
+exports.appPlatformEmojis = {
+    [AppPlatform.Ios]: '🍎',
+    [AppPlatform.Android]: '🤖',
+};
+const CommandRegExp = /^#(eas|expo)\s+(.+)?$/im;
+function parseCommand(input) {
+    const matches = CommandRegExp.exec(input);
+    if (matches != null) {
+        return {
+            cli: matches[1],
+            raw: input.trimStart().substring(1).trim(),
+            args: matches[2]
+                ?.split(' ')
+                .map(s => s.trim())
+                .filter(Boolean) ?? [],
+        };
+    }
+    return null;
+}
+exports.parseCommand = parseCommand;
+/**
+ * Try to authenticate the user using either Expo or EAS CLI.
+ * This method tries to invoke 'whoami' to validate if the token is valid.
+ * If that passes, the token is exported as EXPO_TOKEN for all steps within the job.
+ */
+async function authenticate(token, cli = 'expo') {
+    if (!cli) {
+        (0, core_1.info)(`Skipped token validation: no CLI installed, can't run 'whoami'.`);
+    }
+    else {
+        await (0, exec_1.exec)(await (0, io_1.which)(cli), ['whoami'], {
+            env: { ...process.env, EXPO_TOKEN: token },
+        });
+    }
+    (0, core_1.exportVariable)('EXPO_TOKEN', token);
+}
+exports.authenticate = authenticate;
+/**
+ * Try to resolve the project owner, by running 'eas|expo whoami'.
+ */
+async function projectOwner(cli = 'expo') {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cli), ['whoami'], { silent: true }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project owner`, { cause: error });
+    }
+    if (!stdout) {
+        throw new Error(`Could not fetch the project owner, not authenticated`);
+    }
+    else if (stdout.endsWith(' (robot)')) {
+        throw new Error(`Could not fetch the project owner, used robot account`);
+    }
+    return stdout.trim();
+}
+exports.projectOwner = projectOwner;
+async function runCommand(cmd) {
+    let stdout = '';
+    let stderr = '';
+    try {
+        ({ stderr, stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)(cmd.cli), cmd.args.concat('--non-interactive'), {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command ${cmd.args.join(' ')}`, { cause: error });
+    }
+    return [stdout.trim(), stderr.trim()];
+}
+exports.runCommand = runCommand;
+async function easBuild(cmd) {
+    let stdout = '';
+    try {
+        const args = cmd.args.concat('--json', '--non-interactive', '--no-wait');
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
+            silent: false,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build`, { cause: error });
+    }
+    return JSON.parse(stdout);
+}
+exports.easBuild = easBuild;
+/**
+ * Create an new EAS build using the user-provided command.
+ */
+async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
+    let stdout = '';
+    let cmd = command;
+    if (!cmd.includes('--json')) {
+        cmd += ' --json';
+    }
+    if (!cmd.includes('--non-interactive')) {
+        cmd += ' --non-interactive';
+    }
+    if (!cmd.includes('--no-wait')) {
+        cmd += ' --no-wait';
+    }
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)((await (0, io_1.which)('eas', true)) + ` ${cmd}`, extraArgs, {
+            cwd,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build`, { cause: error });
+    }
+    return JSON.parse(stdout);
+}
+exports.createEasBuildFromRawCommandAsync = createEasBuildFromRawCommandAsync;
+/**
+ * Cancel an EAS build.
+ */
+async function cancelEasBuildAsync(cwd, buildId) {
+    try {
+        await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build:cancel', buildId], { cwd });
+    }
+    catch (error) {
+        (0, core_1.info)(`Failed to cancel build ${buildId}: ${String(error)}`);
+    }
+}
+exports.cancelEasBuildAsync = cancelEasBuildAsync;
+/**
+ * Query the EAS BuildInfo from given buildId.
+ */
+async function queryEasBuildInfoAsync(cwd, buildId) {
+    try {
+        const { stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build:view', buildId, '--json'], {
+            cwd,
+            silent: true,
+        });
+        return JSON.parse(stdout);
+    }
+    catch (error) {
+        (0, core_1.info)(`Failed to query eas build ${buildId}: ${String(error)}`);
+    }
+    return null;
+}
+exports.queryEasBuildInfoAsync = queryEasBuildInfoAsync;
+/**
+ * Try to resolve the project info, by running 'expo config --type prebuild'.
+ */
+async function projectInfo(dir) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
+            cwd: dir,
+            silent: true,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not fetch the project info from ${dir}`, { cause: error });
+    }
+    const { name, slug, owner } = JSON.parse(stdout);
+    return { name, slug, owner };
+}
+exports.projectInfo = projectInfo;
+/**
+ * Determine if the current project is using `dev-client` or `expo-go`.
+ * This is based on the `@expo/cli` check to enable dev client mode.
+ *
+ * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
+ */
+function projectAppType(dir) {
+    const packageFile = path_1.default.resolve(dir, 'package.json');
+    let packageJson = {};
+    try {
+        packageJson = require(packageFile);
+    }
+    catch (error) {
+        throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
+    }
+    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+        return 'dev-client';
+    }
+    return 'expo-go';
+}
+exports.projectAppType = projectAppType;
+/**
+ * Create a QR code for an update on project, with an optional release channel.
+ */
+function projectQR(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
+    const url = new url_1.URL('https://qr.expo.dev/expo-go');
+    url.searchParams.append('owner', project.owner);
+    url.searchParams.append('slug', project.slug);
+    if (channel) {
+        url.searchParams.append('releaseChannel', channel);
+    }
+    return url.toString();
+}
+exports.projectQR = projectQR;
+/**
+ * Create a link for the project in Expo.
+ */
+function projectLink(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a QR code for project without owner');
+    const url = new url_1.URL(`https://expo.dev/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectLink = projectLink;
+/**
+ * Create a deep link to open the project in Expo Go
+ */
+function projectDeepLink(project, channel) {
+    (0, assert_1.ok)(project.owner, 'Could not create a deep link for project without owner');
+    const url = new url_1.URL(`exp://exp.host/@${project.owner}/${project.slug}`);
+    if (channel) {
+        url.searchParams.append('release-channel', channel);
+    }
+    return url.toString();
+}
+exports.projectDeepLink = projectDeepLink;
+function getBuildLogsUrl(build) {
+    // TODO: reuse this function from the original source
+    // see: https://github.com/expo/eas-cli/blob/896f7f038582347c57dc700be9ea7d092b5a3a21/packages/eas-cli/src/build/utils/url.ts#L13-L21
+    const { project } = build;
+    const path = project
+        ? `/accounts/${project.ownerAccount.name}/projects/${project.slug}/builds/${build.id}`
+        : `/builds/${build.id}`;
+    const url = new url_1.URL(path, 'https://expo.dev');
+    return url.toString();
+}
+exports.getBuildLogsUrl = getBuildLogsUrl;
 
 
 /***/ }),
