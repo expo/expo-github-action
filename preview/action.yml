@@ -18,9 +18,9 @@ inputs:
     default: true
   comment-id:
     description: unique id template to prevent duplicate comments
-  expo-go:
-    description: If the QR code should be generated for Expo Go (this will force the QR code to start with `exp://...`)
-    default: false
+  qr-target:
+    description: How the EAS Update is opened through the QR code, either `dev-client` or `expo-go`. Defaults to `dev-client` if installed in project.
+    required: false
   working-directory:
     description: The relative directory of your Expo app
     required: false

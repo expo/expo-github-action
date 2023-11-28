@@ -2,6 +2,7 @@ import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@a
 import { ExpoConfig } from '@expo/config';
 
 import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
+import { projectAppType } from '../expo';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { template } from '../utils';
@@ -10,13 +11,18 @@ import { executeAction } from '../worker';
 export const MESSAGE_ID = 'projectId:{projectId}';
 
 export function previewInput() {
+  const qrTarget = getInput('qr-target') || undefined;
+  if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
+    throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-client"`);
+  }
+
   return {
     command: getInput('command'),
     shouldComment: !getInput('comment') || getBooleanInput('comment'),
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
     githubToken: getInput('github-token'),
-    useExpoGoForQr: getBooleanInput('expo-go'),
+    qrTarget: qrTarget as undefined | 'expo-go' | 'dev-client',
   };
 }
 
@@ -42,6 +48,18 @@ export async function previewAction(input = previewInput()) {
   if (!config.extra?.eas?.projectId) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
+
+  // Resolve the QR code target used, either `expo-go` or `dev-client`.
+  input.qrTarget = await group('Resolving QR code target', async () => {
+    if (input.qrTarget) {
+      console.log(`Using QR code target: "${input.qrTarget}"`);
+      return input.qrTarget;
+    }
+
+    const appType = projectAppType(input.workingDirectory);
+    console.log(`Using inferred QR code target: "${appType}"`);
+    return appType;
+  });
 
   const variables = getVariables(config, updates, input);
   const messageId = template(input.commentId, variables);
@@ -102,20 +120,21 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
   const ios = updates.find(update => update.platform === 'ios');
 
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
-  const appSlug = options.useExpoGoForQr ? undefined : config.slug;
+  const appSlug = config.slug;
+  const qrTarget = options.qrTarget || 'expo-go';
 
   return {
     // EAS / Expo specific
     projectId,
     projectName: config.name,
-    projectSlug: config.slug,
+    projectSlug: appSlug,
     projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
     projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug }),
+    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
     link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
@@ -129,7 +148,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
     androidManifestPermalink: android?.manifestPermalink || '',
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
-    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug }) : '',
+    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug, qrTarget }) : '',
     androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
     iosId: ios?.id || '',
@@ -138,7 +157,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
     iosManifestPermalink: ios?.manifestPermalink || '',
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug }) : '',
+    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
 }

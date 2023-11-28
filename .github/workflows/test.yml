@@ -165,7 +165,11 @@ jobs:
               throw new Error('Message output is empty');
             }
 
-      - name: 🚀 Create preview (with Expo Go QR code)
+      - name: 👷 Configure expo-dev-client
+        working-directory: ./temp
+        run: bun expo install expo-dev-client
+
+      - name: 🚀 Create preview (with Expo Go QR target)
         if: ${{ env.hasAuth == 'true' }}
         uses: ./preview
         id: expo-go-qr
@@ -173,7 +177,7 @@ jobs:
           EXPO_TEST_GITHUB_PULL: 206
         with:
           working-directory: ./temp
-          expo-go: true
+          qr-target: expo-go
           command: eas update --branch test --message "This is a test"
           comment: false
 

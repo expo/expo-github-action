@@ -2,6 +2,7 @@ import { info, exportVariable } from '@actions/core';
 import { exec, getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ok as assert } from 'assert';
+import path from 'path';
 import { URL } from 'url';
 
 export type CliName = 'expo' | 'eas';
@@ -214,6 +215,29 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
 
   const { name, slug, owner } = JSON.parse(stdout);
   return { name, slug, owner };
+}
+
+/**
+ * Determine if the current project is using `dev-client` or `expo-go`.
+ * This is based on the `@expo/cli` check to enable dev client mode.
+ *
+ * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
+ */
+export function projectAppType(dir: string): 'expo-go' | 'dev-client' {
+  const packageFile = path.resolve(dir, 'package.json');
+  let packageJson: any = {};
+
+  try {
+    packageJson = require(packageFile);
+  } catch (error: unknown) {
+    throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
+  }
+
+  if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+    return 'dev-client';
+  }
+
+  return 'expo-go';
 }
 
 /**

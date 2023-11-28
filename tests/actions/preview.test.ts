@@ -3,7 +3,9 @@ import { ExpoConfig } from '@expo/config';
 import { createSummary, getSchemesInOrderFromConfig, getVariables, previewInput } from '../../src/actions/preview';
 import { EasUpdate } from '../../src/eas';
 
-const fakeOptions = {} as unknown as ReturnType<typeof previewInput>;
+const fakeOptions = {
+  qrTarget: 'dev-client',
+} as unknown as ReturnType<typeof previewInput>;
 
 const fakeExpoConfig = {
   slug: 'fake-project',
@@ -175,7 +177,7 @@ describe(createSummary, () => {
     });
 
     it('returns Expo Go compatible QR code when forced', () => {
-      const customOptions: typeof fakeOptions = { ...fakeOptions, useExpoGoForQr: true };
+      const customOptions: typeof fakeOptions = { ...fakeOptions, qrTarget: 'expo-go' };
       expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple, customOptions)))
         .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
