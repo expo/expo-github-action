@@ -16,7 +16,6 @@ export function previewInput() {
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
     githubToken: getInput('github-token'),
-    appScheme: getInput('app-scheme'),
   };
 }
 
@@ -43,7 +42,7 @@ export async function previewAction(input = previewInput()) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
 
-  const variables = getVariables(config, updates, input);
+  const variables = getVariables(config, updates);
   const messageId = template(input.commentId, variables);
   const messageBody = createSummary(updates, variables);
 
@@ -96,24 +95,26 @@ function sanitizeCommand(input: string): string {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-export function getVariables(config: ExpoConfig, updates: EasUpdate[], input: ReturnType<typeof previewInput>) {
+export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
   const projectId: string = config.extra?.eas?.projectId;
   const android = updates.find(update => update.platform === 'android');
   const ios = updates.find(update => update.platform === 'ios');
 
-  const appScheme = input.appScheme || getSchemeFromConfig(config) || '';
+  const appSlug = config.slug;
+  const appSchemes = getSchemesInOrderFromConfig(config) || [];
 
   return {
     // EAS / Expo specific
     projectId,
     projectName: config.name,
-    projectSlug: config.slug,
-    projectScheme: appScheme,
+    projectSlug: appSlug,
+    projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
+    projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme }),
+    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug }),
     link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
@@ -127,7 +128,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], input: Re
     androidManifestPermalink: android?.manifestPermalink || '',
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
-    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme }) : '',
+    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug }) : '',
     androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
     iosId: ios?.id || '',
@@ -136,27 +137,27 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], input: Re
     iosManifestPermalink: ios?.manifestPermalink || '',
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme }) : '',
+    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
 }
 
 /**
- * Retrieve the app scheme from project config, using the following criteria:
- *   - If the scheme is a string, return that.
- *   - If the scheme is an array, return the longest scheme.
+ * Retrieve the app schemes, in correct priority order, from project config.
+ *   - If the scheme is a string, return `[scheme]`.
+ *   - If the scheme is an array, return the schemes sorted by length, longest first.
+ *   - If the scheme is empty/incorrect, return an empty array.
  */
-export function getSchemeFromConfig(config: ExpoConfig) {
+export function getSchemesInOrderFromConfig(config: ExpoConfig) {
   if (typeof config.scheme === 'string') {
-    return config.scheme;
+    return [config.scheme];
   }
 
-  if (Array.isArray(config.scheme) && config.scheme.length > 0) {
-    const longestToShortest = config.scheme.sort((a, b) => b.length - a.length);
-    return longestToShortest[0];
+  if (Array.isArray(config.scheme)) {
+    return config.scheme.sort((a, b) => b.length - a.length);
   }
 
-  return null;
+  return [];
 }
 
 /**
@@ -180,13 +181,13 @@ function createSummaryHeader(updates: EasUpdate[], vars: ReturnType<typeof getVa
     .map(platform => `**${platform}**`)
     .join(', ');
 
-  const appScheme = vars.projectScheme ? `- Scheme → **${vars.projectScheme}**` : '';
+  const appSchemes = vars.projectScheme ? `- Scheme → **${JSON.parse(vars.projectSchemes).join('**, **')}**` : '';
 
   return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
 - ${platformName} → ${platformValue}
-${appScheme}`.trim();
+${appSchemes}`.trim();
 }
 
 function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {

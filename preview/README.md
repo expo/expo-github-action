@@ -46,7 +46,6 @@ Here is a summary of all the input options you can use.
 | --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
 | **command**           | -                           | EAS CLI command to run when creating updates                                                   |
 | **working-directory** | -                           | The relative directory of your Expo app                                                        |
-| **app-scheme**        | -                           | The (custom) app scheme to use when creating the preview QR code                               |
 | **comment**           | `true`                      | If the action should summarize the EAS Update information as comment on a pull request         |
 | **comment-id**        | _[see code][code-defaults]_ | unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
 | **github-token**      | `github.token`              | GitHub token to use when commenting on PR ([read more](#github-tokens))                        |
@@ -56,14 +55,15 @@ Here is a summary of all the input options you can use.
 There are a few variables available that you can use to set up your own notifications.
 These variables are strings; some may be empty because of your project configuration.
 
-| output name       | description                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| **projectId**     | The resolved EAS project ID                                                                       |
-| **projectName**   | The name of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#name))    |
-| **projectSlug**   | The slug of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#slug))    |
-| **projectScheme** | The (custom) app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))   |
-| **commentId**     | The unique comment ID to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
-| **comment**       | The comment with information about the updates                                                    |
+| output name        | description                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **projectId**      | The resolved EAS project ID                                                                                                                       |
+| **projectName**    | The name of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#name))                                                    |
+| **projectSlug**    | The slug of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#slug))                                                    |
+| **projectScheme**  | The longest (custom) app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))                                           |
+| **projectSchemes** | All (custom) app schemes in order of longest to shortest, as JSON string ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme)) |
+| **commentId**      | The unique comment ID to prevent duplicate comments ([read more](#preventing-duplicate-comments))                                                 |
+| **comment**        | The comment with information about the updates                                                                                                    |
 
 ### Update information
 
@@ -124,6 +124,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 
 This workflow creates a new EAS Update every time a pull request is created or updated.
 We are using the `--auto`, together with the `--branch`, flag in this example.
+
 - `--auto` will automatically create an update using the current git commit message and git branch.
 - `--branch` will overwrite this value infere from git with our own value.
 

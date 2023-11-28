@@ -71,16 +71,17 @@ export async function createUpdate(cwd: string, command: string): Promise<EasUpd
 export function getUpdateGroupQr({
   projectId,
   updateGroupId,
-  appScheme,
+  appSlug,
 }: {
   projectId: string;
   updateGroupId: string;
-  appScheme?: string;
+  appSlug?: string;
 }): string {
   const url = new URL('https://qr.expo.dev/eas-update');
 
-  if (appScheme) {
-    url.searchParams.append('appScheme', appScheme);
+  if (appSlug) {
+    // While the parameter is called `appScheme`, it's actually the app's slug
+    url.searchParams.append('appScheme', appSlug);
   }
 
   url.searchParams.append('projectId', projectId);
