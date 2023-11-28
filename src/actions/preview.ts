@@ -16,6 +16,7 @@ export function previewInput() {
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
     githubToken: getInput('github-token'),
+    useExpoGoForQr: getBooleanInput('expo-go'),
   };
 }
 
@@ -42,7 +43,7 @@ export async function previewAction(input = previewInput()) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
 
-  const variables = getVariables(config, updates);
+  const variables = getVariables(config, updates, input);
   const messageId = template(input.commentId, variables);
   const messageBody = createSummary(updates, variables);
 
@@ -95,19 +96,19 @@ function sanitizeCommand(input: string): string {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-export function getVariables(config: ExpoConfig, updates: EasUpdate[]) {
+export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: ReturnType<typeof previewInput>) {
   const projectId: string = config.extra?.eas?.projectId;
   const android = updates.find(update => update.platform === 'android');
   const ios = updates.find(update => update.platform === 'ios');
 
-  const appSlug = config.slug;
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
+  const appSlug = options.useExpoGoForQr ? undefined : config.slug;
 
   return {
     // EAS / Expo specific
     projectId,
     projectName: config.name,
-    projectSlug: appSlug,
+    projectSlug: config.slug,
     projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
     projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
     // Shared update properties

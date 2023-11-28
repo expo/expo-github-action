@@ -42,28 +42,29 @@ It can help speed up the review process by letting the reviewer load the app dir
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable              | default                     | description                                                                                    |
-| --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
-| **command**           | -                           | EAS CLI command to run when creating updates                                                   |
-| **working-directory** | -                           | The relative directory of your Expo app                                                        |
-| **comment**           | `true`                      | If the action should summarize the EAS Update information as comment on a pull request         |
-| **comment-id**        | _[see code][code-defaults]_ | unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments)) |
-| **github-token**      | `github.token`              | GitHub token to use when commenting on PR ([read more](#github-tokens))                        |
+| variable              | default                     | description                                                                                                    |
+| --------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **command**           | -                           | EAS CLI command to run when creating updates                                                                   |
+| **working-directory** | -                           | The relative directory of your Expo app                                                                        |
+| **comment**           | `true`                      | If the action should summarize the EAS Update information as comment on a pull request                         |
+| **comment-id**        | _[see code][code-defaults]_ | Unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments))                 |
+| **expo-go**           | `false`                     | Force QR codes to open Expo Go instead of custom dev client (\_this forces QR codes to start with `exp://...`) |
+| **github-token**      | `github.token`              | GitHub token to use when commenting on PR ([read more](#github-tokens))                                        |
 
 ## Available outputs
 
 There are a few variables available that you can use to set up your own notifications.
 These variables are strings; some may be empty because of your project configuration.
 
-| output name        | description                                                                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **projectId**      | The resolved EAS project ID                                                                                                                       |
-| **projectName**    | The name of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#name))                                                    |
-| **projectSlug**    | The slug of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#slug))                                                    |
-| **projectScheme**  | The longest (custom) app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))                                           |
+| output name        | description                                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **projectId**      | The resolved EAS project ID                                                                                                                      |
+| **projectName**    | The name of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#name))                                                   |
+| **projectSlug**    | The slug of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#slug))                                                   |
+| **projectScheme**  | The longest (custom) app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))                                          |
 | **projectSchemes** | All (custom) app schemes in order of longest to shortest, as JSON string ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme)) |
-| **commentId**      | The unique comment ID to prevent duplicate comments ([read more](#preventing-duplicate-comments))                                                 |
-| **comment**        | The comment with information about the updates                                                                                                    |
+| **commentId**      | The unique comment ID to prevent duplicate comments ([read more](#preventing-duplicate-comments))                                                |
+| **comment**        | The comment with information about the updates                                                                                                   |
 
 ### Update information
 
