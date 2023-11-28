@@ -41838,7 +41838,7 @@ try {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createSummary = exports.getSchemeFromConfig = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
+exports.createSummary = exports.getSchemesInOrderFromConfig = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const eas_1 = __nccwpck_require__(3251);
 const github_1 = __nccwpck_require__(978);
@@ -41853,7 +41853,6 @@ function previewInput() {
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
         githubToken: (0, core_1.getInput)('github-token'),
-        appScheme: (0, core_1.getInput)('app-scheme'),
     };
 }
 exports.previewInput = previewInput;
@@ -41875,7 +41874,7 @@ async function previewAction(input = previewInput()) {
     if (!config.extra?.eas?.projectId) {
         return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
     }
-    const variables = getVariables(config, updates, input);
+    const variables = getVariables(config, updates);
     const messageId = (0, utils_1.template)(input.commentId, variables);
     const messageBody = createSummary(updates, variables);
     if (!input.shouldComment) {
@@ -41923,22 +41922,24 @@ function sanitizeCommand(input) {
 /**
  * Generate useful variables for the message body, and as step outputs.
  */
-function getVariables(config, updates, input) {
+function getVariables(config, updates) {
     const projectId = config.extra?.eas?.projectId;
     const android = updates.find(update => update.platform === 'android');
     const ios = updates.find(update => update.platform === 'ios');
-    const appScheme = input.appScheme || getSchemeFromConfig(config) || '';
+    const appSlug = config.slug;
+    const appSchemes = getSchemesInOrderFromConfig(config) || [];
     return {
         // EAS / Expo specific
         projectId,
         projectName: config.name,
-        projectSlug: config.slug,
-        projectScheme: appScheme,
+        projectSlug: appSlug,
+        projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
+        projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
         // Shared update properties
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appScheme }),
+        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug }),
         link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
@@ -41952,7 +41953,7 @@ function getVariables(config, updates, input) {
         androidManifestPermalink: android?.manifestPermalink || '',
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
-        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appScheme }) : '',
+        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug }) : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
         iosId: ios?.id || '',
@@ -41961,27 +41962,27 @@ function getVariables(config, updates, input) {
         iosManifestPermalink: ios?.manifestPermalink || '',
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appScheme }) : '',
+        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug }) : '',
         iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
     };
 }
 exports.getVariables = getVariables;
 /**
- * Retrieve the app scheme from project config, using the following criteria:
- *   - If the scheme is a string, return that.
- *   - If the scheme is an array, return the longest scheme.
+ * Retrieve the app schemes, in correct priority order, from project config.
+ *   - If the scheme is a string, return `[scheme]`.
+ *   - If the scheme is an array, return the schemes sorted by length, longest first.
+ *   - If the scheme is empty/incorrect, return an empty array.
  */
-function getSchemeFromConfig(config) {
+function getSchemesInOrderFromConfig(config) {
     if (typeof config.scheme === 'string') {
-        return config.scheme;
+        return [config.scheme];
     }
-    if (Array.isArray(config.scheme) && config.scheme.length > 0) {
-        const longestToShortest = config.scheme.sort((a, b) => b.length - a.length);
-        return longestToShortest[0];
+    if (Array.isArray(config.scheme)) {
+        return config.scheme.sort((a, b) => b.length - a.length);
     }
-    return null;
+    return [];
 }
-exports.getSchemeFromConfig = getSchemeFromConfig;
+exports.getSchemesInOrderFromConfig = getSchemesInOrderFromConfig;
 /**
  * Generate the message body for a single update.
  * Note, this is not configurable, but you can use the variables used to construct your own.
@@ -42001,12 +42002,12 @@ function createSummaryHeader(updates, vars) {
         .sort((a, b) => a.localeCompare(b))
         .map(platform => `**${platform}**`)
         .join(', ');
-    const appScheme = vars.projectScheme ? `- Scheme → **${vars.projectScheme}**` : '';
+    const appSchemes = vars.projectScheme ? `- Scheme → **${JSON.parse(vars.projectSchemes).join('**, **')}**` : '';
     return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
 - ${platformName} → ${platformValue}
-${appScheme}`.trim();
+${appSchemes}`.trim();
 }
 function createSingleQrSummary(updates, vars) {
     return `${createSummaryHeader(updates, vars)}
@@ -42099,10 +42100,11 @@ exports.createUpdate = createUpdate;
 /**
  * Create a QR code link for an EAS Update.
  */
-function getUpdateGroupQr({ projectId, updateGroupId, appScheme, }) {
+function getUpdateGroupQr({ projectId, updateGroupId, appSlug, }) {
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
-    if (appScheme) {
-        url.searchParams.append('appScheme', appScheme);
+    if (appSlug) {
+        // While the parameter is called `appScheme`, it's actually the app's slug
+        url.searchParams.append('appScheme', appSlug);
     }
     url.searchParams.append('projectId', projectId);
     url.searchParams.append('groupId', updateGroupId);
