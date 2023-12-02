@@ -84,6 +84,10 @@ jobs:
       - name: 🏗 Setup project
         run: bun create expo ./temp --template blank
 
+      - name: 🏗 Setup `expo-dev-client`
+        working-directory: ./temp
+        run: bun expo install expo-dev-client
+
       - name: 👷 Configure project
         working-directory: ./temp
         run: |
@@ -165,27 +169,49 @@ jobs:
               throw new Error('Message output is empty');
             }
 
-      - name: 🚀 Create preview (with custom app scheme)
+      - name: 🚀 Create preview (with "dev-build" QR target)
         if: ${{ env.hasAuth == 'true' }}
         uses: ./preview
-        id: custom-app-scheme
+        id: dev-build-qr
         env:
           EXPO_TEST_GITHUB_PULL: 206
         with:
-          app-scheme: thisisacustomscheme
           working-directory: ./temp
           command: eas update --branch test --message "This is a test"
           comment: false
 
-      - name: 🧪 Comment has custom app scheme
+      - name: 🧪 Comment has "dev-build" QR
         if: ${{ env.hasAuth == 'true' }}
         uses: actions/github-script@v7
         with:
           script: |
-            const comment = `${{ steps.custom-app-scheme.outputs.comment }}`
-            if (!comment || !comment.includes('thisisacustomscheme')) {
-              console.log({ comment });
-              throw new Error('Message output does not include the app scheme from action input');
+            const qrUrl = `${{ steps.dev-build-qr.outputs.qr }}`
+            if (!qrUrl || !qrUrl.includes('appScheme')) {
+              console.log({ qrUrl });
+              throw new Error('QR URL is missing "appScheme" to point to a dev build');
+            }
+
+      - name: 🚀 Create preview (with "expo-go" QR target from input)
+        if: ${{ env.hasAuth == 'true' }}
+        uses: ./preview
+        id: expo-go-qr
+        env:
+          EXPO_TEST_GITHUB_PULL: 206
+        with:
+          working-directory: ./temp
+          qr-target: expo-go
+          command: eas update --branch test --message "This is a test"
+          comment: false
+
+      - name: 🧪 Comment has "expo-go" QR code
+        if: ${{ env.hasAuth == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const qrUrl = `${{ steps.expo-go-qr.outputs.qr }}`
+            if (!qrUrl || qrUrl.includes('appScheme')) {
+              console.log({ qrUrl });
+              throw new Error('QR URL points to a dev build, not Expo Go');
             }
 
   preview-comment:

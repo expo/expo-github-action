@@ -12,15 +12,15 @@ inputs:
   command:
     description: EAS CLI command to run when creating updates
     required: true
-  app-scheme:
-    description: The (custom) app scheme to use when creating the preview QR code
-    required: false
   comment:
     description: If the action should summarize the EAS Update information as comment on a pull request
     required: false
     default: true
   comment-id:
     description: unique id template to prevent duplicate comments
+  qr-target:
+    description: How the EAS Update is opened through the QR code, either `dev-build` or `expo-go`. Defaults to `dev-build` if `expo-dev-client` is used in project.
+    required: false
   working-directory:
     description: The relative directory of your Expo app
     required: false
@@ -29,6 +29,11 @@ inputs:
     description: GitHub token to use when commenting on PR
     required: false
     default: ${{ github.token }}
+  # Below are deprecated and won't be supported anymore
+  app-scheme:
+    deprecated: true
+    description: The (custom) app scheme to use when creating the preview QR code
+    required: false
 outputs:
   projectId:
     description: The resolved EAS project ID

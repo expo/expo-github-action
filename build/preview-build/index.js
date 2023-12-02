@@ -89233,16 +89233,20 @@ exports.handleCacheError = handleCacheError;
 /***/ }),
 
 /***/ 2489:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectAppType = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
 const assert_1 = __nccwpck_require__(9491);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const url_1 = __nccwpck_require__(7310);
 var AppPlatform;
 (function (AppPlatform) {
@@ -89411,6 +89415,27 @@ async function projectInfo(dir) {
     return { name, slug, owner };
 }
 exports.projectInfo = projectInfo;
+/**
+ * Determine if the current project is using `dev-build` or `expo-go`.
+ * This is based on the `@expo/cli` check to enable dev client mode.
+ *
+ * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
+ */
+function projectAppType(dir) {
+    const packageFile = path_1.default.resolve(dir, 'package.json');
+    let packageJson = {};
+    try {
+        packageJson = require(packageFile);
+    }
+    catch (error) {
+        throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
+    }
+    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+        return 'dev-build';
+    }
+    return 'expo-go';
+}
+exports.projectAppType = projectAppType;
 /**
  * Create a QR code for an update on project, with an optional release channel.
  */
