@@ -84,6 +84,10 @@ jobs:
       - name: 🏗 Setup project
         run: bun create expo ./temp --template blank
 
+      - name: 🏗 Setup `expo-dev-client`
+        working-directory: ./temp
+        run: bun expo install expo-dev-client
+
       - name: 👷 Configure project
         working-directory: ./temp
         run: |
@@ -165,11 +169,29 @@ jobs:
               throw new Error('Message output is empty');
             }
 
-      - name: 👷 Configure expo-dev-client
-        working-directory: ./temp
-        run: bun expo install expo-dev-client
+      - name: 🚀 Create preview (with "dev-build" QR target)
+        if: ${{ env.hasAuth == 'true' }}
+        uses: ./preview
+        id: dev-build-qr
+        env:
+          EXPO_TEST_GITHUB_PULL: 206
+        with:
+          working-directory: ./temp
+          command: eas update --branch test --message "This is a test"
+          comment: false
 
-      - name: 🚀 Create preview (with Expo Go QR target)
+      - name: 🧪 Comment has "dev-build" QR
+        if: ${{ env.hasAuth == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const qrUrl = `${{ steps.dev-build-qr.outputs.qr }}`
+            if (!qrUrl || !qrUrl.includes('appScheme')) {
+              console.log({ qrUrl });
+              throw new Error('QR URL is missing "appScheme" to point to a dev build');
+            }
+
+      - name: 🚀 Create preview (with "expo-go" QR target from input)
         if: ${{ env.hasAuth == 'true' }}
         uses: ./preview
         id: expo-go-qr
@@ -181,7 +203,7 @@ jobs:
           command: eas update --branch test --message "This is a test"
           comment: false
 
-      - name: 🧪 Comment has Expo Go QR code
+      - name: 🧪 Comment has "expo-go" QR code
         if: ${{ env.hasAuth == 'true' }}
         uses: actions/github-script@v7
         with:
@@ -189,7 +211,7 @@ jobs:
             const qrUrl = `${{ steps.expo-go-qr.outputs.qr }}`
             if (!qrUrl || qrUrl.includes('appScheme')) {
               console.log({ qrUrl });
-              throw new Error('QR URL points to a dev client, not Expo Go');
+              throw new Error('QR URL points to a dev build, not Expo Go');
             }
 
   preview-comment:
