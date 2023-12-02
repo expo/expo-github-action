@@ -218,12 +218,12 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
 }
 
 /**
- * Determine if the current project is using `dev-client` or `expo-go`.
+ * Determine if the current project is using `dev-build` or `expo-go`.
  * This is based on the `@expo/cli` check to enable dev client mode.
  *
  * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
  */
-export function projectAppType(dir: string): 'expo-go' | 'dev-client' {
+export function projectAppType(dir: string): 'expo-go' | 'dev-build' {
   const packageFile = path.resolve(dir, 'package.json');
   let packageJson: any = {};
 
@@ -234,7 +234,7 @@ export function projectAppType(dir: string): 'expo-go' | 'dev-client' {
   }
 
   if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
-    return 'dev-client';
+    return 'dev-build';
   }
 
   return 'expo-go';

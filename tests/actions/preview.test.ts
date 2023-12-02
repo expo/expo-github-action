@@ -1,7 +1,16 @@
 import { ExpoConfig } from '@expo/config';
 
-import { createSummary, getSchemesInOrderFromConfig, getVariables, previewInput } from '../../src/actions/preview';
+import {
+  createSummary,
+  getQrTarget,
+  getSchemesInOrderFromConfig,
+  getVariables,
+  previewInput,
+} from '../../src/actions/preview';
 import { EasUpdate } from '../../src/eas';
+import { projectAppType } from '../../src/expo';
+
+jest.mock('../../src/expo');
 
 const fakeOptions = {
   qrTarget: 'dev-client',
@@ -40,6 +49,36 @@ const fakeUpdatesSingle: EasUpdate[] = [
 ];
 
 const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({ ...update, group: `fake-group-${update.id}` }));
+
+describe(getQrTarget, () => {
+  it('returns `dev-build` for `qr-target: dev-build`', () => {
+    expect(getQrTarget({ ...fakeOptions, qrTarget: 'dev-build' })).toBe('dev-build');
+  });
+
+  it('returns `dev-build` for `qr-target: dev-client`', () => {
+    expect(getQrTarget({ ...fakeOptions, qrTarget: 'dev-client' })).toBe('dev-build');
+  });
+
+  it('returns `expo-go` for `qr-target: expo-go`', () => {
+    expect(getQrTarget({ ...fakeOptions, qrTarget: 'expo-go' })).toBe('expo-go');
+  });
+
+  it('throws for unknown `qr-target`', () => {
+    expect(() => getQrTarget({ ...fakeOptions, qrTarget: 'unknown' } as any)).toThrow(
+      `Invalid QR code target: "unknown", expected "expo-go" or "dev-build"`
+    );
+  });
+
+  it('returns infered `dev-build` when input is omitted', () => {
+    jest.mocked(projectAppType).mockReturnValue('dev-build');
+    expect(getQrTarget({ ...fakeOptions, qrTarget: undefined })).toBe('dev-build');
+  });
+
+  it('returns infered `expo-go` when input is omitted', () => {
+    jest.mocked(projectAppType).mockReturnValue('expo-go');
+    expect(getQrTarget({ ...fakeOptions, qrTarget: undefined })).toBe('expo-go');
+  });
+});
 
 describe(getSchemesInOrderFromConfig, () => {
   it('returns empty array when not defined', () => {

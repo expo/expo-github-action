@@ -1,4 +1,4 @@
-import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@actions/core';
+import { getBooleanInput, getInput, setOutput, group, setFailed, info, debug } from '@actions/core';
 import { ExpoConfig } from '@expo/config';
 
 import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
@@ -13,7 +13,7 @@ export const MESSAGE_ID = 'projectId:{projectId}';
 export function previewInput() {
   const qrTarget = getInput('qr-target') || undefined;
   if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
-    throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-client"`);
+    throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-build"`);
   }
 
   return {
@@ -22,7 +22,8 @@ export function previewInput() {
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
     githubToken: getInput('github-token'),
-    qrTarget: qrTarget as undefined | 'expo-go' | 'dev-client',
+    // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
+    qrTarget: qrTarget as undefined | 'expo-go' | 'dev-build' | 'dev-client',
   };
 }
 
@@ -48,18 +49,6 @@ export async function previewAction(input = previewInput()) {
   if (!config.extra?.eas?.projectId) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
-
-  // Resolve the QR code target used, either `expo-go` or `dev-client`.
-  input.qrTarget = await group('Resolving QR code target', async () => {
-    if (input.qrTarget) {
-      console.log(`Using QR code target: "${input.qrTarget}"`);
-      return input.qrTarget;
-    }
-
-    const appType = projectAppType(input.workingDirectory);
-    console.log(`Using inferred QR code target: "${appType}"`);
-    return appType;
-  });
 
   const variables = getVariables(config, updates, input);
   const messageId = template(input.commentId, variables);
@@ -121,7 +110,7 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
 
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
   const appSlug = config.slug;
-  const qrTarget = options.qrTarget || 'expo-go';
+  const qrTarget = getQrTarget(options);
 
   return {
     // EAS / Expo specific
@@ -160,6 +149,29 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
     iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
+}
+
+export function getQrTarget(input: Pick<ReturnType<typeof previewInput>, 'qrTarget' | 'workingDirectory'>) {
+  if (!input.qrTarget) {
+    const appType = projectAppType(input.workingDirectory);
+    debug(`Using inferred QR code target: "${appType}"`);
+    return appType;
+  }
+
+  switch (input.qrTarget) {
+    // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
+    case 'dev-client':
+    case 'dev-build':
+      debug(`Using QR code target: "dev-build"`);
+      return 'dev-build';
+
+    case 'expo-go':
+      debug(`Using QR code target: "expo-go"`);
+      return 'expo-go';
+
+    default:
+      throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
+  }
 }
 
 /**

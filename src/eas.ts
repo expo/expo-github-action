@@ -76,12 +76,12 @@ export function getUpdateGroupQr({
 }: {
   projectId: string;
   updateGroupId: string;
-  appSlug?: string;
-  qrTarget: 'expo-go' | 'dev-client';
+  appSlug: string;
+  qrTarget: 'expo-go' | 'dev-build';
 }): string {
   const url = new URL('https://qr.expo.dev/eas-update');
 
-  if (qrTarget === 'dev-client' && appSlug) {
+  if (qrTarget === 'dev-build') {
     // While the parameter is called `appScheme`, it's actually the app's slug
     // This should only be added when using dev clients as target
     url.searchParams.append('appScheme', appSlug);

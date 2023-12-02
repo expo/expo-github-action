@@ -19,7 +19,7 @@ inputs:
   comment-id:
     description: unique id template to prevent duplicate comments
   qr-target:
-    description: How the EAS Update is opened through the QR code, either `dev-client` or `expo-go`. Defaults to `dev-client` if installed in project.
+    description: How the EAS Update is opened through the QR code, either `dev-build` or `expo-go`. Defaults to `dev-build` if `expo-dev-client` is used in project.
     required: false
   working-directory:
     description: The relative directory of your Expo app
