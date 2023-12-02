@@ -89095,7 +89095,7 @@ async function projectInfo(dir) {
 }
 exports.projectInfo = projectInfo;
 /**
- * Determine if the current project is using `dev-client` or `expo-go`.
+ * Determine if the current project is using `dev-build` or `expo-go`.
  * This is based on the `@expo/cli` check to enable dev client mode.
  *
  * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
@@ -89110,7 +89110,7 @@ function projectAppType(dir) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
     if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
-        return 'dev-client';
+        return 'dev-build';
     }
     return 'expo-go';
 }

@@ -41838,7 +41838,7 @@ try {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createSummary = exports.getSchemesInOrderFromConfig = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
+exports.createSummary = exports.getSchemesInOrderFromConfig = exports.getQrTarget = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
 const core_1 = __nccwpck_require__(2186);
 const eas_1 = __nccwpck_require__(3251);
 const expo_1 = __nccwpck_require__(2489);
@@ -41850,7 +41850,7 @@ exports.MESSAGE_ID = 'projectId:{projectId}';
 function previewInput() {
     const qrTarget = (0, core_1.getInput)('qr-target') || undefined;
     if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
-        throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-client"`);
+        throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-build"`);
     }
     return {
         command: (0, core_1.getInput)('command'),
@@ -41858,6 +41858,7 @@ function previewInput() {
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
         githubToken: (0, core_1.getInput)('github-token'),
+        // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
         qrTarget: qrTarget,
     };
 }
@@ -41880,16 +41881,6 @@ async function previewAction(input = previewInput()) {
     if (!config.extra?.eas?.projectId) {
         return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
     }
-    // Resolve the QR code target used, either `expo-go` or `dev-client`.
-    input.qrTarget = await (0, core_1.group)('Resolving QR code target', async () => {
-        if (input.qrTarget) {
-            console.log(`Using QR code target: "${input.qrTarget}"`);
-            return input.qrTarget;
-        }
-        const appType = (0, expo_1.projectAppType)(input.workingDirectory);
-        console.log(`Using inferred QR code target: "${appType}"`);
-        return appType;
-    });
     const variables = getVariables(config, updates, input);
     const messageId = (0, utils_1.template)(input.commentId, variables);
     const messageBody = createSummary(updates, variables);
@@ -41944,7 +41935,7 @@ function getVariables(config, updates, options) {
     const ios = updates.find(update => update.platform === 'ios');
     const appSchemes = getSchemesInOrderFromConfig(config) || [];
     const appSlug = config.slug;
-    const qrTarget = options.qrTarget || 'expo-go';
+    const qrTarget = getQrTarget(options);
     return {
         // EAS / Expo specific
         projectId,
@@ -41984,6 +41975,26 @@ function getVariables(config, updates, options) {
     };
 }
 exports.getVariables = getVariables;
+function getQrTarget(input) {
+    if (!input.qrTarget) {
+        const appType = (0, expo_1.projectAppType)(input.workingDirectory);
+        (0, core_1.debug)(`Using inferred QR code target: "${appType}"`);
+        return appType;
+    }
+    switch (input.qrTarget) {
+        // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
+        case 'dev-client':
+        case 'dev-build':
+            (0, core_1.debug)(`Using QR code target: "dev-build"`);
+            return 'dev-build';
+        case 'expo-go':
+            (0, core_1.debug)(`Using QR code target: "expo-go"`);
+            return 'expo-go';
+        default:
+            throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
+    }
+}
+exports.getQrTarget = getQrTarget;
 /**
  * Retrieve the app schemes, in correct priority order, from project config.
  *   - If the scheme is a string, return `[scheme]`.
@@ -42119,7 +42130,7 @@ exports.createUpdate = createUpdate;
  */
 function getUpdateGroupQr({ projectId, updateGroupId, appSlug, qrTarget, }) {
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
-    if (qrTarget === 'dev-client' && appSlug) {
+    if (qrTarget === 'dev-build') {
         // While the parameter is called `appScheme`, it's actually the app's slug
         // This should only be added when using dev clients as target
         url.searchParams.append('appScheme', appSlug);
@@ -42322,7 +42333,7 @@ async function projectInfo(dir) {
 }
 exports.projectInfo = projectInfo;
 /**
- * Determine if the current project is using `dev-client` or `expo-go`.
+ * Determine if the current project is using `dev-build` or `expo-go`.
  * This is based on the `@expo/cli` check to enable dev client mode.
  *
  * @see https://github.com/expo/expo/blob/190a80f393bc730eb3f300df52d82b701e4b8ff5/packages/%40expo/cli/src/utils/analytics/getDevClientProperties.ts#L12-L15
@@ -42337,7 +42348,7 @@ function projectAppType(dir) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
     if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
-        return 'dev-client';
+        return 'dev-build';
     }
     return 'expo-go';
 }
