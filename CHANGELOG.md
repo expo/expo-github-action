@@ -1,3 +1,15 @@
+## [8.2.0](https://github.com/expo/expo-github-action/compare/8.1.0...8.2.0) (2023-12-02)
+
+
+### New features
+
+* **preview:** add `qr-target` and use proper QR codes for `expo-go` and `dev-build` ([#247](https://github.com/expo/expo-github-action/issues/247)) ([54efbfd](https://github.com/expo/expo-github-action/commit/54efbfdf1d130888a5f13b73fb7adc85edeb8855))
+
+
+### Documentation changes
+
+* **preview:** clarify the branch and workflow trigger relations ([#246](https://github.com/expo/expo-github-action/issues/246)) ([ccfad6f](https://github.com/expo/expo-github-action/commit/ccfad6f148eaa709959a64b1be216481f4ca54ff))
+
 ## [8.1.0](https://github.com/expo/expo-github-action/compare/8.0.0...8.1.0) (2023-11-24)
 
 
