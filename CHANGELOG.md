@@ -1,3 +1,10 @@
+## [8.2.1](https://github.com/expo/expo-github-action/compare/8.2.0...8.2.1) (2024-01-15)
+
+
+### Bug fixes
+
+* **preview:** filter slugs with special characters to match dev clients `exp+<slug>` scheme ([#252](https://github.com/expo/expo-github-action/issues/252)) ([b8a9be8](https://github.com/expo/expo-github-action/commit/b8a9be8336bf5609f8e299a8486f9a2bf7073f8a))
+
 ## [8.2.0](https://github.com/expo/expo-github-action/compare/8.1.0...8.2.0) (2023-12-02)
 
 
