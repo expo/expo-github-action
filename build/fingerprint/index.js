@@ -91612,10 +91612,12 @@ const worker_1 = __nccwpck_require__(8912);
 (0, worker_1.executeAction)(runAction);
 async function runAction(input = (0, fingerprint_1.collectFingerprintActionInput)()) {
     const dbManager = await (0, fingerprint_1.createFingerprintDbManagerAsync)(input.packager, input.fingerprintDbCacheKey);
-    const { currentFingerprint, diff } = await (0, fingerprint_1.createFingerprintOutputAsync)(dbManager, input);
+    const { currentFingerprint, previousFingerprint, diff } = await (0, fingerprint_1.createFingerprintOutputAsync)(dbManager, input);
     await dbManager.upsertFingerprintByGitCommitHashAsync(input.currentGitCommitHash, {
         fingerprint: currentFingerprint,
     });
+    (0, core_1.setOutput)('previous-fingerprint', previousFingerprint);
+    (0, core_1.setOutput)('current-fingerprint', currentFingerprint);
     (0, core_1.setOutput)('fingerprint-diff', diff);
 }
 exports.runAction = runAction;

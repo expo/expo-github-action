@@ -11,10 +11,12 @@ executeAction(runAction);
 
 export async function runAction(input = collectFingerprintActionInput()) {
   const dbManager = await createFingerprintDbManagerAsync(input.packager, input.fingerprintDbCacheKey);
-  const { currentFingerprint, diff } = await createFingerprintOutputAsync(dbManager, input);
+  const { currentFingerprint, previousFingerprint, diff } = await createFingerprintOutputAsync(dbManager, input);
   await dbManager.upsertFingerprintByGitCommitHashAsync(input.currentGitCommitHash, {
     fingerprint: currentFingerprint,
   });
 
+  setOutput('previous-fingerprint', previousFingerprint);
+  setOutput('current-fingerprint', currentFingerprint);
   setOutput('fingerprint-diff', diff);
 }
