@@ -35,5 +35,9 @@ inputs:
     default: fingerprint-db
 
 outputs:
+  previous-fingerprint:
+    description: The fingerprint of the previous commit. May be null if it has never previously been computed
+  current-fingerprint:
+    description: The fingerprint of the current commit
   fingerprint-diff:
     description: The diff between the current and the previous fingerprint

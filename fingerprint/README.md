@@ -89,9 +89,11 @@ And the action will generate these [outputs](#available-outputs) for other actio
 
 In case you want to reuse this action for other purpose, this action will set the following action outputs.
 
-| output name          | description                                                                                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **fingerprint-diff** | The diff between the current and the previous fingerprint. It is a JSON array of fingerprint diff. If the fingerprint does not change in between, the result diff will be an empty array `[]` |
+| output name              | description                                                                                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **previous-fingerprint** | The fingerprint of the base commit if it has been computed previously. May be null if it has not been computed previously.                                                                    |
+| **current-fingerprint**  | The fingerprint of the current commit.                                                                                                                                                        |
+| **fingerprint-diff**     | The diff between the current and the previous fingerprint. It is a JSON array of fingerprint diff. If the fingerprint does not change in between, the result diff will be an empty array `[]` |
 
 ## Example workflows
 
