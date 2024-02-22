@@ -135,7 +135,7 @@ jobs:
 
       - name: Check fingerprint
         id: fingerprint
-        uses: expo/expo-github-action/preview-build@main
+        uses: expo/expo-github-action/fingerprint@main
 
       - uses: actions/github-script@v6
         if: ${{ github.event_name == 'pull_request' && steps.fingerprint.outputs.fingerprint-diff == '[]' }}
