@@ -6,11 +6,11 @@ import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 
+import { FingerprintDbEntity, FingerprintDbManager } from './FingerprintDbManager';
 import { restoreCacheAsync, restoreFromCache, saveCacheAsync, saveToCache } from '../cacher';
 import { installPackage, resolvePackage } from '../packager';
 import { installSQLiteAsync } from '../sqlite';
 import { addGlobalNodeSearchPath, findTool, installToolFromPackage } from '../worker';
-import { FingerprintDbEntity, FingerprintDbManager } from './FingerprintDbManager';
 
 export * from './FingerprintDbManager';
 
