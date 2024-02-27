@@ -81,11 +81,13 @@ export function collectFingerprintActionInput() {
       !getInput('fingerprint-installation-cache') || getBooleanInput('fingerprint-installation-cache'),
     fingerprintDbCacheKey: getInput('fingerprint-db-cache-key'),
     previousGitCommitHash:
-      githubContext.eventName === 'pull_request'
+      getInput('previous-git-commit') ||
+      (githubContext.eventName === 'pull_request'
         ? githubContext.payload.pull_request?.base?.sha
-        : githubContext.payload.before,
+        : githubContext.payload.before),
     currentGitCommitHash:
-      githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha,
+      getInput('current-git-commit') ||
+      (githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha),
   };
 }
 

@@ -89163,10 +89163,12 @@ function collectFingerprintActionInput() {
         fingerprintVersion: (0, core_1.getInput)('fingerprint-version') || 'latest',
         fingerprintInstallationCache: !(0, core_1.getInput)('fingerprint-installation-cache') || (0, core_1.getBooleanInput)('fingerprint-installation-cache'),
         fingerprintDbCacheKey: (0, core_1.getInput)('fingerprint-db-cache-key'),
-        previousGitCommitHash: github_1.context.eventName === 'pull_request'
-            ? github_1.context.payload.pull_request?.base?.sha
-            : github_1.context.payload.before,
-        currentGitCommitHash: github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha,
+        previousGitCommitHash: (0, core_1.getInput)('previous-git-commit') ||
+            (github_1.context.eventName === 'pull_request'
+                ? github_1.context.payload.pull_request?.base?.sha
+                : github_1.context.payload.before),
+        currentGitCommitHash: (0, core_1.getInput)('current-git-commit') ||
+            (github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha),
     };
 }
 exports.collectFingerprintActionInput = collectFingerprintActionInput;
