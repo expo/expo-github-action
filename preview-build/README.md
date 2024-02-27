@@ -63,6 +63,9 @@ jobs:
       pull-requests: write # Allow comments on PRs
       # REQUIRED: Allow updating fingerprint in acton caches
       actions: write
+      # Following permissions are required for private repos
+      contents: read
+      packages: write
 
     steps:
       - name: Setup EAS
@@ -136,9 +139,12 @@ jobs:
       pull-requests: write # Allow comments on PRs
       # REQUIRED: Allow updating fingerprint in acton caches
       actions: write
+      # Following permissions are required for private repos
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🏗  Setup EAS
         uses: expo/expo-github-action@v8
