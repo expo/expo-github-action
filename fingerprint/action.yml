@@ -33,6 +33,12 @@ inputs:
     description: A cache key to use for saving the fingerprint database
     required: false
     default: fingerprint-db
+  previous-git-commit:
+    description: The Git hash for the base commit
+    required: false
+  current-git-commit:
+    description: The Git hash for the current commit
+    required: false
 
 outputs:
   previous-fingerprint:

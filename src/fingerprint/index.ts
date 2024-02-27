@@ -6,11 +6,11 @@ import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 
-import { FingerprintDbEntity, FingerprintDbManager } from './FingerprintDbManager';
 import { restoreCacheAsync, restoreFromCache, saveCacheAsync, saveToCache } from '../cacher';
 import { installPackage, resolvePackage } from '../packager';
 import { installSQLiteAsync } from '../sqlite';
 import { addGlobalNodeSearchPath, findTool, installToolFromPackage } from '../worker';
+import { FingerprintDbEntity, FingerprintDbManager } from './FingerprintDbManager';
 
 export * from './FingerprintDbManager';
 
@@ -81,11 +81,13 @@ export function collectFingerprintActionInput() {
       !getInput('fingerprint-installation-cache') || getBooleanInput('fingerprint-installation-cache'),
     fingerprintDbCacheKey: getInput('fingerprint-db-cache-key'),
     previousGitCommitHash:
-      githubContext.eventName === 'pull_request'
+      getInput('previous-git-commit') ||
+      (githubContext.eventName === 'pull_request'
         ? githubContext.payload.pull_request?.base?.sha
-        : githubContext.payload.before,
+        : githubContext.payload.before),
     currentGitCommitHash:
-      githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha,
+      getInput('current-git-commit') ||
+      (githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha),
   };
 }
 
