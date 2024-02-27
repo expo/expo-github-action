@@ -61,7 +61,7 @@ jobs:
     permissions:
       # REQUIRED: Allow comments of PRs
       pull-requests: write # Allow comments on PRs
-      # REQUIRED: Allow updating fingerprint in acton caches
+      # REQUIRED: Allow updating fingerprint in action caches
       actions: write
 
     steps:
@@ -119,7 +119,7 @@ jobs:
     permissions:
       # REQUIRED: Allow comments of PRs
       pull-requests: write # Allow comments on PRs
-      # REQUIRED: Allow updating fingerprint in acton caches
+      # REQUIRED: Allow updating fingerprint in action caches
       actions: write
 
     steps:
