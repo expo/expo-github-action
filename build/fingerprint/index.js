@@ -91618,6 +91618,8 @@ async function runAction(input = (0, fingerprint_1.collectFingerprintActionInput
     });
     (0, core_1.setOutput)('previous-fingerprint', previousFingerprint);
     (0, core_1.setOutput)('current-fingerprint', currentFingerprint);
+    (0, core_1.setOutput)('previous-git-commit', input.previousGitCommitHash);
+    (0, core_1.setOutput)('current-git-commit', input.currentGitCommitHash);
     (0, core_1.setOutput)('fingerprint-diff', diff);
 }
 exports.runAction = runAction;

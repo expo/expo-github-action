@@ -39,5 +39,9 @@ outputs:
     description: The fingerprint of the previous commit. May be null if it has never previously been computed
   current-fingerprint:
     description: The fingerprint of the current commit
+  previous-git-commit:
+    description: The Git hash for the base commit
+  current-git-commit:
+    description: The Git hash for the current commit
   fingerprint-diff:
     description: The diff between the current and the previous fingerprint

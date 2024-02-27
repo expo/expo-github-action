@@ -18,5 +18,7 @@ export async function runAction(input = collectFingerprintActionInput()) {
 
   setOutput('previous-fingerprint', previousFingerprint);
   setOutput('current-fingerprint', currentFingerprint);
+  setOutput('previous-git-commit', input.previousGitCommitHash);
+  setOutput('current-git-commit', input.currentGitCommitHash);
   setOutput('fingerprint-diff', diff);
 }
