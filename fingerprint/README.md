@@ -121,6 +121,8 @@ jobs:
       pull-requests: write # Allow comments on PRs
       # REQUIRED: Allow updating fingerprint in action caches
       actions: write
+      # OPTIONAL: Allow reading of repo contents for private projects
+      # contents: read
 
     steps:
       - name: 🏗 Setup repo
