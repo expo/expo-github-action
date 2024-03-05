@@ -88,6 +88,7 @@ export function collectFingerprintActionInput() {
     currentGitCommitHash:
       getInput('current-git-commit') ||
       (githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha),
+    savingDbBranch: getInput('saving-db-branch') || undefined,
   };
 }
 

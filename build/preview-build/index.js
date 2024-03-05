@@ -88842,6 +88842,7 @@ async function previewAction(input = collectPreviewBuildActionInput()) {
             dbManager,
             githubToken: input.githubToken,
             fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+            savingDbBranch: input.savingDbBranch,
             gitCommitHash: input.currentGitCommitHash,
             manyBuilds: [{ fingerprint: currentFingerprint }],
         });
@@ -88869,6 +88870,7 @@ async function previewAction(input = collectPreviewBuildActionInput()) {
         dbManager,
         githubToken: input.githubToken,
         fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+        savingDbBranch: input.savingDbBranch,
         gitCommitHash: input.currentGitCommitHash,
         manyBuilds: builds.map(build => ({
             easBuildId: build.id,
@@ -89042,7 +89044,9 @@ function parseCommentForEasMetadata(comment) {
 }
 //#endregion
 async function maybeUpdateFingerprintDbAsync(params) {
-    if (!(0, github_2.isPushDefaultBranchContext)()) {
+    const targetBranch = params.savingDbBranch ?? (0, github_2.getRepoDefaultBranch)();
+    (0, assert_1.default)(targetBranch);
+    if (!(0, github_2.isPushBranchContext)(targetBranch)) {
         return;
     }
     for (const build of params.manyBuilds) {
@@ -89064,10 +89068,12 @@ async function maybeUpdateFingerprintDbAsync(params) {
 //#region Non pull request context
 async function handleNonPullRequest(config, input) {
     (0, core_1.info)('Non pull request context, skipping comment.');
-    if (!(0, github_2.isPushDefaultBranchContext)()) {
+    const targetBranch = input.savingDbBranch ?? (0, github_2.getRepoDefaultBranch)();
+    (0, assert_1.default)(targetBranch);
+    if (!(0, github_2.isPushBranchContext)(targetBranch)) {
         return;
     }
-    (0, core_1.info)('Updating fingerprint database for the default branch push event.');
+    (0, core_1.info)(`Updating fingerprint database for the ${targetBranch} branch push event.`);
     const dbManager = await (0, fingerprint_1.createFingerprintDbManagerAsync)(input.packager, input.fingerprintDbCacheKey);
     const { currentFingerprint } = await (0, fingerprint_1.createFingerprintOutputAsync)(dbManager, input);
     const associatedPRs = await (0, github_2.getPullRequestFromGitCommitShaAsync)({ token: input.githubToken }, input.currentGitCommitHash);
@@ -89088,6 +89094,7 @@ async function handleNonPullRequest(config, input) {
         dbManager,
         githubToken: input.githubToken,
         fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+        savingDbBranch: input.savingDbBranch,
         gitCommitHash: input.currentGitCommitHash,
         manyBuilds,
     });
@@ -89711,6 +89718,7 @@ function collectFingerprintActionInput() {
                 : github_1.context.payload.before),
         currentGitCommitHash: (0, core_1.getInput)('current-git-commit') ||
             (github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha),
+        savingDbBranch: (0, core_1.getInput)('saving-db-branch') || undefined,
     };
 }
 exports.collectFingerprintActionInput = collectFingerprintActionInput;
@@ -89779,7 +89787,7 @@ async function getDbPathAsync() {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPullRequestFromGitCommitShaAsync = exports.isPushDefaultBranchContext = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+exports.getPullRequestFromGitCommitShaAsync = exports.isPushBranchContext = exports.getRepoDefaultBranch = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
 const assert_1 = __nccwpck_require__(9491);
 /**
@@ -89903,12 +89911,21 @@ async function getGitCommandMessageAsync(options, gitCommitHash) {
 }
 exports.getGitCommandMessageAsync = getGitCommandMessageAsync;
 /**
- * True if the current event is a push to the default branch.
+ * Get the default branch for the repository.
  */
-function isPushDefaultBranchContext() {
-    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${github_1.context.payload?.repository?.default_branch}`;
+function getRepoDefaultBranch() {
+    return github_1.context.payload?.repository?.default_branch;
 }
-exports.isPushDefaultBranchContext = isPushDefaultBranchContext;
+exports.getRepoDefaultBranch = getRepoDefaultBranch;
+/**
+ * True if the current event is a push to the target branch.
+ *
+ * @param targetBranch The branch to compare against.
+ */
+function isPushBranchContext(targetBranch) {
+    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${targetBranch}`;
+}
+exports.isPushBranchContext = isPushBranchContext;
 /**
  * Get the pull request information that associated with a specific commit hash.
  */
