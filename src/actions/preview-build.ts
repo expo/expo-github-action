@@ -26,8 +26,9 @@ import {
   fetchIssueComment,
   getGitCommandMessageAsync,
   getPullRequestFromGitCommitShaAsync,
+  getRepoDefaultBranch,
   hasPullContext,
-  isPushDefaultBranchContext,
+  isPushBranchContext,
   pullContext,
 } from '../github';
 import { loadProjectConfig } from '../project';
@@ -69,6 +70,7 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
       dbManager,
       githubToken: input.githubToken,
       fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+      savingDbBranch: input.savingDbBranch,
       gitCommitHash: input.currentGitCommitHash,
       manyBuilds: [{ fingerprint: currentFingerprint }],
     });
@@ -101,6 +103,7 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
     dbManager,
     githubToken: input.githubToken,
     fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+    savingDbBranch: input.savingDbBranch,
     gitCommitHash: input.currentGitCommitHash,
     manyBuilds: builds.map(build => ({
       easBuildId: build.id,
@@ -311,14 +314,18 @@ async function maybeUpdateFingerprintDbAsync(params: {
   githubToken: string;
   fingerprintDbCacheKey: string;
   gitCommitHash: string;
+  savingDbBranch: string | undefined;
   manyBuilds: {
     easBuildId?: string;
     fingerprint: Fingerprint;
   }[];
 }) {
-  if (!isPushDefaultBranchContext()) {
+  const targetBranch = params.savingDbBranch ?? getRepoDefaultBranch();
+  assert(targetBranch);
+  if (!isPushBranchContext(targetBranch)) {
     return;
   }
+
   for (const build of params.manyBuilds) {
     await params.dbManager.upsertFingerprintByGitCommitHashAsync(params.gitCommitHash, {
       easBuildId: build.easBuildId,
@@ -339,11 +346,13 @@ async function maybeUpdateFingerprintDbAsync(params: {
 
 async function handleNonPullRequest(config: ExpoConfig, input: ReturnType<typeof collectPreviewBuildActionInput>) {
   info('Non pull request context, skipping comment.');
-  if (!isPushDefaultBranchContext()) {
+  const targetBranch = input.savingDbBranch ?? getRepoDefaultBranch();
+  assert(targetBranch);
+  if (!isPushBranchContext(targetBranch)) {
     return;
   }
 
-  info('Updating fingerprint database for the default branch push event.');
+  info(`Updating fingerprint database for the ${targetBranch} branch push event.`);
   const dbManager = await createFingerprintDbManagerAsync(input.packager, input.fingerprintDbCacheKey);
   const { currentFingerprint } = await createFingerprintOutputAsync(dbManager, input);
   const associatedPRs = await getPullRequestFromGitCommitShaAsync(
@@ -370,6 +379,7 @@ async function handleNonPullRequest(config: ExpoConfig, input: ReturnType<typeof
     dbManager,
     githubToken: input.githubToken,
     fingerprintDbCacheKey: input.fingerprintDbCacheKey,
+    savingDbBranch: input.savingDbBranch,
     gitCommitHash: input.currentGitCommitHash,
     manyBuilds,
   });

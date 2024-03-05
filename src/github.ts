@@ -155,10 +155,19 @@ export async function getGitCommandMessageAsync(options: AuthContext, gitCommitH
 }
 
 /**
- * True if the current event is a push to the default branch.
+ * Get the default branch for the repository.
  */
-export function isPushDefaultBranchContext() {
-  return context.eventName === 'push' && context.ref === `refs/heads/${context.payload?.repository?.default_branch}`;
+export function getRepoDefaultBranch(): string | undefined {
+  return context.payload?.repository?.default_branch;
+}
+
+/**
+ * True if the current event is a push to the target branch.
+ *
+ * @param targetBranch The branch to compare against.
+ */
+export function isPushBranchContext(targetBranch: string) {
+  return context.eventName === 'push' && context.ref === `refs/heads/${targetBranch}`;
 }
 
 /**

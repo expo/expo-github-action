@@ -89133,6 +89133,7 @@ function collectFingerprintActionInput() {
                 : github_1.context.payload.before),
         currentGitCommitHash: (0, core_1.getInput)('current-git-commit') ||
             (github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha),
+        savingDbBranch: (0, core_1.getInput)('saving-db-branch') || undefined,
     };
 }
 exports.collectFingerprintActionInput = collectFingerprintActionInput;
@@ -89201,7 +89202,7 @@ async function getDbPathAsync() {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPullRequestFromGitCommitShaAsync = exports.isPushDefaultBranchContext = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
+exports.getPullRequestFromGitCommitShaAsync = exports.isPushBranchContext = exports.getRepoDefaultBranch = exports.getGitCommandMessageAsync = exports.issueComment = exports.createReaction = exports.hasPullContext = exports.pullContext = exports.githubApi = exports.createIssueComment = exports.fetchIssueComment = void 0;
 const github_1 = __nccwpck_require__(5438);
 const assert_1 = __nccwpck_require__(9491);
 /**
@@ -89325,12 +89326,21 @@ async function getGitCommandMessageAsync(options, gitCommitHash) {
 }
 exports.getGitCommandMessageAsync = getGitCommandMessageAsync;
 /**
- * True if the current event is a push to the default branch.
+ * Get the default branch for the repository.
  */
-function isPushDefaultBranchContext() {
-    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${github_1.context.payload?.repository?.default_branch}`;
+function getRepoDefaultBranch() {
+    return github_1.context.payload?.repository?.default_branch;
 }
-exports.isPushDefaultBranchContext = isPushDefaultBranchContext;
+exports.getRepoDefaultBranch = getRepoDefaultBranch;
+/**
+ * True if the current event is a push to the target branch.
+ *
+ * @param targetBranch The branch to compare against.
+ */
+function isPushBranchContext(targetBranch) {
+    return github_1.context.eventName === 'push' && github_1.context.ref === `refs/heads/${targetBranch}`;
+}
+exports.isPushBranchContext = isPushBranchContext;
 /**
  * Get the pull request information that associated with a specific commit hash.
  */
