@@ -127,7 +127,7 @@ This workflow creates a new EAS Update every time a pull request is created or u
 We are using the `--auto`, together with the `--branch`, flag in this example.
 
 - `--auto` will automatically create an update using the current git commit message and git branch.
-- `--branch` will overwrite this value infere from git with our own value.
+- `--branch` will overwrite this value inferred from git with our own value.
 
 > **Warning**
 > GitHub Actions might use a temporary merge branch for PRs. To avoid using this merge branch for our update, we overwrite the branch name from `--auto` with our own `--branch` value.
