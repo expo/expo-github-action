@@ -1,8 +1,8 @@
-import { getBooleanInput, getInput, setOutput, group, setFailed, info, debug } from '@actions/core';
+import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@actions/core';
 import { ExpoConfig } from '@expo/config';
 
+import { getQrTarget, getSchemesInOrderFromConfig } from '../comment';
 import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { projectAppType } from '../expo';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { template } from '../utils';
@@ -149,47 +149,6 @@ export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: 
     iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
-}
-
-export function getQrTarget(input: Pick<ReturnType<typeof previewInput>, 'qrTarget' | 'workingDirectory'>) {
-  if (!input.qrTarget) {
-    const appType = projectAppType(input.workingDirectory);
-    debug(`Using inferred QR code target: "${appType}"`);
-    return appType;
-  }
-
-  switch (input.qrTarget) {
-    // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
-    case 'dev-client':
-    case 'dev-build':
-      debug(`Using QR code target: "dev-build"`);
-      return 'dev-build';
-
-    case 'expo-go':
-      debug(`Using QR code target: "expo-go"`);
-      return 'expo-go';
-
-    default:
-      throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
-  }
-}
-
-/**
- * Retrieve the app schemes, in correct priority order, from project config.
- *   - If the scheme is a string, return `[scheme]`.
- *   - If the scheme is an array, return the schemes sorted by length, longest first.
- *   - If the scheme is empty/incorrect, return an empty array.
- */
-export function getSchemesInOrderFromConfig(config: ExpoConfig) {
-  if (typeof config.scheme === 'string') {
-    return [config.scheme];
-  }
-
-  if (Array.isArray(config.scheme)) {
-    return config.scheme.sort((a, b) => b.length - a.length);
-  }
-
-  return [];
 }
 
 /**

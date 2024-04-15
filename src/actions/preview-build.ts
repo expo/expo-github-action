@@ -6,6 +6,7 @@ import assert from 'assert';
 import { validate as isValidUUID } from 'uuid';
 
 import { deleteCacheAsync } from '../cacher';
+import { createDetails } from '../comment';
 import {
   createEasBuildFromRawCommandAsync,
   BuildInfo,
@@ -202,18 +203,6 @@ export function getVariables(config: ExpoConfig, builds: BuildInfo[]) {
     iosLink: ios != null ? getBuildLogsUrl(ios) : '',
     iosAppVersion: ios?.appVersion || '',
   };
-}
-
-function createDetails({
-  summary,
-  details,
-  delim = '\n',
-}: {
-  summary: string;
-  details: string;
-  delim?: string;
-}): string {
-  return `<details><summary>${summary}</summary>${delim.repeat(2)}${details}${delim}</details>`;
 }
 
 function createMessageBodyInBuilding(

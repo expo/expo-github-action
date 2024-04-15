@@ -41832,214 +41832,6 @@ try {
 
 /***/ }),
 
-/***/ 4498:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createSummary = exports.getVariables = exports.previewAction = exports.previewInput = exports.MESSAGE_ID = void 0;
-const core_1 = __nccwpck_require__(2186);
-const comment_1 = __nccwpck_require__(7810);
-const eas_1 = __nccwpck_require__(3251);
-const github_1 = __nccwpck_require__(978);
-const project_1 = __nccwpck_require__(7191);
-const utils_1 = __nccwpck_require__(1314);
-const worker_1 = __nccwpck_require__(8912);
-exports.MESSAGE_ID = 'projectId:{projectId}';
-function previewInput() {
-    const qrTarget = (0, core_1.getInput)('qr-target') || undefined;
-    if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
-        throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-build"`);
-    }
-    return {
-        command: (0, core_1.getInput)('command'),
-        shouldComment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
-        commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
-        workingDirectory: (0, core_1.getInput)('working-directory'),
-        githubToken: (0, core_1.getInput)('github-token'),
-        // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
-        qrTarget: qrTarget,
-    };
-}
-exports.previewInput = previewInput;
-(0, worker_1.executeAction)(previewAction);
-async function previewAction(input = previewInput()) {
-    // See: https://github.com/expo/eas-cli/releases/tag/v3.3.2
-    // See: https://github.com/expo/eas-cli/releases/tag/v3.4.0
-    // We need the revised `eas update --json` output to parse the update information.
-    await (0, eas_1.assertEasVersion)('>=3.4.0');
-    // Create the update before loading project information.
-    // When the project needs to be set up, EAS project ID won't be available before this command.
-    const command = sanitizeCommand(input.command);
-    const updates = await (0, core_1.group)(`Run eas ${command}"`, () => (0, eas_1.createUpdate)(input.workingDirectory, command));
-    const update = updates.find(update => !!update);
-    if (!update) {
-        return (0, core_1.setFailed)(`No update found in command output.`);
-    }
-    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory);
-    if (!config.extra?.eas?.projectId) {
-        return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
-    }
-    const variables = getVariables(config, updates, input);
-    const messageId = (0, utils_1.template)(input.commentId, variables);
-    const messageBody = createSummary(updates, variables);
-    if (!input.shouldComment) {
-        (0, core_1.info)(`Skipped comment: 'comment' is disabled`);
-    }
-    else if (!(0, github_1.hasPullContext)()) {
-        (0, core_1.info)(`Skipped comment: action was not ran from a pull request`);
-    }
-    else {
-        await (0, github_1.createIssueComment)({
-            ...(0, github_1.pullContext)(),
-            token: input.githubToken,
-            id: messageId,
-            body: messageBody,
-        });
-    }
-    for (const [name, value] of Object.entries(variables)) {
-        (0, core_1.setOutput)(name, value);
-    }
-    (0, core_1.setOutput)('commentId', messageId);
-    (0, core_1.setOutput)('comment', messageBody);
-}
-exports.previewAction = previewAction;
-/**
- * Validate and sanitize the command that creates the update.
- * This ensures that both `--json` and `--non-interactive` flags are present.
- * It also ensures that the command starts with `eas ...` to make sure we can run it.
- */
-function sanitizeCommand(input) {
-    let command = input.trim();
-    if (!command.startsWith('eas')) {
-        throw new Error(`The command must start with "eas", received "${command}"`);
-    }
-    else {
-        command = command.replace(/^eas/, '').trim();
-    }
-    if (!command.includes('--json')) {
-        command += ' --json';
-    }
-    if (!command.includes('--non-interactive')) {
-        command += ' --non-interactive';
-    }
-    return command;
-}
-/**
- * Generate useful variables for the message body, and as step outputs.
- */
-function getVariables(config, updates, options) {
-    const projectId = config.extra?.eas?.projectId;
-    const android = updates.find(update => update.platform === 'android');
-    const ios = updates.find(update => update.platform === 'ios');
-    const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
-    const appSlug = config.slug;
-    const qrTarget = (0, comment_1.getQrTarget)(options);
-    return {
-        // EAS / Expo specific
-        projectId,
-        projectName: config.name,
-        projectSlug: appSlug,
-        projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
-        projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
-        // Shared update properties
-        // Note, only use these properties when the update groups are identical
-        groupId: updates[0].group,
-        runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
-        link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
-        // These are safe to access regardless of the update groups
-        branchName: updates[0].branch,
-        message: updates[0].message,
-        createdAt: updates[0].createdAt,
-        gitCommitHash: updates[0].gitCommitHash,
-        // Android update
-        androidId: android?.id || '',
-        androidGroupId: android?.group || '',
-        androidBranchName: android?.branch || '',
-        androidManifestPermalink: android?.manifestPermalink || '',
-        androidMessage: android?.message || '',
-        androidRuntimeVersion: android?.runtimeVersion || '',
-        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget }) : '',
-        androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
-        // iOS update
-        iosId: ios?.id || '',
-        iosGroupId: ios?.group || '',
-        iosBranchName: ios?.branch || '',
-        iosManifestPermalink: ios?.manifestPermalink || '',
-        iosMessage: ios?.message || '',
-        iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
-        iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
-    };
-}
-exports.getVariables = getVariables;
-/**
- * Generate the message body for a single update.
- * Note, this is not configurable, but you can use the variables used to construct your own.
- */
-function createSummary(updates, vars) {
-    // If all updates are in the same group, we can unify QR codes
-    if (updates.every(update => update.group === updates[0].group)) {
-        return createSingleQrSummary(updates, vars);
-    }
-    return createMultipleQrSummary(updates, vars);
-}
-exports.createSummary = createSummary;
-function createSummaryHeader(updates, vars) {
-    const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
-    const platformValue = updates
-        .map(update => update.platform)
-        .sort((a, b) => a.localeCompare(b))
-        .map(platform => `**${platform}**`)
-        .join(', ');
-    const appSchemes = vars.projectScheme ? `- Scheme → **${JSON.parse(vars.projectSchemes).join('**, **')}**` : '';
-    return `🚀 Expo preview is ready!
-
-- Project → **${vars.projectSlug}**
-- ${platformName} → ${platformValue}
-${appSchemes}`.trim();
-}
-function createSingleQrSummary(updates, vars) {
-    return `${createSummaryHeader(updates, vars)}
-- Runtime Version → **${vars.runtimeVersion}**
-- **[More info](${vars.link})**
-
-<a href="${vars.qr}"><img src="${vars.qr}" width="250px" height="250px" /></a>
-
-> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)`;
-}
-function createMultipleQrSummary(updates, vars) {
-    const createTableHeader = (segments) => segments.filter(Boolean).join(' <br /> ');
-    const androidHeader = createTableHeader([
-        'Android',
-        vars.androidId && vars.androidRuntimeVersion ? `_(${vars.androidRuntimeVersion})_` : '',
-        vars.androidId && vars.androidLink ? `**[More info](${vars.androidLink})**` : '',
-    ]);
-    const androidQr = vars.androidId && vars.androidQR
-        ? `<a href="${vars.androidQR}"><img src="${vars.androidQR}" width="250px" height="250px" /></a>`
-        : null;
-    const iosHeader = createTableHeader([
-        'iOS',
-        vars.iosId && vars.iosRuntimeVersion ? `_(${vars.iosRuntimeVersion})_` : '',
-        vars.iosId && vars.iosLink ? `**[More info](${vars.iosLink})**` : '',
-    ]);
-    const iosQr = vars.iosId && vars.iosQR
-        ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>`
-        : null;
-    return `${createSummaryHeader(updates, vars)}
-
-${androidHeader} | ${iosHeader}
---- | ---
-${androidQr || '_not created_'} | ${iosQr || '_not created_'}
-
-> Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)`;
-}
-
-
-/***/ }),
-
 /***/ 7810:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -42617,29 +42409,6 @@ async function loadProjectConfig(cwd) {
     return JSON.parse(stdout);
 }
 exports.loadProjectConfig = loadProjectConfig;
-
-
-/***/ }),
-
-/***/ 1314:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.template = void 0;
-/**
- * Replace all template variables in a string.
- * This uses the notation of `{varname}`, which can be defined as object.
- */
-function template(template, replacements) {
-    let result = template;
-    for (const name in replacements) {
-        result = result.replaceAll(`{${name}}`, replacements[name]);
-    }
-    return result;
-}
-exports.template = template;
 
 
 /***/ }),
@@ -44738,12 +44507,256 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4498);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.continuousDeployFingerprintAction = exports.collectContinuousDeployFingerprintInput = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const comment_1 = __nccwpck_require__(7810);
+const eas_1 = __nccwpck_require__(3251);
+const expo_1 = __nccwpck_require__(2489);
+const github_1 = __nccwpck_require__(978);
+const project_1 = __nccwpck_require__(7191);
+const worker_1 = __nccwpck_require__(8912);
+function collectContinuousDeployFingerprintInput() {
+    return {
+        profile: (0, core_1.getInput)('profile'),
+        branch: (0, core_1.getInput)('branch'),
+        githubToken: (0, core_1.getInput)('github-token'),
+        workingDirectory: (0, core_1.getInput)('working-directory'),
+    };
+}
+exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
+(0, worker_1.executeAction)(continuousDeployFingerprintAction);
+async function continuousDeployFingerprintAction(input = collectContinuousDeployFingerprintInput()) {
+    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory);
+    const projectId = config.extra?.eas?.projectId;
+    if (!projectId) {
+        return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
+    }
+    const androidFingerprintHash = await getFingerprintHashForPlatformAsync({
+        cwd: input.workingDirectory,
+        platform: 'android',
+    });
+    const iosFingerprintHash = await getFingerprintHashForPlatformAsync({ cwd: input.workingDirectory, platform: 'ios' });
+    (0, core_1.info)(`Android fingerprint: ${androidFingerprintHash}`);
+    (0, core_1.info)(`iOS fingerprint: ${iosFingerprintHash}`);
+    let androidBuildInfo = await getBuildInfoWithFingerprintAsync({
+        cwd: input.workingDirectory,
+        platform: 'android',
+        profile: input.profile,
+        fingerprintHash: androidFingerprintHash,
+    });
+    if (androidBuildInfo) {
+        (0, core_1.info)(`Existing Android build found for fingerprint: ${androidBuildInfo.id}`);
+    }
+    else {
+        (0, core_1.info)(`No existing Android build found for fingerprint, starting a new build...`);
+        androidBuildInfo = await createEASBuildAsync({
+            cwd: input.workingDirectory,
+            platform: 'android',
+            profile: input.profile,
+        });
+    }
+    let iosBuildInfo = await getBuildInfoWithFingerprintAsync({
+        cwd: input.workingDirectory,
+        platform: 'ios',
+        profile: input.profile,
+        fingerprintHash: iosFingerprintHash,
+    });
+    if (iosBuildInfo) {
+        (0, core_1.info)(`Existing iOS build found for fingerprint: ${iosBuildInfo.id}`);
+    }
+    else {
+        (0, core_1.info)(`No existing iOS build found for fingerprint, starting a new build...`);
+        iosBuildInfo = await createEASBuildAsync({ cwd: input.workingDirectory, platform: 'ios', profile: input.profile });
+    }
+    const builds = [androidBuildInfo, iosBuildInfo];
+    (0, core_1.info)(`Publishing EAS Update`);
+    const updates = await publishEASUpdatesAsync({
+        cwd: input.workingDirectory,
+        branch: input.branch,
+    });
+    if (!(0, github_1.hasPullContext)()) {
+        (0, core_1.info)(`Skipped comment: action was not run from a pull request`);
+    }
+    else {
+        const messageId = `continuous-deploy-fingerprint-projectId:${projectId}`;
+        const messageBody = createSummaryForUpdatesAndBuilds({ config, projectId, updates, builds, options: input });
+        await (0, github_1.createIssueComment)({
+            ...(0, github_1.pullContext)(),
+            token: input.githubToken,
+            id: messageId,
+            body: messageBody,
+        });
+    }
+    (0, core_1.setOutput)('android-fingerprint', androidFingerprintHash);
+    (0, core_1.setOutput)('ios-fingerprint', iosFingerprintHash);
+    (0, core_1.setOutput)('android-build-id', androidBuildInfo.id);
+    (0, core_1.setOutput)('ios-build-id', iosBuildInfo.id);
+    (0, core_1.setOutput)('update-output', updates);
+}
+exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
+async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
+    try {
+        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform], {
+            cwd,
+        });
+        const { hash } = JSON.parse(stdout);
+        if (!hash || typeof hash !== 'string') {
+            throw new Error(`Invalid fingerprint output: ${stdout}`);
+        }
+        return hash;
+    }
+    catch (error) {
+        throw new Error(`Could not get fingerprint for project: ${String(error)}`);
+    }
+}
+async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, fingerprintHash, }) {
+    let stdout;
+    try {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
+            'build:list',
+            '--platform',
+            platform,
+            '--status',
+            'finished',
+            '--buildProfile',
+            profile,
+            '--runtimeVersion',
+            fingerprintHash,
+            '--limit',
+            '1',
+            '--json',
+            '--non-interactive',
+        ], {
+            cwd,
+        });
+        stdout = execOutput.stdout;
+    }
+    catch (error) {
+        throw new Error(`Could not list project builds: ${String(error)}`);
+    }
+    const builds = JSON.parse(stdout);
+    if (!builds || !Array.isArray(builds)) {
+        throw new Error(`Could not get EAS builds for project`);
+    }
+    if (!builds[0]) {
+        return null;
+    }
+    return builds[0];
+}
+async function createEASBuildAsync({ cwd, profile, platform, }) {
+    let stdout;
+    try {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
+            'build',
+            '--profile',
+            profile,
+            '--platform',
+            platform,
+            '--non-interactive',
+            '--json',
+            '--no-wait',
+            '--build-logger-level',
+            'debug',
+        ], {
+            cwd,
+        });
+        stdout = execOutput.stdout;
+    }
+    catch (error) {
+        throw new Error(`Could not run command eas build: ${String(error)}`);
+    }
+    return JSON.parse(stdout);
+}
+async function publishEASUpdatesAsync({ cwd, branch }) {
+    let stdout = '';
+    try {
+        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
+            cwd,
+        }));
+    }
+    catch (error) {
+        throw new Error(`Could not create a new EAS Update: ${String(error)}`);
+    }
+    return JSON.parse(stdout);
+}
+function createSummaryForUpdatesAndBuilds({ config, projectId, updates, builds, options, }) {
+    const appSlug = config.slug;
+    const qrTarget = (0, comment_1.getQrTarget)(options);
+    const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
+    const androidBuild = builds.find(build => build.platform === expo_1.AppPlatform.Android);
+    const iosBuild = builds.find(build => build.platform === expo_1.AppPlatform.Ios);
+    const androidUpdate = updates.find(update => update.platform === 'android');
+    const iosUpdate = updates.find(update => update.platform === 'ios');
+    const getBuildLink = (build) => build ? `[Build Permalink](${(0, expo_1.getBuildLogsUrl)(build)})` : 'n/a';
+    const getUpdateLink = (update) => update ? `[Update Permalink](${(0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: update.group })})` : 'n/a';
+    const getUpdateQRURL = (update) => update ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
+    const getBuildDetails = (build) => build
+        ? getBuildLink(build) +
+            '<br />' +
+            (0, comment_1.createDetails)({
+                summary: 'Details',
+                details: [
+                    `Distribution: \`${build.distribution}\``,
+                    `Build profile: \`${build.buildProfile}\``,
+                    `Runtime version: \`${build.runtimeVersion}\``,
+                    `App version: \`${build.appVersion}\``,
+                    `Git commit: \`${build.gitCommitHash}\``,
+                ].join('<br />'),
+                delim: '',
+            })
+        : 'n/a';
+    const getUpdateDetails = (update) => update
+        ? getUpdateLink(update) +
+            '<br />' +
+            (0, comment_1.createDetails)({
+                summary: 'Details',
+                details: [
+                    `Branch: \`${update.branch}\``,
+                    `Runtime version: \`${update.runtimeVersion}\``,
+                    `Git commit: \`${update.gitCommitHash}\``,
+                ].join('<br />'),
+                delim: '',
+            })
+        : 'n/a';
+    const androidQRURL = getUpdateQRURL(androidUpdate);
+    const iosQRURL = getUpdateQRURL(iosUpdate);
+    const androidQr = androidQRURL
+        ? `<a href="${androidQRURL}"><img src="${androidQRURL}" width="250px" height="250px" /></a>`
+        : null;
+    const iosQr = iosQRURL ? `<a href="${iosQRURL}"><img src="${iosQRURL}" width="250px" height="250px" /></a>` : null;
+    const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
+    const platformValue = updates
+        .map(update => update.platform)
+        .sort((a, b) => a.localeCompare(b))
+        .map(platform => `**${platform}**`)
+        .join(', ');
+    const schemesMessage = appSchemes[0] ? `- Scheme → **${appSchemes.join('**, **')}**` : '';
+    return `🚀 Expo continuous deployment is ready!
+
+- Project → **${appSlug}**
+- ${platformName} → ${platformValue}
+${schemesMessage}
+
+&nbsp; | ${expo_1.appPlatformEmojis[expo_1.AppPlatform.Android]} Android | ${expo_1.appPlatformEmojis[expo_1.AppPlatform.Ios]} iOS
+--- | --- | ---
+Fingerprint | ${androidBuild?.runtimeVersion ?? 'n/a'} | ${iosBuild?.runtimeVersion ?? 'n/a'}
+Build Details | ${getBuildDetails(androidBuild)} | ${getBuildDetails(iosBuild)}
+Update Details | ${getUpdateDetails(androidUpdate)} | ${getUpdateDetails(iosUpdate)}
+Update QR   | ${androidQr ?? 'n/a'} | ${iosQr ?? 'n/a'}
+`;
+}
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
