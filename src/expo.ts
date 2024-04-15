@@ -34,9 +34,11 @@ export type BuildInfo = {
       name: string;
     };
   };
-  releaseChannel: string;
+  channel: string;
+  releaseChannel?: string;
   distribution: string;
   buildProfile: string;
+  runtimeVersion?: string;
   sdkVersion: string;
   appVersion: string;
   gitCommitHash: string;

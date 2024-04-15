@@ -1,8 +1,7 @@
-import { getBooleanInput, getInput, setOutput, group, setFailed, info, debug } from '@actions/core';
-import { ExpoConfig } from '@expo/config';
+import { getBooleanInput, getInput, setOutput, group, setFailed, info } from '@actions/core';
 
-import { assertEasVersion, createUpdate, EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { projectAppType } from '../expo';
+import { getTemplateVariablesForUpdates } from '../comment';
+import { EasUpdate, assertEasVersion, createUpdate } from '../eas';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { template } from '../utils';
@@ -50,9 +49,9 @@ export async function previewAction(input = previewInput()) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
 
-  const variables = getVariables(config, updates, input);
+  const variables = getTemplateVariablesForUpdates(config, updates, input);
   const messageId = template(input.commentId, variables);
-  const messageBody = createSummary(updates, variables);
+  const messageBody = createSummaryForUpdates(updates, variables);
 
   if (!input.shouldComment) {
     info(`Skipped comment: 'comment' is disabled`);
@@ -101,111 +100,19 @@ function sanitizeCommand(input: string): string {
 }
 
 /**
- * Generate useful variables for the message body, and as step outputs.
- */
-export function getVariables(config: ExpoConfig, updates: EasUpdate[], options: ReturnType<typeof previewInput>) {
-  const projectId: string = config.extra?.eas?.projectId;
-  const android = updates.find(update => update.platform === 'android');
-  const ios = updates.find(update => update.platform === 'ios');
-
-  const appSchemes = getSchemesInOrderFromConfig(config) || [];
-  const appSlug = config.slug;
-  const qrTarget = getQrTarget(options);
-
-  return {
-    // EAS / Expo specific
-    projectId,
-    projectName: config.name,
-    projectSlug: appSlug,
-    projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
-    projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
-    // Shared update properties
-    // Note, only use these properties when the update groups are identical
-    groupId: updates[0].group,
-    runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
-    link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
-    // These are safe to access regardless of the update groups
-    branchName: updates[0].branch,
-    message: updates[0].message,
-    createdAt: updates[0].createdAt,
-    gitCommitHash: updates[0].gitCommitHash,
-    // Android update
-    androidId: android?.id || '',
-    androidGroupId: android?.group || '',
-    androidBranchName: android?.branch || '',
-    androidManifestPermalink: android?.manifestPermalink || '',
-    androidMessage: android?.message || '',
-    androidRuntimeVersion: android?.runtimeVersion || '',
-    androidQR: android ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug, qrTarget }) : '',
-    androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
-    // iOS update
-    iosId: ios?.id || '',
-    iosGroupId: ios?.group || '',
-    iosBranchName: ios?.branch || '',
-    iosManifestPermalink: ios?.manifestPermalink || '',
-    iosMessage: ios?.message || '',
-    iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
-    iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
-  };
-}
-
-export function getQrTarget(input: Pick<ReturnType<typeof previewInput>, 'qrTarget' | 'workingDirectory'>) {
-  if (!input.qrTarget) {
-    const appType = projectAppType(input.workingDirectory);
-    debug(`Using inferred QR code target: "${appType}"`);
-    return appType;
-  }
-
-  switch (input.qrTarget) {
-    // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
-    case 'dev-client':
-    case 'dev-build':
-      debug(`Using QR code target: "dev-build"`);
-      return 'dev-build';
-
-    case 'expo-go':
-      debug(`Using QR code target: "expo-go"`);
-      return 'expo-go';
-
-    default:
-      throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
-  }
-}
-
-/**
- * Retrieve the app schemes, in correct priority order, from project config.
- *   - If the scheme is a string, return `[scheme]`.
- *   - If the scheme is an array, return the schemes sorted by length, longest first.
- *   - If the scheme is empty/incorrect, return an empty array.
- */
-export function getSchemesInOrderFromConfig(config: ExpoConfig) {
-  if (typeof config.scheme === 'string') {
-    return [config.scheme];
-  }
-
-  if (Array.isArray(config.scheme)) {
-    return config.scheme.sort((a, b) => b.length - a.length);
-  }
-
-  return [];
-}
-
-/**
  * Generate the message body for a single update.
  * Note, this is not configurable, but you can use the variables used to construct your own.
  */
-export function createSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
+export function createSummaryForUpdates(updates: EasUpdate[], vars: ReturnType<typeof getTemplateVariablesForUpdates>) {
   // If all updates are in the same group, we can unify QR codes
   if (updates.every(update => update.group === updates[0].group)) {
-    return createSingleQrSummary(updates, vars);
+    return createSingleQrSummaryForUpdates(updates, vars);
   }
 
-  return createMultipleQrSummary(updates, vars);
+  return createMultipleQrSummaryForUpdates(updates, vars);
 }
 
-function createSummaryHeader(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
+function createSummaryHeaderForUpdates(updates: EasUpdate[], vars: ReturnType<typeof getTemplateVariablesForUpdates>) {
   const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
   const platformValue = updates
     .map(update => update.platform)
@@ -222,8 +129,11 @@ function createSummaryHeader(updates: EasUpdate[], vars: ReturnType<typeof getVa
 ${appSchemes}`.trim();
 }
 
-function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
-  return `${createSummaryHeader(updates, vars)}
+function createSingleQrSummaryForUpdates(
+  updates: EasUpdate[],
+  vars: ReturnType<typeof getTemplateVariablesForUpdates>
+) {
+  return `${createSummaryHeaderForUpdates(updates, vars)}
 - Runtime Version → **${vars.runtimeVersion}**
 - **[More info](${vars.link})**
 
@@ -232,7 +142,10 @@ function createSingleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof get
 > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)`;
 }
 
-function createMultipleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof getVariables>) {
+function createMultipleQrSummaryForUpdates(
+  updates: EasUpdate[],
+  vars: ReturnType<typeof getTemplateVariablesForUpdates>
+) {
   const createTableHeader = (segments: string[]) => segments.filter(Boolean).join(' <br /> ');
 
   const androidHeader = createTableHeader([
@@ -257,7 +170,7 @@ function createMultipleQrSummary(updates: EasUpdate[], vars: ReturnType<typeof g
       ? `<a href="${vars.iosQR}"><img src="${vars.iosQR}" width="250px" height="250px" /></a>`
       : null;
 
-  return `${createSummaryHeader(updates, vars)}
+  return `${createSummaryHeaderForUpdates(updates, vars)}
 
 ${androidHeader} | ${iosHeader}
 --- | ---

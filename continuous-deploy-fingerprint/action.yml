@@ -1,0 +1,37 @@
+---
+name: Expo GitHub Action - Continuous Deploy Fingerprint
+author: Expo
+description: Continuously deploy an Expo project using EAS Build and EAS Update with fingerprint.
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node20
+  main: ../build/continuous-deploy-fingerprint/index.js
+inputs:
+  profile:
+    description: The EAS Build profile to use, must have EAS Update channel specified in eas.json
+    required: true
+  branch:
+    description: The EAS Update branch on which to publish.
+    required: false
+  github-token:
+    description: GitHub token to use when commenting on PR
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+
+outputs:
+  android-fingerprint:
+    description: The Android fingerprint of the current commit.
+  ios-fingerprint:
+    description: The iOS fingerprint of the current commit.
+  android-build-id:
+    description: ID for Android EAS Build if one was started
+  ios-build-id:
+    description: ID for iOS EAS Build if one was started.
+  update-output:
+    description: The output (JSON) from the `eas update` command

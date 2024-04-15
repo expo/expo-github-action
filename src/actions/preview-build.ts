@@ -6,6 +6,7 @@ import assert from 'assert';
 import { validate as isValidUUID } from 'uuid';
 
 import { deleteCacheAsync } from '../cacher';
+import { createDetails } from '../comment';
 import {
   createEasBuildFromRawCommandAsync,
   BuildInfo,
@@ -75,7 +76,7 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
       manyBuilds: [{ fingerprint: currentFingerprint }],
     });
     await maybeCancelPreviousBuildsAsync(config, input);
-    const variables = getVariables(config, []);
+    const variables = getTemplateVariablesForBuilds(config, []);
     const messageId = template(input.commentId, variables);
     const latestEasEntity = await dbManager.getLatestEasEntityFromFingerprintAsync(currentFingerprint.hash);
     const latestEasBuildInfo = latestEasEntity?.easBuildId
@@ -110,11 +111,33 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
       fingerprint: currentFingerprint,
     })),
   });
-  const variables = getVariables(config, builds);
+  const variables = getTemplateVariablesForBuilds(config, builds);
   const messageId = template(input.commentId, variables);
   const messageBody = createMessageBodyInBuilding(builds, diff, input);
   await maybeCreateCommentAsync(input, messageId, messageBody);
   setOutputs(variables, messageId, messageBody);
+}
+
+/**
+ * Generate useful variables for the message body, and as step outputs from a set of builds.
+ */
+export function getTemplateVariablesForBuilds(config: ExpoConfig, builds: BuildInfo[]) {
+  const projectId: string = config.extra?.eas?.projectId;
+  const android = builds.find(build => build.platform === 'ANDROID');
+  const ios = builds.find(build => build.platform === 'IOS');
+
+  const gitCommitHash = android?.gitCommitHash || ios?.gitCommitHash || '';
+
+  return {
+    projectId,
+    gitCommitHash,
+    androidBuildId: android?.id || '',
+    androidLink: android != null ? getBuildLogsUrl(android) : '',
+    androidAppVersion: android?.appVersion || '',
+    iosBuildId: ios?.id || '',
+    iosLink: ios != null ? getBuildLogsUrl(ios) : '',
+    iosAppVersion: ios?.appVersion || '',
+  };
 }
 
 /**
@@ -136,7 +159,7 @@ async function maybeCancelPreviousBuildsAsync(
   config: ExpoConfig,
   input: ReturnType<typeof collectPreviewBuildActionInput>
 ) {
-  const variables = getVariables(config, []);
+  const variables = getTemplateVariablesForBuilds(config, []);
   const messageId = template(input.commentId, variables);
   const comment = await fetchIssueComment({
     ...pullContext(),
@@ -174,46 +197,16 @@ async function maybeCreateCommentAsync(
   }
 }
 
-function setOutputs(variables: ReturnType<typeof getVariables>, messageId: string, messageBody: string) {
+function setOutputs(
+  variables: ReturnType<typeof getTemplateVariablesForBuilds>,
+  messageId: string,
+  messageBody: string
+) {
   for (const [name, value] of Object.entries(variables)) {
     setOutput(name, value);
   }
   setOutput('commentId', messageId);
   setOutput('comment', messageBody);
-}
-
-/**
- * Generate useful variables for the message body, and as step outputs.
- */
-export function getVariables(config: ExpoConfig, builds: BuildInfo[]) {
-  const projectId: string = config.extra?.eas?.projectId;
-  const android = builds.find(build => build.platform === 'ANDROID');
-  const ios = builds.find(build => build.platform === 'IOS');
-
-  const gitCommitHash = android?.gitCommitHash || ios?.gitCommitHash || '';
-
-  return {
-    projectId,
-    gitCommitHash,
-    androidBuildId: android?.id || '',
-    androidLink: android != null ? getBuildLogsUrl(android) : '',
-    androidAppVersion: android?.appVersion || '',
-    iosBuildId: ios?.id || '',
-    iosLink: ios != null ? getBuildLogsUrl(ios) : '',
-    iosAppVersion: ios?.appVersion || '',
-  };
-}
-
-function createDetails({
-  summary,
-  details,
-  delim = '\n',
-}: {
-  summary: string;
-  details: string;
-  delim?: string;
-}): string {
-  return `<details><summary>${summary}</summary>${delim.repeat(2)}${details}${delim}</details>`;
 }
 
 function createMessageBodyInBuilding(
@@ -383,7 +376,7 @@ async function handleNonPullRequest(config: ExpoConfig, input: ReturnType<typeof
     gitCommitHash: input.currentGitCommitHash,
     manyBuilds,
   });
-  const variables = getVariables(config, []);
+  const variables = getTemplateVariablesForBuilds(config, []);
   setOutputs(variables, '', '');
 }
 
@@ -392,7 +385,7 @@ async function queryEasBuildIdsFromPrAsync(
   config: ExpoConfig,
   input: ReturnType<typeof collectPreviewBuildActionInput>
 ): Promise<string[]> {
-  const variables = getVariables(config, []);
+  const variables = getTemplateVariablesForBuilds(config, []);
   const messageId = template(input.commentId, variables);
   const comment = await fetchIssueComment({
     ...context.repo,
