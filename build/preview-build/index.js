@@ -88807,6 +88807,7 @@ const github_1 = __nccwpck_require__(5438);
 const assert_1 = __importDefault(__nccwpck_require__(9491));
 const uuid_1 = __nccwpck_require__(5840);
 const cacher_1 = __nccwpck_require__(331);
+const comment_1 = __nccwpck_require__(7810);
 const expo_1 = __nccwpck_require__(2489);
 const fingerprint_1 = __nccwpck_require__(3111);
 const github_2 = __nccwpck_require__(978);
@@ -88959,9 +88960,6 @@ function getVariables(config, builds) {
     };
 }
 exports.getVariables = getVariables;
-function createDetails({ summary, details, delim = '\n', }) {
-    return `<details><summary>${summary}</summary>${delim.repeat(2)}${details}${delim}</details>`;
-}
 function createMessageBodyInBuilding(builds, fingerprintDiff, input) {
     const tableRows = [];
     for (const build of builds) {
@@ -88976,7 +88974,7 @@ function createMessageBodyInBuilding(builds, fingerprintDiff, input) {
             name = 'Unknown build';
         }
         const buildPageURL = (0, expo_1.getBuildLogsUrl)(build);
-        const details = createDetails({
+        const details = (0, comment_1.createDetails)({
             summary: 'Details',
             details: [
                 `Distribution: \`${build.distribution}\``,
@@ -88999,7 +88997,7 @@ function createMessageBodyInBuilding(builds, fingerprintDiff, input) {
         '| :-- | :-- | :-- |',
         ...tableRows,
         '',
-        createDetails({
+        (0, comment_1.createDetails)({
             summary: 'Fingerprint diff',
             details: ['```json', JSON.stringify(fingerprintDiff, null, 2), '```'].join('\n'),
         }),
@@ -89235,6 +89233,59 @@ function handleCacheError(error) {
     }
 }
 exports.handleCacheError = handleCacheError;
+
+
+/***/ }),
+
+/***/ 7810:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createDetails = exports.getSchemesInOrderFromConfig = exports.getQrTarget = void 0;
+const core_1 = __nccwpck_require__(2186);
+const expo_1 = __nccwpck_require__(2489);
+function getQrTarget(input) {
+    if (!input.qrTarget) {
+        const appType = (0, expo_1.projectAppType)(input.workingDirectory);
+        (0, core_1.debug)(`Using inferred QR code target: "${appType}"`);
+        return appType;
+    }
+    switch (input.qrTarget) {
+        // Note, `dev-build` is prefered, but `dev-client` is supported to aovid confusion
+        case 'dev-client':
+        case 'dev-build':
+            (0, core_1.debug)(`Using QR code target: "dev-build"`);
+            return 'dev-build';
+        case 'expo-go':
+            (0, core_1.debug)(`Using QR code target: "expo-go"`);
+            return 'expo-go';
+        default:
+            throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
+    }
+}
+exports.getQrTarget = getQrTarget;
+/**
+ * Retrieve the app schemes, in correct priority order, from project config.
+ *   - If the scheme is a string, return `[scheme]`.
+ *   - If the scheme is an array, return the schemes sorted by length, longest first.
+ *   - If the scheme is empty/incorrect, return an empty array.
+ */
+function getSchemesInOrderFromConfig(config) {
+    if (typeof config.scheme === 'string') {
+        return [config.scheme];
+    }
+    if (Array.isArray(config.scheme)) {
+        return config.scheme.sort((a, b) => b.length - a.length);
+    }
+    return [];
+}
+exports.getSchemesInOrderFromConfig = getSchemesInOrderFromConfig;
+function createDetails({ summary, details, delim = '\n', }) {
+    return `<details><summary>${summary}</summary>${delim.repeat(2)}${details}${delim}</details>`;
+}
+exports.createDetails = createDetails;
 
 
 /***/ }),
