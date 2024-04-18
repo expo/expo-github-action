@@ -33,7 +33,7 @@
 <br />
 
 > **Warning**
-> This sub action is experimental and might change without notice. Use it at your own risk.
+> This sub action is still in development and might change without notice. It is not yet ready for use.
 
 ## Overview
 
