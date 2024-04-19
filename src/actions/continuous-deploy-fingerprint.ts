@@ -22,6 +22,8 @@ export function collectContinuousDeployFingerprintInput() {
 executeAction(continuousDeployFingerprintAction);
 
 export async function continuousDeployFingerprintAction(input = collectContinuousDeployFingerprintInput()) {
+  const isInPullRequest = hasPullContext();
+
   const config = await loadProjectConfig(input.workingDirectory);
   const projectId = config.extra?.eas?.projectId;
   if (!projectId) {
@@ -44,6 +46,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     platform: 'android',
     profile: input.profile,
     fingerprintHash: androidFingerprintHash,
+    excludeExpiredBuilds: isInPullRequest,
   });
   if (androidBuildInfo) {
     info(`Existing Android build found with matching fingerprint: ${androidBuildInfo.id}`);
@@ -61,6 +64,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     platform: 'ios',
     profile: input.profile,
     fingerprintHash: iosFingerprintHash,
+    excludeExpiredBuilds: isInPullRequest,
   });
   if (iosBuildInfo) {
     info(`Existing iOS build found with matching fingerprint: ${iosBuildInfo.id}`);
@@ -78,7 +82,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     branch: input.branch,
   });
 
-  if (!hasPullContext()) {
+  if (!isInPullRequest) {
     info(`Skipped comment: action was not run from a pull request`);
   } else {
     const messageId = `continuous-deploy-fingerprint-projectId:${projectId}`;
@@ -131,13 +135,15 @@ async function getBuildInfoWithFingerprintAsync({
   platform,
   profile,
   fingerprintHash,
+  excludeExpiredBuilds,
 }: {
   cwd: string;
   platform: 'ios' | 'android';
   profile: string;
   fingerprintHash: string;
+  excludeExpiredBuilds: boolean;
 }): Promise<BuildInfo | null> {
-  let stdout;
+  let stdout: string;
   try {
     const execOutput = await getExecOutput(
       await which('eas', true),
@@ -175,7 +181,19 @@ async function getBuildInfoWithFingerprintAsync({
     return null;
   }
 
-  return builds[0];
+  const build = builds[0] as BuildInfo;
+
+  if (excludeExpiredBuilds) {
+    // if the build is expired or will expire within the next day,
+    // return null to trigger a new build
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (tomorrow > new Date(build.expirationDate)) {
+      return null;
+    }
+  }
+
+  return build;
 }
 
 async function createEASBuildAsync({
@@ -187,7 +205,7 @@ async function createEASBuildAsync({
   profile: string;
   platform: 'ios' | 'android';
 }): Promise<BuildInfo> {
-  let stdout;
+  let stdout: string;
   try {
     const extraArgs = isDebug() ? ['--build-logger-level', 'debug'] : [];
     const execOutput = await getExecOutput(
@@ -207,17 +225,17 @@ async function createEASBuildAsync({
 }
 
 async function publishEASUpdatesAsync({ cwd, branch }: { cwd: string; branch: string }): Promise<EasUpdate[]> {
-  let stdout = '';
-
+  let stdout: string;
   try {
-    ({ stdout } = await getExecOutput(
+    const execOutput = await getExecOutput(
       await which('eas', true),
       ['update', '--auto', '--branch', branch, '--non-interactive', '--json'],
       {
         cwd,
         silent: !isDebug(),
       }
-    ));
+    );
+    stdout = execOutput.stdout;
   } catch (error: unknown) {
     throw new Error(`Could not create a new EAS Update: ${String(error)}`);
   }

@@ -44535,6 +44535,7 @@ function collectContinuousDeployFingerprintInput() {
 exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
 (0, worker_1.executeAction)(continuousDeployFingerprintAction);
 async function continuousDeployFingerprintAction(input = collectContinuousDeployFingerprintInput()) {
+    const isInPullRequest = (0, github_1.hasPullContext)();
     const config = await (0, project_1.loadProjectConfig)(input.workingDirectory);
     const projectId = config.extra?.eas?.projectId;
     if (!projectId) {
@@ -44553,6 +44554,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         platform: 'android',
         profile: input.profile,
         fingerprintHash: androidFingerprintHash,
+        excludeExpiredBuilds: isInPullRequest,
     });
     if (androidBuildInfo) {
         (0, core_1.info)(`Existing Android build found with matching fingerprint: ${androidBuildInfo.id}`);
@@ -44570,6 +44572,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         platform: 'ios',
         profile: input.profile,
         fingerprintHash: iosFingerprintHash,
+        excludeExpiredBuilds: isInPullRequest,
     });
     if (iosBuildInfo) {
         (0, core_1.info)(`Existing iOS build found with matching fingerprint: ${iosBuildInfo.id}`);
@@ -44584,7 +44587,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         cwd: input.workingDirectory,
         branch: input.branch,
     });
-    if (!(0, github_1.hasPullContext)()) {
+    if (!isInPullRequest) {
         (0, core_1.info)(`Skipped comment: action was not run from a pull request`);
     }
     else {
@@ -44621,7 +44624,7 @@ async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
         throw new Error(`Could not get fingerprint for project: ${String(error)}`);
     }
 }
-async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, fingerprintHash, }) {
+async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, fingerprintHash, excludeExpiredBuilds, }) {
     let stdout;
     try {
         const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
@@ -44654,7 +44657,17 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
     if (!builds[0]) {
         return null;
     }
-    return builds[0];
+    const build = builds[0];
+    if (excludeExpiredBuilds) {
+        // if the build is expired or will expire within the next day,
+        // return null to trigger a new build
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (tomorrow > new Date(build.expirationDate)) {
+            return null;
+        }
+    }
+    return build;
 }
 async function createEASBuildAsync({ cwd, profile, platform, }) {
     let stdout;
@@ -44672,12 +44685,13 @@ async function createEASBuildAsync({ cwd, profile, platform, }) {
     return JSON.parse(stdout)[0];
 }
 async function publishEASUpdatesAsync({ cwd, branch }) {
-    let stdout = '';
+    let stdout;
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
             cwd,
             silent: !(0, core_1.isDebug)(),
-        }));
+        });
+        stdout = execOutput.stdout;
     }
     catch (error) {
         throw new Error(`Could not create a new EAS Update: ${String(error)}`);
