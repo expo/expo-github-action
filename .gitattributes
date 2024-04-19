@@ -3,4 +3,4 @@
 * text=auto
 
 # These files are text and should be normalized (Convert crlf => lf)
-build/** text eol=lf
+build/** text eol=lf linguist-generated=true

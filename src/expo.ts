@@ -42,6 +42,7 @@ export type BuildInfo = {
   sdkVersion: string;
   appVersion: string;
   gitCommitHash: string;
+  expirationDate: string;
 };
 
 export const appPlatformDisplayNames: Record<AppPlatform, string> = {
