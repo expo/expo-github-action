@@ -1,4 +1,4 @@
-import { getInput, info, setFailed, setOutput } from '@actions/core';
+import { getInput, info, isDebug, setFailed, setOutput } from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
@@ -37,6 +37,8 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
   info(`Android fingerprint: ${androidFingerprintHash}`);
   info(`iOS fingerprint: ${iosFingerprintHash}`);
 
+  info('Looking for builds with matching runtime version (fingerprint)...');
+
   let androidBuildInfo = await getBuildInfoWithFingerprintAsync({
     cwd: input.workingDirectory,
     platform: 'android',
@@ -44,7 +46,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     fingerprintHash: androidFingerprintHash,
   });
   if (androidBuildInfo) {
-    info(`Existing Android build found for fingerprint: ${androidBuildInfo.id}`);
+    info(`Existing Android build found with matching fingerprint: ${androidBuildInfo.id}`);
   } else {
     info(`No existing Android build found for fingerprint, starting a new build...`);
     androidBuildInfo = await createEASBuildAsync({
@@ -61,7 +63,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     fingerprintHash: iosFingerprintHash,
   });
   if (iosBuildInfo) {
-    info(`Existing iOS build found for fingerprint: ${iosBuildInfo.id}`);
+    info(`Existing iOS build found with matching fingerprint: ${iosBuildInfo.id}`);
   } else {
     info(`No existing iOS build found for fingerprint, starting a new build...`);
     iosBuildInfo = await createEASBuildAsync({ cwd: input.workingDirectory, platform: 'ios', profile: input.profile });
@@ -69,7 +71,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
 
   const builds = [androidBuildInfo, iosBuildInfo];
 
-  info(`Publishing EAS Update`);
+  info(`Publishing EAS Update...`);
 
   const updates = await publishEASUpdatesAsync({
     cwd: input.workingDirectory,
@@ -105,9 +107,15 @@ async function getFingerprintHashForPlatformAsync({
   platform: 'ios' | 'android';
 }): Promise<string> {
   try {
-    const { stdout } = await getExecOutput('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform], {
-      cwd,
-    });
+    const extraArgs = isDebug() ? ['--debug'] : [];
+    const { stdout } = await getExecOutput(
+      'npx',
+      ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs],
+      {
+        cwd,
+        silent: !isDebug(),
+      }
+    );
     const { hash } = JSON.parse(stdout);
     if (!hash || typeof hash !== 'string') {
       throw new Error(`Invalid fingerprint output: ${stdout}`);
@@ -150,6 +158,7 @@ async function getBuildInfoWithFingerprintAsync({
       ],
       {
         cwd,
+        silent: !isDebug(),
       }
     );
     stdout = execOutput.stdout;
@@ -180,22 +189,13 @@ async function createEASBuildAsync({
 }): Promise<BuildInfo> {
   let stdout;
   try {
+    const extraArgs = isDebug() ? ['--build-logger-level', 'debug'] : [];
     const execOutput = await getExecOutput(
       await which('eas', true),
-      [
-        'build',
-        '--profile',
-        profile,
-        '--platform',
-        platform,
-        '--non-interactive',
-        '--json',
-        '--no-wait',
-        '--build-logger-level',
-        'debug',
-      ],
+      ['build', '--profile', profile, '--platform', platform, '--non-interactive', '--json', '--no-wait', ...extraArgs],
       {
         cwd,
+        silent: !isDebug(),
       }
     );
     stdout = execOutput.stdout;
@@ -203,7 +203,7 @@ async function createEASBuildAsync({
     throw new Error(`Could not run command eas build: ${String(error)}`);
   }
 
-  return JSON.parse(stdout);
+  return JSON.parse(stdout)[0];
 }
 
 async function publishEASUpdatesAsync({ cwd, branch }: { cwd: string; branch: string }): Promise<EasUpdate[]> {
@@ -215,6 +215,7 @@ async function publishEASUpdatesAsync({ cwd, branch }: { cwd: string; branch: st
       ['update', '--auto', '--branch', branch, '--non-interactive', '--json'],
       {
         cwd,
+        silent: !isDebug(),
       }
     ));
   } catch (error: unknown) {
