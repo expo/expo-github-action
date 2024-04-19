@@ -44547,6 +44547,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
     const iosFingerprintHash = await getFingerprintHashForPlatformAsync({ cwd: input.workingDirectory, platform: 'ios' });
     (0, core_1.info)(`Android fingerprint: ${androidFingerprintHash}`);
     (0, core_1.info)(`iOS fingerprint: ${iosFingerprintHash}`);
+    (0, core_1.info)('Looking for builds with matching runtime version (fingerprint)...');
     let androidBuildInfo = await getBuildInfoWithFingerprintAsync({
         cwd: input.workingDirectory,
         platform: 'android',
@@ -44554,7 +44555,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         fingerprintHash: androidFingerprintHash,
     });
     if (androidBuildInfo) {
-        (0, core_1.info)(`Existing Android build found for fingerprint: ${androidBuildInfo.id}`);
+        (0, core_1.info)(`Existing Android build found with matching fingerprint: ${androidBuildInfo.id}`);
     }
     else {
         (0, core_1.info)(`No existing Android build found for fingerprint, starting a new build...`);
@@ -44571,14 +44572,14 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         fingerprintHash: iosFingerprintHash,
     });
     if (iosBuildInfo) {
-        (0, core_1.info)(`Existing iOS build found for fingerprint: ${iosBuildInfo.id}`);
+        (0, core_1.info)(`Existing iOS build found with matching fingerprint: ${iosBuildInfo.id}`);
     }
     else {
         (0, core_1.info)(`No existing iOS build found for fingerprint, starting a new build...`);
         iosBuildInfo = await createEASBuildAsync({ cwd: input.workingDirectory, platform: 'ios', profile: input.profile });
     }
     const builds = [androidBuildInfo, iosBuildInfo];
-    (0, core_1.info)(`Publishing EAS Update`);
+    (0, core_1.info)(`Publishing EAS Update...`);
     const updates = await publishEASUpdatesAsync({
         cwd: input.workingDirectory,
         branch: input.branch,
@@ -44605,8 +44606,10 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
 exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
 async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
     try {
-        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform], {
+        const extraArgs = (0, core_1.isDebug)() ? ['--debug'] : [];
+        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
             cwd,
+            silent: !(0, core_1.isDebug)(),
         });
         const { hash } = JSON.parse(stdout);
         if (!hash || typeof hash !== 'string') {
@@ -44637,6 +44640,7 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
             '--non-interactive',
         ], {
             cwd,
+            silent: !(0, core_1.isDebug)(),
         });
         stdout = execOutput.stdout;
     }
@@ -44655,32 +44659,24 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
 async function createEASBuildAsync({ cwd, profile, platform, }) {
     let stdout;
     try {
-        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
-            'build',
-            '--profile',
-            profile,
-            '--platform',
-            platform,
-            '--non-interactive',
-            '--json',
-            '--no-wait',
-            '--build-logger-level',
-            'debug',
-        ], {
+        const extraArgs = (0, core_1.isDebug)() ? ['--build-logger-level', 'debug'] : [];
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build', '--profile', profile, '--platform', platform, '--non-interactive', '--json', '--no-wait', ...extraArgs], {
             cwd,
+            silent: !(0, core_1.isDebug)(),
         });
         stdout = execOutput.stdout;
     }
     catch (error) {
         throw new Error(`Could not run command eas build: ${String(error)}`);
     }
-    return JSON.parse(stdout);
+    return JSON.parse(stdout)[0];
 }
 async function publishEASUpdatesAsync({ cwd, branch }) {
     let stdout = '';
     try {
         ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
             cwd,
+            silent: !(0, core_1.isDebug)(),
         }));
     }
     catch (error) {
