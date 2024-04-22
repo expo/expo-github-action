@@ -78,12 +78,6 @@ When using the GitHub API, you always need to be authenticated.
 This action tries to auto-authenticate using the [Automatic token authentication][link-gha-token] from GitHub.
 You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or add the **github-token** input.
 
-<div align="center">
-  <br />
-  with :heart:&nbsp;<strong>Expo</strong>
-  <br />
-</div>
-
 ## Example workflows
 
 Before diving into the workflow examples, you should know the basics of GitHub Actions.
@@ -158,3 +152,9 @@ jobs:
           profile: ${{ github.event_name != 'pull_request' && 'production' || 'development' }}
           branch: ${{ github.event_name != 'pull_request' && 'production' || 'development' }}
 ```
+
+<div align="center">
+  <br />
+  with :heart:&nbsp;<strong>Expo</strong>
+  <br />
+</div>
