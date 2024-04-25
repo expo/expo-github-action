@@ -102,7 +102,6 @@ on:
     types: [opened, synchronize]
 
 env:
-  EXPO_STAGING: 1
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
