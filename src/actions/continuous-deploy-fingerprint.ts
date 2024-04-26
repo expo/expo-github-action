@@ -127,7 +127,7 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
       config,
       projectId,
       updates,
-      builds: [android?.buildInfo, ios?.buildInfo].filter(Boolean),
+      builds: [android?.buildInfo, ios?.buildInfo].filter(e => e !== undefined) as BuildInfo[],
       options: input,
     });
 
