@@ -1,4 +1,5 @@
 import { getExecOutput } from '@actions/exec';
+import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
 
 /**
@@ -10,7 +11,8 @@ export async function loadProjectConfig(cwd: string): Promise<ExpoConfig> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput('npx', ['expo', 'config', '--json', '--type', 'public'], {
+    const cmd = await Promise.any([which('bunx'), which('npx')]);
+    ({ stdout } = await getExecOutput(cmd, ['expo', 'config', '--json', '--type', 'public'], {
       cwd,
       silent: true,
     }));

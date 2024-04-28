@@ -42390,6 +42390,7 @@ exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsyn
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.loadProjectConfig = void 0;
 const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
 /**
  * Load the Expo app project config in the given directory.
  * This runs `expo config` command instead of using `@expo/config` directly,
@@ -42398,7 +42399,8 @@ const exec_1 = __nccwpck_require__(1514);
 async function loadProjectConfig(cwd) {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)('npx', ['expo', 'config', '--json', '--type', 'public'], {
+        const cmd = await Promise.any([(0, io_1.which)('bunx'), (0, io_1.which)('npx')]);
+        ({ stdout } = await (0, exec_1.getExecOutput)(cmd, ['expo', 'config', '--json', '--type', 'public'], {
             cwd,
             silent: true,
         }));
@@ -44610,7 +44612,8 @@ exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
 async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
     try {
         const extraArgs = (0, core_1.isDebug)() ? ['--debug'] : [];
-        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
+        const cmd = await Promise.any([(0, io_1.which)('bunx'), (0, io_1.which)('npx')]);
+        const { stdout } = await (0, exec_1.getExecOutput)(cmd, ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
