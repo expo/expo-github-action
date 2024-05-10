@@ -157,3 +157,6 @@ jobs:
   with :heart:&nbsp;<strong>Expo</strong>
   <br />
 </div>
+
+[link-actions]: https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+[link-gha-token]: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
