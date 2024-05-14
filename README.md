@@ -33,7 +33,7 @@
 ## What's inside?
 
 With this Expo action, you have full access to [Expo CLI][link-expo-cli] and [EAS CLI][link-eas-cli].
-It lets you automate the `expo publish` or `eas build` commands, leaving you with more time to work on your project.
+It lets you automate the `eas update` or `eas build` commands, leaving you with more time to work on your project.
 Some additional features are included to make the usage of this action as simple as possible, like caching and authentication.
 
 ## Configuration options
