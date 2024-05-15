@@ -15,6 +15,10 @@ inputs:
   branch:
     description: The EAS Update branch on which to publish.
     required: true
+  platform:
+    description: The platform on which to publish. Possible values are 'all' | 'android' | 'ios'
+    required: false
+    default: all
   github-token:
     description: GitHub token to use when commenting on PR
     required: false
