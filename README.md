@@ -152,6 +152,9 @@ on: [pull_request]
 jobs:
   preview:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v3
