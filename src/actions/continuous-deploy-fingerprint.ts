@@ -112,8 +112,9 @@ async function getFingerprintHashForPlatformAsync({
 }): Promise<string> {
   try {
     const extraArgs = isDebug() ? ['--debug'] : [];
+    const cmd = await Promise.any([which('bunx'), which('npx')]);
     const { stdout } = await getExecOutput(
-      'npx',
+      cmd,
       ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs],
       {
         cwd,
