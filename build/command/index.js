@@ -38583,6 +38583,7 @@ function commandInput() {
     return {
         reaction: '+1',
         githubToken: (0, core_1.getInput)('github-token'),
+        commandOverride: (0, core_1.getInput)('command-override'),
     };
 }
 exports.commandInput = commandInput;
@@ -38592,7 +38593,12 @@ async function commandAction(input = commandInput()) {
     if (!comment) {
         return;
     }
-    const command = (0, expo_1.parseCommand)(comment);
+    let commandSource = comment;
+    if (input.commandOverride) {
+        (0, core_1.info)(`Overriding command with: ${input.commandOverride}`);
+        commandSource = input.commandOverride;
+    }
+    const command = (0, expo_1.parseCommand)(commandSource);
     if (!command) {
         (0, core_1.info)("Comment didn't contain a valid expo/eas command");
         return;

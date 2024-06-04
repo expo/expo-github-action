@@ -20,6 +20,7 @@ export function commandInput() {
   return {
     reaction: '+1' as Reaction['content'],
     githubToken: getInput('github-token'),
+    commandOverride: getInput('command-override'),
   };
 }
 
@@ -31,7 +32,13 @@ export async function commandAction(input = commandInput()) {
     return;
   }
 
-  const command = parseCommand(comment);
+  let commandSource = comment;
+  if (input.commandOverride) {
+    info(`Overriding command with: ${input.commandOverride}`);
+    commandSource = input.commandOverride;
+  }
+
+  const command = parseCommand(commandSource);
   if (!command) {
     info("Comment didn't contain a valid expo/eas command");
     return;

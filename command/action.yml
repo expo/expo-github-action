@@ -13,3 +13,6 @@ inputs:
     description: GitHub access token to comment on PRs
     required: false
     default: ${{ github.token }}
+  command-override:
+    description: Command to run (if not provided, taken from comment)
+    required: false
