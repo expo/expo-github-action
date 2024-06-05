@@ -93,8 +93,8 @@ export function pullContext(): IssueContext {
   }
 
   assert(
-    context.eventName === 'pull_request',
-    'Could not find the pull request context, make sure to run this from a pull_request triggered workflow'
+    context.eventName === 'pull_request' || context.eventName === 'issue_comment',
+    'Could not find the pull request context, make sure to run this from a pull_request or issue_comment triggered workflow'
   );
   return context.issue;
 }
