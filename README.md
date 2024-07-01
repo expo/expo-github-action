@@ -45,8 +45,6 @@ Here is a summary of all the input options you can use.
 
 | variable           | default | description                                                                                   |
 | ------------------ | ------- | --------------------------------------------------------------------------------------------- |
-| **expo-version**   | -       | Expo CLI version to install _(skips when omitted)_                                            |
-| **expo-cache**     | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
 | **eas-version**    | -       | EAS CLI version to install _(skips when omitted)_                                             |
 | **eas-cache**      | `true`  | If it should use the GitHub actions cache ([read more](#using-the-built-in-cache))            |
 | **packager**       | `yarn`  | Package manager to use _(e.g. `bun`, `yarn`, or `npm`)_                                               |
