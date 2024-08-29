@@ -173,7 +173,7 @@ jobs:
         uses: expo/expo-github-action/preview@v8
         with:
           # `github.event.pull_request.head.ref` is only available on `pull_request` triggers.
-          # Use your own, or keep the automatically infered branch name from `--auto`, when using different triggers.
+          # Use your own, or keep the automatically inferred branch name from `--auto`, when using different triggers.
           command: eas update --auto --branch ${{ github.event.pull_request.head.ref }}
 ```
 
