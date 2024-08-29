@@ -74,14 +74,17 @@ jobs:
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable                           | default          | description                                                             |
-| ---------------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| **working-directory**              | -                | The relative directory of your Expo app                                 |
-| **packager**                       | `yarn`         | The package manager used to install the fingerprint tools               |
-| **github-token**                   | `github.token`   | GitHub token to use when commenting on PR ([read more](#github-tokens)) |
-| **fingerprint-version**            | `latest`         | `@expo/fingerprint` version to install                                  |
-| **fingerprint-installation-cache** | `true`           | If the `@expo/fingerprint` should be cached to speed up installation    |
-| **fingerprint-db-cache-key**       | `fingerprint-db` | A cache key to use for saving the fingerprint database                  |
+| variable                           | default          | description                                                                                 |
+| ---------------------------------- | ---------------- | ------------------------------------------------------------------------------------------- |
+| **working-directory**              | -                | The relative directory of your Expo app                                                     |
+| **packager**                       | `yarn`           | The package manager used to install the fingerprint tools                                   |
+| **github-token**                   | `github.token`   | GitHub token to use when commenting on PR ([read more](#github-tokens))                     |
+| **fingerprint-version**            | `latest`         | `@expo/fingerprint` version to install                                                      |
+| **fingerprint-installation-cache** | `true`           | If the `@expo/fingerprint` should be cached to speed up installation                        |
+| **fingerprint-db-cache-key**       | `fingerprint-db` | A cache key to use for saving the fingerprint database                                      |
+| **previous-git-commit**            | -                | The Git hash for the base commit                                                            |
+| **current-git-commit**             | -                | The Git hash for the current commit                                                         |
+| **saving-db-branch**               | -                | The branch for saving the fingerprint database. Defaults to the repository's default branch |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on current project fingerprint
 
