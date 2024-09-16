@@ -1,6 +1,6 @@
 <div align="center">
   <h1>continuous-deploy-fingerprint</h1>
-  <p>Continuously deploys an Expo project using EAS Build and EAS Update in combination with fingerprint runtime versions</p>
+  <p>Continuously deploys an Expo project using EAS Build and EAS Update in combination with a fingerprint runtime version</p>
 </div>
 
 <p align="center">
@@ -40,9 +40,14 @@
 `continuous-deploy-fingerprint` is a GitHub Action continuously deploys an Expo project using the expo-updates fingerprint runtime version policy. When run, it performs the following tasks in order, once for each platform:
 1. Check current fingerprint of the project.
 2. Check for EAS builds with specified profile matching that fingerprint.
-3. If an EAS build doesn't exist, start one.
+3. If a in-progress or finished EAS build doesn't exist, start one.
 4. Publish an update on EAS update.
 5. If run on a PR, post a comment indicating what was done.
+
+### Prerequisites
+
+- Project must have expo-updates and EAS Update set up.
+- Must have run the builds at least once manually in order to configure credentials. This can be done by running `eas build --profile <profile> --platform <platform>` for each profile and platform you have set up for this action.
 
 ### Configuration options
 
