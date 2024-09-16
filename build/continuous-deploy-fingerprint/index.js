@@ -41968,7 +41968,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectAppType = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.AppPlatform = void 0;
+exports.getBuildLogsUrl = exports.projectDeepLink = exports.projectLink = exports.projectQR = exports.projectAppType = exports.projectInfo = exports.queryEasBuildInfoAsync = exports.cancelEasBuildAsync = exports.createEasBuildFromRawCommandAsync = exports.easBuild = exports.runCommand = exports.projectOwner = exports.authenticate = exports.parseCommand = exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.BuildStatus = exports.AppPlatform = void 0;
 const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
@@ -41980,6 +41980,16 @@ var AppPlatform;
     AppPlatform["Android"] = "ANDROID";
     AppPlatform["Ios"] = "IOS";
 })(AppPlatform || (exports.AppPlatform = AppPlatform = {}));
+var BuildStatus;
+(function (BuildStatus) {
+    BuildStatus["New"] = "NEW";
+    BuildStatus["InQueue"] = "IN_QUEUE";
+    BuildStatus["InProgress"] = "IN_PROGRESS";
+    BuildStatus["PendingCancel"] = "PENDING_CANCEL";
+    BuildStatus["Errored"] = "ERRORED";
+    BuildStatus["Finished"] = "FINISHED";
+    BuildStatus["Canceled"] = "CANCELED";
+})(BuildStatus || (exports.BuildStatus = BuildStatus = {}));
 exports.appPlatformDisplayNames = {
     [AppPlatform.Android]: 'Android',
     [AppPlatform.Ios]: 'iOS',
@@ -44631,8 +44641,6 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
             'build:list',
             '--platform',
             platform,
-            '--status',
-            'finished',
             '--buildProfile',
             profile,
             '--runtimeVersion',
@@ -44654,20 +44662,15 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
     if (!builds || !Array.isArray(builds)) {
         throw new Error(`Could not get EAS builds for project`);
     }
-    if (!builds[0]) {
-        return null;
-    }
-    const build = builds[0];
-    if (excludeExpiredBuilds) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const buildsThatAreValid = builds.filter(build => {
+        const isValidStatus = [expo_1.BuildStatus.New, expo_1.BuildStatus.InQueue, expo_1.BuildStatus.InProgress, expo_1.BuildStatus.Finished].includes(build.status);
         // if the build is expired or will expire within the next day,
-        // return null to trigger a new build
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        if (tomorrow > new Date(build.expirationDate)) {
-            return null;
-        }
-    }
-    return build;
+        const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) < tomorrow : true;
+        return isValidStatus && isValidExpiry;
+    });
+    return buildsThatAreValid[0] ?? null;
 }
 async function createEASBuildAsync({ cwd, profile, platform, }) {
     let stdout;

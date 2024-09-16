@@ -25,6 +25,16 @@ export enum AppPlatform {
   Ios = 'IOS',
 }
 
+export enum BuildStatus {
+  New = 'NEW',
+  InQueue = 'IN_QUEUE',
+  InProgress = 'IN_PROGRESS',
+  PendingCancel = 'PENDING_CANCEL',
+  Errored = 'ERRORED',
+  Finished = 'FINISHED',
+  Canceled = 'CANCELED',
+}
+
 export type BuildInfo = {
   id: string;
   platform: AppPlatform;
@@ -43,6 +53,7 @@ export type BuildInfo = {
   appVersion: string;
   gitCommitHash: string;
   expirationDate: string;
+  status: BuildStatus;
 };
 
 export const appPlatformDisplayNames: Record<AppPlatform, string> = {
