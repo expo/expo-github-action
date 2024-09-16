@@ -5,7 +5,7 @@ import { ExpoConfig } from '@expo/config';
 
 import { createDetails, getQrTarget, getSchemesInOrderFromConfig } from '../comment';
 import { EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { AppPlatform, BuildInfo, appPlatformEmojis, getBuildLogsUrl } from '../expo';
+import { AppPlatform, BuildInfo, BuildStatus, appPlatformEmojis, getBuildLogsUrl } from '../expo';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { executeAction } from '../worker';
@@ -151,8 +151,6 @@ async function getBuildInfoWithFingerprintAsync({
         'build:list',
         '--platform',
         platform,
-        '--status',
-        'finished',
         '--buildProfile',
         profile,
         '--runtimeVersion',
@@ -177,23 +175,19 @@ async function getBuildInfoWithFingerprintAsync({
     throw new Error(`Could not get EAS builds for project`);
   }
 
-  if (!builds[0]) {
-    return null;
-  }
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const build = builds[0] as BuildInfo;
-
-  if (excludeExpiredBuilds) {
+  const buildsThatAreValid = (builds as BuildInfo[]).filter(build => {
+    const isValidStatus = [BuildStatus.New, BuildStatus.InQueue, BuildStatus.InProgress, BuildStatus.Finished].includes(
+      build.status
+    );
     // if the build is expired or will expire within the next day,
-    // return null to trigger a new build
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (tomorrow > new Date(build.expirationDate)) {
-      return null;
-    }
-  }
+    const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) < tomorrow : true;
+    return isValidStatus && isValidExpiry;
+  });
 
-  return build;
+  return buildsThatAreValid[0] ?? null;
 }
 
 async function createEASBuildAsync({
