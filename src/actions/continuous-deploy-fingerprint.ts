@@ -10,6 +10,8 @@ import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { loadProjectConfig } from '../project';
 import { executeAction } from '../worker';
 
+type BuildRunInfo = { buildInfo: BuildInfo; isNew: boolean };
+
 export function collectContinuousDeployFingerprintInput() {
   return {
     profile: getInput('profile'),
@@ -41,39 +43,51 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
 
   info('Looking for builds with matching runtime version (fingerprint)...');
 
-  let androidBuildInfo = await getBuildInfoWithFingerprintAsync({
+  const existingAndroidBuildInfo = await getBuildInfoWithFingerprintAsync({
     cwd: input.workingDirectory,
     platform: 'android',
     profile: input.profile,
     fingerprintHash: androidFingerprintHash,
     excludeExpiredBuilds: isInPullRequest,
   });
-  if (androidBuildInfo) {
-    info(`Existing Android build found with matching fingerprint: ${androidBuildInfo.id}`);
+  let androidBuildRunInfo: BuildRunInfo;
+  if (existingAndroidBuildInfo) {
+    info(`Existing Android build found with matching fingerprint: ${existingAndroidBuildInfo.id}`);
+    androidBuildRunInfo = { buildInfo: existingAndroidBuildInfo, isNew: false };
   } else {
     info(`No existing Android build found for fingerprint, starting a new build...`);
-    androidBuildInfo = await createEASBuildAsync({
-      cwd: input.workingDirectory,
-      platform: 'android',
-      profile: input.profile,
-    });
+    androidBuildRunInfo = {
+      buildInfo: await createEASBuildAsync({
+        cwd: input.workingDirectory,
+        platform: 'android',
+        profile: input.profile,
+      }),
+      isNew: true,
+    };
   }
 
-  let iosBuildInfo = await getBuildInfoWithFingerprintAsync({
+  const existingIosBuildInfo = await getBuildInfoWithFingerprintAsync({
     cwd: input.workingDirectory,
     platform: 'ios',
     profile: input.profile,
     fingerprintHash: iosFingerprintHash,
     excludeExpiredBuilds: isInPullRequest,
   });
-  if (iosBuildInfo) {
-    info(`Existing iOS build found with matching fingerprint: ${iosBuildInfo.id}`);
+  let iosBuildRunInfo: BuildRunInfo;
+  if (existingIosBuildInfo) {
+    info(`Existing iOS build found with matching fingerprint: ${existingIosBuildInfo.id}`);
+    iosBuildRunInfo = { buildInfo: existingIosBuildInfo, isNew: false };
   } else {
     info(`No existing iOS build found for fingerprint, starting a new build...`);
-    iosBuildInfo = await createEASBuildAsync({ cwd: input.workingDirectory, platform: 'ios', profile: input.profile });
+    iosBuildRunInfo = {
+      buildInfo: await createEASBuildAsync({
+        cwd: input.workingDirectory,
+        platform: 'ios',
+        profile: input.profile,
+      }),
+      isNew: true,
+    };
   }
-
-  const builds = [androidBuildInfo, iosBuildInfo];
 
   info(`Publishing EAS Update...`);
 
@@ -86,7 +100,13 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     info(`Skipped comment: action was not run from a pull request`);
   } else {
     const messageId = `continuous-deploy-fingerprint-projectId:${projectId}`;
-    const messageBody = createSummaryForUpdatesAndBuilds({ config, projectId, updates, builds, options: input });
+    const messageBody = createSummaryForUpdatesAndBuilds({
+      config,
+      projectId,
+      updates,
+      buildRunInfos: { androidBuildRunInfo, iosBuildRunInfo },
+      options: input,
+    });
 
     await createIssueComment({
       ...pullContext(),
@@ -98,8 +118,10 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
 
   setOutput('android-fingerprint', androidFingerprintHash);
   setOutput('ios-fingerprint', iosFingerprintHash);
-  setOutput('android-build-id', androidBuildInfo.id);
-  setOutput('ios-build-id', iosBuildInfo.id);
+  setOutput('android-build-id', androidBuildRunInfo.buildInfo.id);
+  setOutput('android-did-start-new-build', androidBuildRunInfo.isNew);
+  setOutput('ios-build-id', iosBuildRunInfo.buildInfo.id);
+  setOutput('ios-did-start-new-build', iosBuildRunInfo.isNew);
   setOutput('update-output', updates);
 }
 
@@ -241,21 +263,20 @@ function createSummaryForUpdatesAndBuilds({
   config,
   projectId,
   updates,
-  builds,
+  buildRunInfos,
   options,
 }: {
   config: ExpoConfig;
   projectId: string;
   updates: EasUpdate[];
-  builds: BuildInfo[];
+  buildRunInfos: { androidBuildRunInfo: BuildRunInfo; iosBuildRunInfo: BuildRunInfo };
   options: { qrTarget?: 'expo-go' | 'dev-build' | 'dev-client'; workingDirectory: string };
 }) {
   const appSlug = config.slug;
   const qrTarget = getQrTarget(options);
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
 
-  const androidBuild = builds.find(build => build.platform === AppPlatform.Android);
-  const iosBuild = builds.find(build => build.platform === AppPlatform.Ios);
+  const { androidBuildRunInfo, iosBuildRunInfo } = buildRunInfos;
 
   const androidUpdate = updates.find(update => update.platform === 'android');
   const iosUpdate = updates.find(update => update.platform === 'ios');
@@ -266,22 +287,20 @@ function createSummaryForUpdatesAndBuilds({
     update ? `[Update Permalink](${getUpdateGroupWebsite({ projectId, updateGroupId: update.group })})` : 'n/a';
   const getUpdateQRURL = (update: EasUpdate | undefined) =>
     update ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
-  const getBuildDetails = (build: BuildInfo | undefined) =>
-    build
-      ? getBuildLink(build) +
-        '<br />' +
-        createDetails({
-          summary: 'Details',
-          details: [
-            `Distribution: \`${build.distribution}\``,
-            `Build profile: \`${build.buildProfile}\``,
-            `Runtime version: \`${build.runtimeVersion}\``,
-            `App version: \`${build.appVersion}\``,
-            `Git commit: \`${build.gitCommitHash}\``,
-          ].join('<br />'),
-          delim: '',
-        })
-      : 'n/a';
+  const getBuildDetails = (buildRunInfo: BuildRunInfo) =>
+    getBuildLink(buildRunInfo.buildInfo) +
+    '<br />' +
+    createDetails({
+      summary: 'Details',
+      details: [
+        `Distribution: \`${buildRunInfo.buildInfo.distribution}\``,
+        `Build profile: \`${buildRunInfo.buildInfo.buildProfile}\``,
+        `Runtime version: \`${buildRunInfo.buildInfo.runtimeVersion}\``,
+        `App version: \`${buildRunInfo.buildInfo.appVersion}\``,
+        `Git commit: \`${buildRunInfo.buildInfo.gitCommitHash}\``,
+      ].join('<br />'),
+      delim: '',
+    });
   const getUpdateDetails = (update: EasUpdate | undefined) =>
     update
       ? getUpdateLink(update) +
@@ -323,8 +342,10 @@ ${schemesMessage}
 
 &nbsp; | ${appPlatformEmojis[AppPlatform.Android]} Android | ${appPlatformEmojis[AppPlatform.Ios]} iOS
 --- | --- | ---
-Fingerprint | ${androidBuild?.runtimeVersion ?? 'n/a'} | ${iosBuild?.runtimeVersion ?? 'n/a'}
-Build Details | ${getBuildDetails(androidBuild)} | ${getBuildDetails(iosBuild)}
+Fingerprint | ${androidBuildRunInfo.buildInfo.runtimeVersion ?? 'n/a'} | ${
+    iosBuildRunInfo.buildInfo.runtimeVersion ?? 'n/a'
+  }
+Build Details | ${getBuildDetails(androidBuildRunInfo)} | ${getBuildDetails(iosBuildRunInfo)}
 Update Details | ${getUpdateDetails(androidUpdate)} | ${getUpdateDetails(iosUpdate)}
 Update QR   | ${androidQr ?? 'n/a'} | ${iosQr ?? 'n/a'}
 `;
