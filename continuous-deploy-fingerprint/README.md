@@ -46,7 +46,8 @@
 
 ### Prerequisites
 
-- Project must have expo-updates and EAS Update set up.
+- Must have expo-updates set up with a `fingerprint` runtime version policy.
+- Must be configured for EAS Update.
 - Must have run the builds at least once manually in order to configure credentials. This can be done by running `eas build --profile <profile> --platform <platform>` for each profile and platform you have set up for this action.
 
 ### Configuration options
