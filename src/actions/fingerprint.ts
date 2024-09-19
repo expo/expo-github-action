@@ -1,17 +1,23 @@
 import { setOutput } from '@actions/core';
 
 import {
-  createFingerprintOutputAsync,
   collectFingerprintActionInput,
   createFingerprintDbManagerAsync,
+  createFingerprintOutputAsync,
 } from '../fingerprint';
 import { executeAction } from '../worker';
 
 executeAction(runAction);
 
 export async function runAction(input = collectFingerprintActionInput()) {
-  const dbManager = await createFingerprintDbManagerAsync(input.packager, input.fingerprintDbCacheKey);
-  const { currentFingerprint, previousFingerprint, diff } = await createFingerprintOutputAsync(dbManager, input);
+  const dbManager = await createFingerprintDbManagerAsync(
+    input.packager,
+    input.fingerprintDbCacheKey
+  );
+  const { currentFingerprint, previousFingerprint, diff } = await createFingerprintOutputAsync(
+    dbManager,
+    input
+  );
   await dbManager.upsertFingerprintByGitCommitHashAsync(input.currentGitCommitHash, {
     fingerprint: currentFingerprint,
   });

@@ -1,16 +1,16 @@
 import { getInput, info, setFailed } from '@actions/core';
 
 import {
+  BuildInfo,
   appPlatformDisplayNames,
   appPlatformEmojis,
-  BuildInfo,
   easBuild,
   getBuildLogsUrl,
   parseCommand,
   projectInfo,
   projectOwner,
 } from '../expo';
-import { createIssueComment, createReaction, issueComment, Reaction } from '../github';
+import { Reaction, createIssueComment, createReaction, issueComment } from '../github';
 import { template } from '../utils';
 import { executeAction } from '../worker';
 

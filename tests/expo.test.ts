@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, projectQR, projectLink, projectDeepLink, parseCommand } from '../src/expo';
+import { authenticate, parseCommand, projectDeepLink, projectLink, projectQR } from '../src/expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -63,9 +63,9 @@ describe(projectQR, () => {
   });
 
   it('returns url with owner, slug, and release channel', () => {
-    expect(projectQR({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')).toBe(
-      'https://qr.expo.dev/expo-go?owner=fakeowner&slug=fakeslug&releaseChannel=fakechannel'
-    );
+    expect(
+      projectQR({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')
+    ).toBe('https://qr.expo.dev/expo-go?owner=fakeowner&slug=fakeslug&releaseChannel=fakechannel');
   });
 });
 
@@ -81,9 +81,9 @@ describe(projectLink, () => {
   });
 
   it('returns url with owner, slug, and release channel', () => {
-    expect(projectLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')).toBe(
-      'https://expo.dev/@fakeowner/fakeslug?release-channel=fakechannel'
-    );
+    expect(
+      projectLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')
+    ).toBe('https://expo.dev/@fakeowner/fakeslug?release-channel=fakechannel');
   });
 });
 
@@ -99,8 +99,8 @@ describe(projectDeepLink, () => {
   });
 
   it('returns url with owner, slug, and release channel', () => {
-    expect(projectDeepLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')).toBe(
-      'exp://exp.host/@fakeowner/fakeslug?release-channel=fakechannel'
-    );
+    expect(
+      projectDeepLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')
+    ).toBe('exp://exp.host/@fakeowner/fakeslug?release-channel=fakechannel');
   });
 });

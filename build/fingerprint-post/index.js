@@ -89164,14 +89164,17 @@ function collectFingerprintActionInput() {
         githubToken: (0, core_1.getInput)('github-token'),
         workingDirectory: (0, core_1.getInput)('working-directory'),
         fingerprintVersion: (0, core_1.getInput)('fingerprint-version') || 'latest',
-        fingerprintInstallationCache: !(0, core_1.getInput)('fingerprint-installation-cache') || (0, core_1.getBooleanInput)('fingerprint-installation-cache'),
+        fingerprintInstallationCache: !(0, core_1.getInput)('fingerprint-installation-cache') ||
+            (0, core_1.getBooleanInput)('fingerprint-installation-cache'),
         fingerprintDbCacheKey: (0, core_1.getInput)('fingerprint-db-cache-key'),
         previousGitCommitHash: (0, core_1.getInput)('previous-git-commit') ||
             (github_1.context.eventName === 'pull_request'
                 ? github_1.context.payload.pull_request?.base?.sha
                 : github_1.context.payload.before),
         currentGitCommitHash: (0, core_1.getInput)('current-git-commit') ||
-            (github_1.context.eventName === 'pull_request' ? github_1.context.payload.pull_request?.head?.sha : github_1.context.sha),
+            (github_1.context.eventName === 'pull_request'
+                ? github_1.context.payload.pull_request?.head?.sha
+                : github_1.context.sha),
         savingDbBranch: (0, core_1.getInput)('saving-db-branch') || undefined,
     };
 }
@@ -89419,7 +89422,9 @@ const worker_1 = __nccwpck_require__(8912);
 async function resolvePackage(name, range) {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
+        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], {
+            silent: true,
+        }));
     }
     catch (error) {
         throw new Error(`Could not resolve ${name}@${range}`, { cause: error });

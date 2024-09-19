@@ -3,8 +3,14 @@ import * as exec from '@actions/exec';
 import os from 'os';
 import path from 'path';
 
-import { resetEnv, setEnv, setPlatform, resetPlatform } from './utils';
-import { tempPath, toolPath, installToolFromPackage, patchWatchers, executeAction } from '../src/worker';
+import { resetEnv, resetPlatform, setEnv, setPlatform } from './utils';
+import {
+  executeAction,
+  installToolFromPackage,
+  patchWatchers,
+  tempPath,
+  toolPath,
+} from '../src/worker';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -19,7 +25,9 @@ describe(tempPath, () => {
 
   it('returns path with name, version, and arch type', () => {
     setEnv('RUNNER_TEMP', 'fake/temp');
-    expect(tempPath('expo-cli', '5.0.3')).toBe(path.join('fake', 'temp', 'expo-cli', '5.0.3', os.arch()));
+    expect(tempPath('expo-cli', '5.0.3')).toBe(
+      path.join('fake', 'temp', 'expo-cli', '5.0.3', os.arch())
+    );
   });
 });
 
@@ -33,7 +41,9 @@ describe(toolPath, () => {
 
   it('returns path with name, version, and arch type', () => {
     setEnv('RUNNER_TOOL_CACHE', 'fake/tool');
-    expect(toolPath('eas-cli', '0.34.3')).toBe(path.join('fake', 'tool', 'eas-cli', '0.34.3', os.arch()));
+    expect(toolPath('eas-cli', '0.34.3')).toBe(
+      path.join('fake', 'tool', 'eas-cli', '0.34.3', os.arch())
+    );
   });
 });
 

@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 
-import { setupInput, setupAction } from '../../src/actions/setup';
+import { setupAction, setupInput } from '../../src/actions/setup';
 import * as cacher from '../../src/cacher';
 import * as expo from '../../src/expo';
 import * as packager from '../../src/packager';
@@ -89,7 +89,12 @@ describe(setupAction, () => {
   });
 
   it('authenticates token with eas-cli by default', async () => {
-    await setupAction({ ...input, expoVersion: 'latest', easVersion: 'latest', token: 'faketoken' });
+    await setupAction({
+      ...input,
+      expoVersion: 'latest',
+      easVersion: 'latest',
+      token: 'faketoken',
+    });
     expect(expo.authenticate).toBeCalledWith('faketoken', 'eas');
   });
 

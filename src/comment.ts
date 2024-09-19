@@ -3,7 +3,10 @@ import { ExpoConfig } from '@expo/config';
 
 import { projectAppType } from './expo';
 
-export function getQrTarget(input: { qrTarget?: 'expo-go' | 'dev-build' | 'dev-client'; workingDirectory: string }) {
+export function getQrTarget(input: {
+  qrTarget?: 'expo-go' | 'dev-build' | 'dev-client';
+  workingDirectory: string;
+}) {
   if (!input.qrTarget) {
     const appType = projectAppType(input.workingDirectory);
     debug(`Using inferred QR code target: "${appType}"`);
@@ -22,7 +25,9 @@ export function getQrTarget(input: { qrTarget?: 'expo-go' | 'dev-build' | 'dev-c
       return 'expo-go';
 
     default:
-      throw new Error(`Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`);
+      throw new Error(
+        `Invalid QR code target: "${input.qrTarget}", expected "expo-go" or "dev-build"`
+      );
   }
 }
 

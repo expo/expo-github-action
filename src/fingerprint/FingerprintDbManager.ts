@@ -1,6 +1,6 @@
-import type { Fingerprint as FingerprintType, FingerprintSource } from '@expo/fingerprint';
+import type { FingerprintSource, Fingerprint as FingerprintType } from '@expo/fingerprint';
 
-import { openDatabaseAsync, Database } from '../sqlite';
+import { Database, openDatabaseAsync } from '../sqlite';
 
 export type FingerprintDbEntity = Camelize<RawFingerprintDbEntity> & {
   fingerprint: FingerprintType;
@@ -12,7 +12,9 @@ export class FingerprintDbManager {
   public async initAsync(): Promise<Database> {
     const db = await openDatabaseAsync(this.dbPath);
     await db.runAsync(
-      `CREATE TABLE IF NOT EXISTS ${FingerprintDbManager.TABLE_NAME} (${FingerprintDbManager.SCHEMA.join(', ')})`
+      `CREATE TABLE IF NOT EXISTS ${
+        FingerprintDbManager.TABLE_NAME
+      } (${FingerprintDbManager.SCHEMA.join(', ')})`
     );
     for (const index of FingerprintDbManager.INDEXES) {
       await db.runAsync(index);
@@ -64,7 +66,9 @@ export class FingerprintDbManager {
   /**
    * Get the latest entity from the fingerprint hash where the eas_build_id is not null.
    */
-  public async getLatestEasEntityFromFingerprintAsync(fingerprintHash: string): Promise<FingerprintDbEntity | null> {
+  public async getLatestEasEntityFromFingerprintAsync(
+    fingerprintHash: string
+  ): Promise<FingerprintDbEntity | null> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }
@@ -77,7 +81,9 @@ export class FingerprintDbManager {
     return row ? FingerprintDbManager.serialize(row) : null;
   }
 
-  public async getEntityFromGitCommitHashAsync(gitCommitHash: string): Promise<FingerprintDbEntity | null> {
+  public async getEntityFromGitCommitHashAsync(
+    gitCommitHash: string
+  ): Promise<FingerprintDbEntity | null> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }
@@ -88,7 +94,9 @@ export class FingerprintDbManager {
     return row ? FingerprintDbManager.serialize(row) : null;
   }
 
-  public async getFirstEntityFromFingerprintHashAsync(fingerprintHash: string): Promise<FingerprintDbEntity | null> {
+  public async getFirstEntityFromFingerprintHashAsync(
+    fingerprintHash: string
+  ): Promise<FingerprintDbEntity | null> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }
@@ -99,7 +107,9 @@ export class FingerprintDbManager {
     return row ? FingerprintDbManager.serialize(row) : null;
   }
 
-  public async queryEntitiesFromFingerprintHashAsync(fingerprintHash: string): Promise<FingerprintDbEntity[]> {
+  public async queryEntitiesFromFingerprintHashAsync(
+    fingerprintHash: string
+  ): Promise<FingerprintDbEntity[]> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }
@@ -110,7 +120,9 @@ export class FingerprintDbManager {
     return rows.map(row => FingerprintDbManager.serialize(row));
   }
 
-  public async getFingerprintSourcesAsync(fingerprintHash: string): Promise<FingerprintSource[] | null> {
+  public async getFingerprintSourcesAsync(
+    fingerprintHash: string
+  ): Promise<FingerprintSource[] | null> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }

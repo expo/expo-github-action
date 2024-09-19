@@ -27,7 +27,10 @@ async function prebuild() {
   await fs.promises.rm(buildDir, { force: true, recursive: true });
   await fs.promises.rm(modulesDir, { force: true, recursive: true });
 
-  await spawn('bun', ['install', '--frozen-lockfile'], { stdio: 'inherit', env: { ...process.env, CI: true } });
+  await spawn('bun', ['install', '--frozen-lockfile'], {
+    stdio: 'inherit',
+    env: { ...process.env, CI: true },
+  });
 
   console.log();
 }
