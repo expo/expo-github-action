@@ -30,8 +30,12 @@ outputs:
   ios-fingerprint:
     description: The iOS fingerprint of the current commit.
   android-build-id:
-    description: ID for Android EAS Build if one was started
+    description: ID for Android EAS Build with matching fingerprint.
+  android-did-start-new-build:
+    description: Whether this run of the action started a new Android EAS Build.
   ios-build-id:
-    description: ID for iOS EAS Build if one was started.
+    description: ID for iOS EAS Build with matching fingerprint.
+  ios-did-start-new-build:
+    description: Whether this run of the action started a new iOS EAS Build.
   update-output:
     description: The output (JSON) from the `eas update` command
