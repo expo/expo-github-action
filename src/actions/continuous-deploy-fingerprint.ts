@@ -213,7 +213,7 @@ async function getBuildInfoWithFingerprintAsync({
       BuildStatus.Finished,
     ].includes(build.status);
     // if the build is expired or will expire within the next day,
-    const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) < tomorrow : true;
+    const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) > tomorrow : true;
     return isValidStatus && isValidExpiry;
   });
 
