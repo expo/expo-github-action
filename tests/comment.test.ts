@@ -49,9 +49,8 @@ describe(getSchemesInOrderFromConfig, () => {
   });
 
   it('returns schemes in order when defined as array', () => {
-    expect(getSchemesInOrderFromConfig({ scheme: ['ega', 'expogithubaction'] } as ExpoConfig)).toEqual([
-      'expogithubaction',
-      'ega',
-    ]);
+    expect(
+      getSchemesInOrderFromConfig({ scheme: ['ega', 'expogithubaction'] } as ExpoConfig)
+    ).toEqual(['expogithubaction', 'ega']);
   });
 });

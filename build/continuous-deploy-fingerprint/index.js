@@ -41909,7 +41909,7 @@ async function assertEasVersion(versionRange) {
         throw new Error(`Could not verify the EAS CLI version, reason:\nCommand failed 'eas --version'`);
     }
     const version = stdout.match(/eas-cli\/([^\s]+)/i);
-    if (!version || !version[1]) {
+    if (!version?.[1]) {
         throw new Error(`Could not verify the EAS CLI version, reason:\nUnexpected output received.`);
     }
     if (!semver_1.default.satisfies(version[1], versionRange)) {
@@ -42167,7 +42167,8 @@ function projectAppType(dir) {
     catch (error) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
-    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+    if (packageJson?.dependencies?.['expo-dev-client'] ||
+        packageJson?.devDependencies?.['expo-dev-client']) {
         return 'dev-build';
     }
     return 'expo-go';
@@ -44555,7 +44556,10 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
         cwd: input.workingDirectory,
         platform: 'android',
     });
-    const iosFingerprintHash = await getFingerprintHashForPlatformAsync({ cwd: input.workingDirectory, platform: 'ios' });
+    const iosFingerprintHash = await getFingerprintHashForPlatformAsync({
+        cwd: input.workingDirectory,
+        platform: 'ios',
+    });
     (0, core_1.info)(`Android fingerprint: ${androidFingerprintHash}`);
     (0, core_1.info)(`iOS fingerprint: ${iosFingerprintHash}`);
     (0, core_1.info)('Looking for builds with matching runtime version (fingerprint)...');
@@ -44686,7 +44690,12 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const buildsThatAreValid = builds.filter(build => {
-        const isValidStatus = [expo_1.BuildStatus.New, expo_1.BuildStatus.InQueue, expo_1.BuildStatus.InProgress, expo_1.BuildStatus.Finished].includes(build.status);
+        const isValidStatus = [
+            expo_1.BuildStatus.New,
+            expo_1.BuildStatus.InQueue,
+            expo_1.BuildStatus.InProgress,
+            expo_1.BuildStatus.Finished,
+        ].includes(build.status);
         // if the build is expired or will expire within the next day,
         const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) < tomorrow : true;
         return isValidStatus && isValidExpiry;
@@ -44697,7 +44706,17 @@ async function createEASBuildAsync({ cwd, profile, platform, }) {
     let stdout;
     try {
         const extraArgs = (0, core_1.isDebug)() ? ['--build-logger-level', 'debug'] : [];
-        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['build', '--profile', profile, '--platform', platform, '--non-interactive', '--json', '--no-wait', ...extraArgs], {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
+            'build',
+            '--profile',
+            profile,
+            '--platform',
+            platform,
+            '--non-interactive',
+            '--json',
+            '--no-wait',
+            ...extraArgs,
+        ], {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
@@ -44708,7 +44727,7 @@ async function createEASBuildAsync({ cwd, profile, platform, }) {
     }
     return JSON.parse(stdout)[0];
 }
-async function publishEASUpdatesAsync({ cwd, branch }) {
+async function publishEASUpdatesAsync({ cwd, branch, }) {
     let stdout;
     try {
         const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
@@ -44730,7 +44749,9 @@ function createSummaryForUpdatesAndBuilds({ config, projectId, updates, buildRun
     const androidUpdate = updates.find(update => update.platform === 'android');
     const iosUpdate = updates.find(update => update.platform === 'ios');
     const getBuildLink = (build) => build ? `[Build Permalink](${(0, expo_1.getBuildLogsUrl)(build)})` : 'n/a';
-    const getUpdateLink = (update) => update ? `[Update Permalink](${(0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: update.group })})` : 'n/a';
+    const getUpdateLink = (update) => update
+        ? `[Update Permalink](${(0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: update.group })})`
+        : 'n/a';
     const getUpdateQRURL = (update) => update ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
     const getBuildDetails = (buildRunInfo) => getBuildLink(buildRunInfo.buildInfo) +
         '<br />' +
@@ -44763,7 +44784,9 @@ function createSummaryForUpdatesAndBuilds({ config, projectId, updates, buildRun
     const androidQr = androidQRURL
         ? `<a href="${androidQRURL}"><img src="${androidQRURL}" width="250px" height="250px" /></a>`
         : null;
-    const iosQr = iosQRURL ? `<a href="${iosQRURL}"><img src="${iosQRURL}" width="250px" height="250px" /></a>` : null;
+    const iosQr = iosQRURL
+        ? `<a href="${iosQRURL}"><img src="${iosQRURL}" width="250px" height="250px" /></a>`
+        : null;
     const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
     const platformValue = updates
         .map(update => update.platform)

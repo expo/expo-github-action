@@ -27,13 +27,19 @@ export async function createFingerprintOutputAsync(
   dbManager: FingerprintDbManager,
   input: ReturnType<typeof collectFingerprintActionInput>
 ): Promise<FingerprintOutput> {
-  await installFingerprintAsync(input.fingerprintVersion, input.packager, input.fingerprintInstallationCache);
+  await installFingerprintAsync(
+    input.fingerprintVersion,
+    input.packager,
+    input.fingerprintInstallationCache
+  );
   const fingerprint = require('@expo/fingerprint') as typeof import('@expo/fingerprint');
   const currentFingerprint = await fingerprint.createFingerprintAsync(input.workingDirectory);
 
   let previousFingerprint: FingerprintDbEntity | null = null;
   if (input.previousGitCommitHash) {
-    previousFingerprint = await dbManager.getEntityFromGitCommitHashAsync(input.previousGitCommitHash);
+    previousFingerprint = await dbManager.getEntityFromGitCommitHashAsync(
+      input.previousGitCommitHash
+    );
   }
 
   const diff =
@@ -61,7 +67,9 @@ export async function createFingerprintDbManagerAsync(
   if (cacheHit) {
     info(`Restored fingerprint database from cache - cacheKey[${cacheKey}]`);
   } else {
-    info(`Missing fingerprint database from cache - will create a new database - cacheKey[${cacheKey}]`);
+    info(
+      `Missing fingerprint database from cache - will create a new database - cacheKey[${cacheKey}]`
+    );
   }
   const dbManager = new FingerprintDbManager(dbPath);
   await dbManager.initAsync();
@@ -78,7 +86,8 @@ export function collectFingerprintActionInput() {
     workingDirectory: getInput('working-directory'),
     fingerprintVersion: getInput('fingerprint-version') || 'latest',
     fingerprintInstallationCache:
-      !getInput('fingerprint-installation-cache') || getBooleanInput('fingerprint-installation-cache'),
+      !getInput('fingerprint-installation-cache') ||
+      getBooleanInput('fingerprint-installation-cache'),
     fingerprintDbCacheKey: getInput('fingerprint-db-cache-key'),
     previousGitCommitHash:
       getInput('previous-git-commit') ||
@@ -87,7 +96,9 @@ export function collectFingerprintActionInput() {
         : githubContext.payload.before),
     currentGitCommitHash:
       getInput('current-git-commit') ||
-      (githubContext.eventName === 'pull_request' ? githubContext.payload.pull_request?.head?.sha : githubContext.sha),
+      (githubContext.eventName === 'pull_request'
+        ? githubContext.payload.pull_request?.head?.sha
+        : githubContext.sha),
     savingDbBranch: getInput('saving-db-branch') || undefined,
   };
 }
@@ -145,8 +156,15 @@ export async function saveDbToCacheAsync(cacheKey: string) {
  * Get the path to the fingerprint database
  */
 async function getDbPathAsync(): Promise<string> {
-  assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
-  const result = path.join(process.env['RUNNER_TOOL_CACHE'], 'fingerprint-storage', 'fingerprint.db');
+  assert(
+    process.env['RUNNER_TOOL_CACHE'],
+    'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined'
+  );
+  const result = path.join(
+    process.env['RUNNER_TOOL_CACHE'],
+    'fingerprint-storage',
+    'fingerprint.db'
+  );
   const dir = path.dirname(result);
   if (!(await fs.promises.stat(dir).catch(() => null))) {
     await mkdirP(dir);

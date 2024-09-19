@@ -1,4 +1,4 @@
-import { getOctokit, context } from '@actions/github';
+import { context, getOctokit } from '@actions/github';
 import { ok as assert } from 'assert';
 
 type IssueContext = (typeof context)['issue'];
@@ -77,7 +77,10 @@ export async function createIssueComment(options: AuthContext & IssueContext & C
  */
 export function githubApi(options: AuthContext = {}): ReturnType<typeof getOctokit> {
   const token = process.env['GITHUB_TOKEN'] || options.token;
-  assert(token, `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`);
+  assert(
+    token,
+    `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`
+  );
   return getOctokit(token);
 }
 
@@ -145,7 +148,10 @@ export function issueComment() {
 /**
  * Get the commit message for a specific commit hash.
  */
-export async function getGitCommandMessageAsync(options: AuthContext, gitCommitHash: string): Promise<string> {
+export async function getGitCommandMessageAsync(
+  options: AuthContext,
+  gitCommitHash: string
+): Promise<string> {
   const github = githubApi({ token: options.token });
   const result = await github.rest.git.getCommit({
     ...context.repo,
@@ -173,7 +179,10 @@ export function isPushBranchContext(targetBranch: string) {
 /**
  * Get the pull request information that associated with a specific commit hash.
  */
-export async function getPullRequestFromGitCommitShaAsync(options: AuthContext, gitCommitHash: string) {
+export async function getPullRequestFromGitCommitShaAsync(
+  options: AuthContext,
+  gitCommitHash: string
+) {
   const github = githubApi({ token: options.token });
   const results = await github.rest.repos.listPullRequestsAssociatedWithCommit({
     ...context.repo,

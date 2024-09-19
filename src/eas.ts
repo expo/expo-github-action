@@ -32,11 +32,13 @@ export async function assertEasVersion(versionRange: string) {
   try {
     ({ stdout } = await getExecOutput(await which('eas', true), ['--version']));
   } catch {
-    throw new Error(`Could not verify the EAS CLI version, reason:\nCommand failed 'eas --version'`);
+    throw new Error(
+      `Could not verify the EAS CLI version, reason:\nCommand failed 'eas --version'`
+    );
   }
 
   const version = stdout.match(/eas-cli\/([^\s]+)/i);
-  if (!version || !version[1]) {
+  if (!version?.[1]) {
     throw new Error(`Could not verify the EAS CLI version, reason:\nUnexpected output received.`);
   }
 

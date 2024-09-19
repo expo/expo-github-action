@@ -20,7 +20,9 @@ describe(getUpdateGroupQr, () => {
         updateGroupId: 'updateGroupId',
         appSlug: 'appslug',
       })
-    ).toBe('https://qr.expo.dev/eas-update?appScheme=appslug&projectId=projectId&groupId=updateGroupId');
+    ).toBe(
+      'https://qr.expo.dev/eas-update?appScheme=appslug&projectId=projectId&groupId=updateGroupId'
+    );
   });
 
   it('returns url for dev-build, with `_` in appSlug', () => {
@@ -31,6 +33,8 @@ describe(getUpdateGroupQr, () => {
         updateGroupId: 'updateGroupId',
         appSlug: 'hello_world',
       })
-    ).toBe('https://qr.expo.dev/eas-update?appScheme=helloworld&projectId=projectId&groupId=updateGroupId');
+    ).toBe(
+      'https://qr.expo.dev/eas-update?appScheme=helloworld&projectId=projectId&groupId=updateGroupId'
+    );
   });
 });

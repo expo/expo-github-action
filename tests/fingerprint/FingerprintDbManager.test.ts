@@ -19,8 +19,12 @@ describe(FingerprintDbManager, () => {
       easBuildId: 'id1',
       fingerprint: { sources: [], hash: 'hash1' },
     });
-    expect(await fingerprintDbManager.queryEasBuildIdsFromFingerprintAsync('nonExistedId')).toEqual([]);
-    expect(await fingerprintDbManager.queryEasBuildIdsFromFingerprintAsync('hash1')).toEqual(['id1']);
+    expect(await fingerprintDbManager.queryEasBuildIdsFromFingerprintAsync('nonExistedId')).toEqual(
+      []
+    );
+    expect(await fingerprintDbManager.queryEasBuildIdsFromFingerprintAsync('hash1')).toEqual([
+      'id1',
+    ]);
   });
 
   it('getFingerprintSourcesAsync', async () => {
@@ -40,7 +44,8 @@ describe(FingerprintDbManager, () => {
       {
         type: 'contents',
         id: 'packageJson:scripts',
-        contents: '{"start":"expo start","android":"expo run:android","ios":"expo run:ios","web":"expo start --web"}',
+        contents:
+          '{"start":"expo start","android":"expo run:android","ios":"expo run:ios","web":"expo start --web"}',
         reasons: ['packageJson:scripts'],
         hash: '119dec73c92445762a48c9455d9f34a643be8cf0',
       },

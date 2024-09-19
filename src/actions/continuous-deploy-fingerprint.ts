@@ -23,7 +23,9 @@ export function collectContinuousDeployFingerprintInput() {
 
 executeAction(continuousDeployFingerprintAction);
 
-export async function continuousDeployFingerprintAction(input = collectContinuousDeployFingerprintInput()) {
+export async function continuousDeployFingerprintAction(
+  input = collectContinuousDeployFingerprintInput()
+) {
   const isInPullRequest = hasPullContext();
 
   const config = await loadProjectConfig(input.workingDirectory);
@@ -36,7 +38,10 @@ export async function continuousDeployFingerprintAction(input = collectContinuou
     cwd: input.workingDirectory,
     platform: 'android',
   });
-  const iosFingerprintHash = await getFingerprintHashForPlatformAsync({ cwd: input.workingDirectory, platform: 'ios' });
+  const iosFingerprintHash = await getFingerprintHashForPlatformAsync({
+    cwd: input.workingDirectory,
+    platform: 'ios',
+  });
 
   info(`Android fingerprint: ${androidFingerprintHash}`);
   info(`iOS fingerprint: ${iosFingerprintHash}`);
@@ -201,9 +206,12 @@ async function getBuildInfoWithFingerprintAsync({
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const buildsThatAreValid = (builds as BuildInfo[]).filter(build => {
-    const isValidStatus = [BuildStatus.New, BuildStatus.InQueue, BuildStatus.InProgress, BuildStatus.Finished].includes(
-      build.status
-    );
+    const isValidStatus = [
+      BuildStatus.New,
+      BuildStatus.InQueue,
+      BuildStatus.InProgress,
+      BuildStatus.Finished,
+    ].includes(build.status);
     // if the build is expired or will expire within the next day,
     const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) < tomorrow : true;
     return isValidStatus && isValidExpiry;
@@ -226,7 +234,17 @@ async function createEASBuildAsync({
     const extraArgs = isDebug() ? ['--build-logger-level', 'debug'] : [];
     const execOutput = await getExecOutput(
       await which('eas', true),
-      ['build', '--profile', profile, '--platform', platform, '--non-interactive', '--json', '--no-wait', ...extraArgs],
+      [
+        'build',
+        '--profile',
+        profile,
+        '--platform',
+        platform,
+        '--non-interactive',
+        '--json',
+        '--no-wait',
+        ...extraArgs,
+      ],
       {
         cwd,
         silent: !isDebug(),
@@ -240,7 +258,13 @@ async function createEASBuildAsync({
   return JSON.parse(stdout)[0];
 }
 
-async function publishEASUpdatesAsync({ cwd, branch }: { cwd: string; branch: string }): Promise<EasUpdate[]> {
+async function publishEASUpdatesAsync({
+  cwd,
+  branch,
+}: {
+  cwd: string;
+  branch: string;
+}): Promise<EasUpdate[]> {
   let stdout: string;
   try {
     const execOutput = await getExecOutput(
@@ -284,7 +308,9 @@ function createSummaryForUpdatesAndBuilds({
   const getBuildLink = (build: BuildInfo | undefined) =>
     build ? `[Build Permalink](${getBuildLogsUrl(build)})` : 'n/a';
   const getUpdateLink = (update: EasUpdate | undefined) =>
-    update ? `[Update Permalink](${getUpdateGroupWebsite({ projectId, updateGroupId: update.group })})` : 'n/a';
+    update
+      ? `[Update Permalink](${getUpdateGroupWebsite({ projectId, updateGroupId: update.group })})`
+      : 'n/a';
   const getUpdateQRURL = (update: EasUpdate | undefined) =>
     update ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
   const getBuildDetails = (buildRunInfo: BuildRunInfo) =>
@@ -323,7 +349,9 @@ function createSummaryForUpdatesAndBuilds({
     ? `<a href="${androidQRURL}"><img src="${androidQRURL}" width="250px" height="250px" /></a>`
     : null;
 
-  const iosQr = iosQRURL ? `<a href="${iosQRURL}"><img src="${iosQRURL}" width="250px" height="250px" /></a>` : null;
+  const iosQr = iosQRURL
+    ? `<a href="${iosQRURL}"><img src="${iosQRURL}" width="250px" height="250px" /></a>`
+    : null;
 
   const platformName = `Platform${updates.length === 1 ? '' : 's'}`;
   const platformValue = updates
@@ -340,7 +368,9 @@ function createSummaryForUpdatesAndBuilds({
 - ${platformName} → ${platformValue}
 ${schemesMessage}
 
-&nbsp; | ${appPlatformEmojis[AppPlatform.Android]} Android | ${appPlatformEmojis[AppPlatform.Ios]} iOS
+&nbsp; | ${appPlatformEmojis[AppPlatform.Android]} Android | ${
+    appPlatformEmojis[AppPlatform.Ios]
+  } iOS
 --- | --- | ---
 Fingerprint | ${androidBuildRunInfo.buildInfo.runtimeVersion ?? 'n/a'} | ${
     iosBuildRunInfo.buildInfo.runtimeVersion ?? 'n/a'

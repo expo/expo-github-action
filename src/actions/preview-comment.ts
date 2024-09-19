@@ -1,4 +1,4 @@
-import { getBooleanInput, getInput, setOutput, info, warning } from '@actions/core';
+import { getBooleanInput, getInput, info, setOutput, warning } from '@actions/core';
 
 import { projectDeepLink, projectInfo, projectLink, projectOwner, projectQR } from '../expo';
 import { createIssueComment, pullContext } from '../github';

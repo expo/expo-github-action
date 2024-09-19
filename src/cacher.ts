@@ -1,4 +1,4 @@
-import { saveCache, restoreCache, ReserveCacheError, isFeatureAvailable } from '@actions/cache';
+import { ReserveCacheError, isFeatureAvailable, restoreCache, saveCache } from '@actions/cache';
 import { warning } from '@actions/core';
 import { context } from '@actions/github';
 import os from 'os';
@@ -24,7 +24,10 @@ export function cacheKey(name: string, version: string, manager: string): string
 /**
  * Restore a directory from the remote cache.
  */
-export async function restoreCacheAsync(cachePath: string, cacheKey: string): Promise<string | null> {
+export async function restoreCacheAsync(
+  cachePath: string,
+  cacheKey: string
+): Promise<string | null> {
   if (!cacheIsAvailable()) {
     warning(`Skipped restoring from remote cache, not available.`);
     return null;
@@ -60,7 +63,11 @@ export async function saveCacheAsync(cachePath: string, cacheKey: string): Promi
  * Delete a cache key from the remote cache.
  * Note that is not using the official API from @actions/cache but using the GitHub API directly.
  */
-export async function deleteCacheAsync(githubToken: string, cacheKey: string, ref: string): Promise<void> {
+export async function deleteCacheAsync(
+  githubToken: string,
+  cacheKey: string,
+  ref: string
+): Promise<void> {
   const github = githubApi({ token: githubToken });
   await github.rest.actions.deleteActionsCacheByKey({
     ...context.repo,

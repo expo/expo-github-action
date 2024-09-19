@@ -38898,7 +38898,8 @@ function projectAppType(dir) {
     catch (error) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
-    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+    if (packageJson?.dependencies?.['expo-dev-client'] ||
+        packageJson?.devDependencies?.['expo-dev-client']) {
         return 'dev-build';
     }
     return 'expo-go';

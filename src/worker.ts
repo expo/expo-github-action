@@ -52,8 +52,12 @@ export async function patchWatchers(): Promise<void> {
     await exec('sudo sysctl -p');
     info('Patched system watchers for the `ENOSPC` error.');
   } catch (error) {
-    warning(`Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`);
-    warning('For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:');
+    warning(
+      `Looks like we can't patch watchers/inotify limits, you might encouter the 'ENOSPC' error.`
+    );
+    warning(
+      'For more info: https://github.com/expo/expo-github-action/issues/20, encountered error:'
+    );
     warning(String(error));
   }
 }
@@ -69,7 +73,10 @@ export function tempPath(name: string, version: string): string {
  * @see https://github.com/actions/toolkit/blob/daf8bb00606d37ee2431d9b1596b88513dcf9c59/packages/tool-cache/src/tool-cache.ts#L747-L749
  */
 export function toolPath(name: string, version: string): string {
-  assert(process.env['RUNNER_TOOL_CACHE'], 'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined');
+  assert(
+    process.env['RUNNER_TOOL_CACHE'],
+    'Could not resolve the local tool cache, RUNNER_TOOL_CACHE not defined'
+  );
   return path.join(process.env['RUNNER_TOOL_CACHE'], name, version, os.arch());
 }
 

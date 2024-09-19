@@ -12,7 +12,9 @@ export async function resolvePackage(name: string, range: string): Promise<strin
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
+    ({ stdout } = await getExecOutput('npm', ['info', `${name}@${range}`, 'version', '--json'], {
+      silent: true,
+    }));
   } catch (error: unknown) {
     throw new Error(`Could not resolve ${name}@${range}`, { cause: error });
   }

@@ -1,4 +1,4 @@
-import { info, exportVariable } from '@actions/core';
+import { exportVariable, info } from '@actions/core';
 import { exec, getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ok as assert } from 'assert';
@@ -128,9 +128,13 @@ export async function runCommand(cmd: Command) {
   let stderr = '';
 
   try {
-    ({ stderr, stdout } = await getExecOutput(await which(cmd.cli), cmd.args.concat('--non-interactive'), {
-      silent: false,
-    }));
+    ({ stderr, stdout } = await getExecOutput(
+      await which(cmd.cli),
+      cmd.args.concat('--non-interactive'),
+      {
+        silent: false,
+      }
+    ));
   } catch (error: unknown) {
     throw new Error(`Could not run command ${cmd.args.join(' ')}`, { cause: error });
   }
@@ -199,12 +203,19 @@ export async function cancelEasBuildAsync(cwd: string, buildId: string): Promise
 /**
  * Query the EAS BuildInfo from given buildId.
  */
-export async function queryEasBuildInfoAsync(cwd: string, buildId: string): Promise<BuildInfo | null> {
+export async function queryEasBuildInfoAsync(
+  cwd: string,
+  buildId: string
+): Promise<BuildInfo | null> {
   try {
-    const { stdout } = await getExecOutput(await which('eas', true), ['build:view', buildId, '--json'], {
-      cwd,
-      silent: true,
-    });
+    const { stdout } = await getExecOutput(
+      await which('eas', true),
+      ['build:view', buildId, '--json'],
+      {
+        cwd,
+        silent: true,
+      }
+    );
     return JSON.parse(stdout);
   } catch (error: unknown) {
     info(`Failed to query eas build ${buildId}: ${String(error)}`);
@@ -219,10 +230,14 @@ export async function projectInfo(dir: string): Promise<ProjectInfo> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(await which('expo', true), ['config', '--json', '--type', 'prebuild'], {
-      cwd: dir,
-      silent: true,
-    }));
+    ({ stdout } = await getExecOutput(
+      await which('expo', true),
+      ['config', '--json', '--type', 'prebuild'],
+      {
+        cwd: dir,
+        silent: true,
+      }
+    ));
   } catch (error: unknown) {
     throw new Error(`Could not fetch the project info from ${dir}`, { cause: error });
   }
@@ -247,7 +262,10 @@ export function projectAppType(dir: string): 'expo-go' | 'dev-build' {
     throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
   }
 
-  if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+  if (
+    packageJson?.dependencies?.['expo-dev-client'] ||
+    packageJson?.devDependencies?.['expo-dev-client']
+  ) {
     return 'dev-build';
   }
 

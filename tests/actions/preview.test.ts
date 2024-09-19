@@ -41,13 +41,20 @@ const fakeUpdatesSingle: EasUpdate[] = [
   },
 ];
 
-const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({ ...update, group: `fake-group-${update.id}` }));
+const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({
+  ...update,
+  group: `fake-group-${update.id}`,
+}));
 
 describe(createSummary, () => {
   describe('single update group', () => {
     it('returns expected message for both platforms', () => {
-      expect(createSummary(fakeUpdatesSingle, getVariables(fakeExpoConfig, fakeUpdatesSingle, fakeOptions)))
-        .toMatchInlineSnapshot(`
+      expect(
+        createSummary(
+          fakeUpdatesSingle,
+          getVariables(fakeExpoConfig, fakeUpdatesSingle, fakeOptions)
+        )
+      ).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -63,8 +70,12 @@ describe(createSummary, () => {
 
     it('returns expected message for both platforms with custom app scheme', () => {
       const customSchemeConfig = { ...fakeExpoConfig, scheme: ['ega', 'expogithubaction'] };
-      expect(createSummary(fakeUpdatesSingle, getVariables(customSchemeConfig, fakeUpdatesSingle, fakeOptions)))
-        .toMatchInlineSnapshot(`
+      expect(
+        createSummary(
+          fakeUpdatesSingle,
+          getVariables(customSchemeConfig, fakeUpdatesSingle, fakeOptions)
+        )
+      ).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -81,7 +92,8 @@ describe(createSummary, () => {
 
     it('returns expected message for android only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'android');
-      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions)))
+        .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -97,7 +109,8 @@ describe(createSummary, () => {
 
     it('returns expected message for ios only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'ios');
-      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions)))
+        .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -114,8 +127,12 @@ describe(createSummary, () => {
 
   describe('mutliple update groups', () => {
     it('returns expected message for both platforms', () => {
-      expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple, fakeOptions)))
-        .toMatchInlineSnapshot(`
+      expect(
+        createSummary(
+          fakeUpdatesMultiple,
+          getVariables(fakeExpoConfig, fakeUpdatesMultiple, fakeOptions)
+        )
+      ).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -131,7 +148,8 @@ describe(createSummary, () => {
 
     it('returns expected message for android only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'android');
-      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions)))
+        .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -147,7 +165,8 @@ describe(createSummary, () => {
 
     it('returns expected message for ios only', () => {
       const fakeUpdate = fakeUpdatesSingle.filter(update => update.platform === 'ios');
-      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions))).toMatchInlineSnapshot(`
+      expect(createSummary(fakeUpdate, getVariables(fakeExpoConfig, fakeUpdate, fakeOptions)))
+        .toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**
@@ -163,8 +182,12 @@ describe(createSummary, () => {
 
     it('returns Expo Go compatible QR code when forced', () => {
       const customOptions: typeof fakeOptions = { ...fakeOptions, qrTarget: 'expo-go' };
-      expect(createSummary(fakeUpdatesMultiple, getVariables(fakeExpoConfig, fakeUpdatesMultiple, customOptions)))
-        .toMatchInlineSnapshot(`
+      expect(
+        createSummary(
+          fakeUpdatesMultiple,
+          getVariables(fakeExpoConfig, fakeUpdatesMultiple, customOptions)
+        )
+      ).toMatchInlineSnapshot(`
         "🚀 Expo preview is ready!
 
         - Project → **fake-project**

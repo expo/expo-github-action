@@ -89119,7 +89119,8 @@ function projectAppType(dir) {
     catch (error) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
-    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+    if (packageJson?.dependencies?.['expo-dev-client'] ||
+        packageJson?.devDependencies?.['expo-dev-client']) {
         return 'dev-build';
     }
     return 'expo-go';
@@ -89362,7 +89363,9 @@ const worker_1 = __nccwpck_require__(8912);
 async function resolvePackage(name, range) {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], { silent: true }));
+        ({ stdout } = await (0, exec_1.getExecOutput)('npm', ['info', `${name}@${range}`, 'version', '--json'], {
+            silent: true,
+        }));
     }
     catch (error) {
         throw new Error(`Could not resolve ${name}@${range}`, { cause: error });

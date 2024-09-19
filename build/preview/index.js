@@ -41961,7 +41961,9 @@ function getVariables(config, updates, options) {
         androidManifestPermalink: android?.manifestPermalink || '',
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
-        androidQR: android ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget }) : '',
+        androidQR: android
+            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget })
+            : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
         iosId: ios?.id || '',
@@ -41994,7 +41996,9 @@ function createSummaryHeader(updates, vars) {
         .sort((a, b) => a.localeCompare(b))
         .map(platform => `**${platform}**`)
         .join(', ');
-    const appSchemes = vars.projectScheme ? `- Scheme → **${JSON.parse(vars.projectSchemes).join('**, **')}**` : '';
+    const appSchemes = vars.projectScheme
+        ? `- Scheme → **${JSON.parse(vars.projectSchemes).join('**, **')}**`
+        : '';
     return `🚀 Expo preview is ready!
 
 - Project → **${vars.projectSlug}**
@@ -42117,7 +42121,7 @@ async function assertEasVersion(versionRange) {
         throw new Error(`Could not verify the EAS CLI version, reason:\nCommand failed 'eas --version'`);
     }
     const version = stdout.match(/eas-cli\/([^\s]+)/i);
-    if (!version || !version[1]) {
+    if (!version?.[1]) {
         throw new Error(`Could not verify the EAS CLI version, reason:\nUnexpected output received.`);
     }
     if (!semver_1.default.satisfies(version[1], versionRange)) {
@@ -42375,7 +42379,8 @@ function projectAppType(dir) {
     catch (error) {
         throw new Error(`Could not load the project package file in: ${packageFile}`, { cause: error });
     }
-    if (packageJson?.dependencies?.['expo-dev-client'] || packageJson?.devDependencies?.['expo-dev-client']) {
+    if (packageJson?.dependencies?.['expo-dev-client'] ||
+        packageJson?.devDependencies?.['expo-dev-client']) {
         return 'dev-build';
     }
     return 'expo-go';

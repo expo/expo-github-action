@@ -1,6 +1,11 @@
 import * as core from '@actions/core';
 
-import { commentInput, commentAction, DEFAULT_ID, DEFAULT_MESSAGE } from '../../src/actions/preview-comment';
+import {
+  DEFAULT_ID,
+  DEFAULT_MESSAGE,
+  commentAction,
+  commentInput,
+} from '../../src/actions/preview-comment';
 import * as expo from '../../src/expo';
 import * as github from '../../src/github';
 import { mockInput } from '../utils';
@@ -76,7 +81,9 @@ describe(commentAction, () => {
   });
 
   it('resolves project owner info by manifest owner', async () => {
-    jest.mocked(expo.projectInfo).mockResolvedValue({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' });
+    jest
+      .mocked(expo.projectInfo)
+      .mockResolvedValue({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' });
     await commentAction({ ...input });
     expect(core.setOutput).toBeCalledWith('projectOwner', 'fakeowner');
     expect(expo.projectOwner).not.toBeCalled();
@@ -122,9 +129,14 @@ describe(commentAction, () => {
     });
 
     it('sets projectQR', async () => {
-      jest.mocked(expo.projectQR).mockReturnValue('https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
+      jest
+        .mocked(expo.projectQR)
+        .mockReturnValue('https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
       await commentAction({ ...input });
-      expect(core.setOutput).toBeCalledWith('projectQR', 'https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug');
+      expect(core.setOutput).toBeCalledWith(
+        'projectQR',
+        'https://qr.expo.dev/expo-go?owner=fakeuser&slug=fakeslug'
+      );
     });
 
     it('sets message', async () => {

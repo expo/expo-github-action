@@ -40,13 +40,17 @@ describe(restoreFromCache, () => {
   it('throws when cache has unexpected error', async () => {
     jest.mocked(cache.isFeatureAvailable).mockReturnValue(true);
     jest.mocked(cache.restoreCache).mockRejectedValue(new Error('Node registry is down'));
-    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).rejects.toThrow('Node registry is down');
+    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).rejects.toThrow(
+      'Node registry is down'
+    );
   });
 
   it('returns expo-cli path from cache when available', async () => {
     jest.mocked(cache.isFeatureAvailable).mockReturnValue(true);
     jest.mocked(cache.restoreCache).mockResolvedValue('fake/path');
-    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).resolves.toBe(toolPath('expo-cli', '5.0.3'));
+    await expect(restoreFromCache('expo-cli', '5.0.3', 'yarn')).resolves.toBe(
+      toolPath('expo-cli', '5.0.3')
+    );
   });
 
   it('returns nothing when cache is empty', async () => {
