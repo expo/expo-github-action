@@ -90,6 +90,10 @@ export function getUpdateGroupQr({
     url.searchParams.append('appScheme', appSlug.replace(/[^A-Za-z0-9+\-.]/g, ''));
   }
 
+  if (process.env.EXPO_STAGING) {
+    url.searchParams.append('host', 'staging-u.expo.dev');
+  }
+
   url.searchParams.append('projectId', projectId);
   url.searchParams.append('groupId', updateGroupId);
 
@@ -104,5 +108,6 @@ export function getUpdateGroupWebsite({
   projectId: string;
   updateGroupId: string;
 }): string {
-  return `https://expo.dev/projects/${projectId}/updates/${updateGroupId}`;
+  const baseUrl = process.env.EXPO_STAGING ? 'staging.expo.dev' : 'expo.dev';
+  return `https://${baseUrl}/projects/${projectId}/updates/${updateGroupId}`;
 }
