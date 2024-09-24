@@ -55,12 +55,13 @@
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable                           | default          | description                                                             |
-| ---------------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| **profile**                        | (required)       | The EAS Build profile to use |
-| **branch**                     | (required)       | The EAS Update branch on which to publish |
-| **working-directory**              | -                | The relative directory of your Expo app                                 |
-| **github-token**                   | `github.token`   | GitHub token to use when commenting on PR ([read more](#github-tokens)) |
+| variable              | default        | description                                                                  |
+| --------------------- | -------------- | ---------------------------------------------------------------------------- |
+| **profile**           | (required)     | The EAS Build profile to use                                                 |
+| **branch**            | (required)     | The EAS Update branch on which to publish                                    |
+| **working-directory** | -              | The relative directory of your Expo app                                      |
+| **platform**          | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
+| **github-token**      | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.
 
