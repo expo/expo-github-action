@@ -1,9 +1,9 @@
 import { ExpoConfig } from '@expo/config';
 
-import { getQrTarget, getSchemesInOrderFromConfig } from '../src/comment';
-import { projectAppType } from '../src/expo';
+import { getQrTarget, getSchemesInOrderFromConfig } from '../comment';
+import { projectAppType } from '../expo';
 
-jest.mock('../src/expo');
+jest.mock('../expo');
 
 const fakeOptions = {
   workingDirectory: '',

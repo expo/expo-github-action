@@ -1,4 +1,4 @@
-import { getUpdateGroupQr } from '../src/eas';
+import { getUpdateGroupQr } from '../eas';
 
 describe(getUpdateGroupQr, () => {
   it('returns url for expo-go', () => {

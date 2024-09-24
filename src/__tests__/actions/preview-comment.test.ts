@@ -5,15 +5,15 @@ import {
   DEFAULT_MESSAGE,
   commentAction,
   commentInput,
-} from '../../src/actions/preview-comment';
-import * as expo from '../../src/expo';
-import * as github from '../../src/github';
+} from '../../actions/preview-comment';
+import * as expo from '../../expo';
+import * as github from '../../github';
 import { mockInput } from '../utils';
 
 jest.mock('@actions/core');
-jest.mock('../../src/expo');
-jest.mock('../../src/github');
-jest.mock('../../src/worker');
+jest.mock('../../expo');
+jest.mock('../../github');
+jest.mock('../../worker');
 
 describe(commentInput, () => {
   it('returns object with correct defaults', () => {

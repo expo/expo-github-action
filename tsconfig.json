@@ -1,8 +1,8 @@
 {
   "extends": "@tsconfig/node20",
   "compilerOptions": {
-    "strictNullChecks": true,
-    "outDir": "./build",
+    "strict": true,
+    "noEmit": true,
     "rootDir": "./src",
     "module": "CommonJS",
     "moduleResolution": "node"
@@ -10,6 +10,5 @@
   "exclude": [
     "build",
     "node_modules",
-    "tests/**"
   ]
 }

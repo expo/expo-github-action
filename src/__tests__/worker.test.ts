@@ -10,7 +10,7 @@ import {
   patchWatchers,
   tempPath,
   toolPath,
-} from '../src/worker';
+} from '../worker';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');

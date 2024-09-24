@@ -1,4 +1,4 @@
-import { Database, openDatabaseAsync } from '../src/sqlite';
+import { Database, openDatabaseAsync } from '../sqlite';
 
 describe(openDatabaseAsync, () => {
   let db: Database;

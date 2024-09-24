@@ -1,6 +1,6 @@
 import type { FingerprintSource } from '@expo/fingerprint';
 
-import { FingerprintDbManager } from '../../src/fingerprint/FingerprintDbManager';
+import { FingerprintDbManager } from '../../fingerprint/FingerprintDbManager';
 
 describe(FingerprintDbManager, () => {
   let fingerprintDbManager: FingerprintDbManager;

@@ -1,17 +1,17 @@
 import * as core from '@actions/core';
 
-import { setupAction, setupInput } from '../../src/actions/setup';
-import * as cacher from '../../src/cacher';
-import * as expo from '../../src/expo';
-import * as packager from '../../src/packager';
-import * as worker from '../../src/worker';
+import { setupAction, setupInput } from '../../actions/setup';
+import * as cacher from '../../cacher';
+import * as expo from '../../expo';
+import * as packager from '../../packager';
+import * as worker from '../../worker';
 import { mockInput } from '../utils';
 
 jest.mock('@actions/core');
-jest.mock('../../src/cacher');
-jest.mock('../../src/expo');
-jest.mock('../../src/packager');
-jest.mock('../../src/worker');
+jest.mock('../../cacher');
+jest.mock('../../expo');
+jest.mock('../../packager');
+jest.mock('../../worker');
 
 describe(setupInput, () => {
   it('returns object with correct defaults', () => {
