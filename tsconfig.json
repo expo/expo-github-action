@@ -1,6 +1,7 @@
 {
   "extends": "@tsconfig/node20",
   "compilerOptions": {
+    "strictNullChecks": true,
     "outDir": "./build",
     "rootDir": "./src",
     "module": "CommonJS",
