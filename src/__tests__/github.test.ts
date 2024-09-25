@@ -1,7 +1,7 @@
 import * as github from '@actions/github';
 
 import { resetEnv, setEnv } from './utils';
-import { githubApi, pullContext } from '../src/github';
+import { githubApi, pullContext } from '../github';
 
 jest.mock('@actions/github');
 

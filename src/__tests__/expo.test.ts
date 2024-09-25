@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, parseCommand, projectDeepLink, projectLink, projectQR } from '../src/expo';
+import { authenticate, parseCommand, projectDeepLink, projectLink, projectQR } from '../expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');

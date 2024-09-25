@@ -1,4 +1,4 @@
-import { resolvePackage } from '../src/packager';
+import { resolvePackage } from '../packager';
 
 describe(resolvePackage, () => {
   it('resolves expo-cli@^2.0.0 to 2.21.2', async () => {

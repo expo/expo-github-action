@@ -1,9 +1,9 @@
 import { ExpoConfig } from '@expo/config';
 
-import { createSummary, getVariables, previewInput } from '../../src/actions/preview';
-import { EasUpdate } from '../../src/eas';
+import { createSummary, getVariables, previewInput } from '../../actions/preview';
+import { EasUpdate } from '../../eas';
 
-jest.mock('../../src/expo');
+jest.mock('../../expo');
 
 const fakeOptions = {
   qrTarget: 'dev-client',
