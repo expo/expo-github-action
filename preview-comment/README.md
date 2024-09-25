@@ -96,6 +96,7 @@ jobs:
   preview:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
@@ -141,6 +142,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write # Allow comments on PRs
     steps:
       - name: 🏗 Setup repo
