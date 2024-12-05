@@ -38,6 +38,7 @@
 ## Overview
 
 `continuous-deploy-fingerprint` is a GitHub Action continuously deploys an Expo project using the expo-updates fingerprint runtime version policy. When run, it performs the following tasks in order, once for each platform:
+
 1. Check current fingerprint of the project.
 2. Check for EAS builds with specified profile matching that fingerprint.
 3. If a in-progress or finished EAS build doesn't exist, start one.
@@ -55,13 +56,15 @@
 This action is customizable through variables defined in the [`action.yml`](action.yml).
 Here is a summary of all the input options you can use.
 
-| variable              | default        | description                                                                  |
-| --------------------- | -------------- | ---------------------------------------------------------------------------- |
-| **profile**           | (required)     | The EAS Build profile to use                                                 |
-| **branch**            | (required)     | The EAS Update branch on which to publish                                    |
-| **working-directory** | -              | The relative directory of your Expo app                                      |
-| **platform**          | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
-| **github-token**      | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
+| variable        | default    | description                                                              |
+| --------------- | ---------- | ------------------------------------------------------------------------ |
+| **profile**     | (required) | The EAS Build profile to use                                             |
+| **branch**      | (required) | The EAS Update branch on which to publish                                |
+| **environment** | -          | The environment to use for server-side defined EAS environment variables |
+
+| **working-directory** | - | The relative directory of your Expo app |
+| **platform** | `all` | The platform to deploy on (available options are `ios`, `android` and `all`) |
+| **github-token** | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens)) |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.
 
@@ -69,13 +72,13 @@ And the action will generate these [outputs](#available-outputs) for other actio
 
 In case you want to reuse this action for other purpose, this action will set the following action outputs.
 
-| output name              | description                                                                                                                                                                                   |
-| ------------------------ | ------------------------------ |
-| **ios-fingerprint**      | The iOS fingerprint of the current commit.          |
-| **android-fingerprint**  | The Android fingerprint of the current commit.                 |
-| **android-build-id**  | ID for Android EAS Build if one was started. |
-| **ios-build-id**  | ID for iOS EAS Build if one was started.         |
-| **update-output**     | The output (JSON) from the `eas update` command. |
+| output name             | description                                      |
+| ----------------------- | ------------------------------------------------ |
+| **ios-fingerprint**     | The iOS fingerprint of the current commit.       |
+| **android-fingerprint** | The Android fingerprint of the current commit.   |
+| **android-build-id**    | ID for Android EAS Build if one was started.     |
+| **ios-build-id**        | ID for iOS EAS Build if one was started.         |
+| **update-output**       | The output (JSON) from the `eas update` command. |
 
 ## Caveats
 
@@ -93,6 +96,7 @@ You can read more about this in the [GitHub Actions documentation][link-actions]
 ### Continuously deploy after tests on main branch and pull requests
 
 This workflow continuously deploys:
+
 - main branch -> production EAS Build profile and EAS Update branch
 - PR branches -> development EAS Build profile and EAS Update branch
 

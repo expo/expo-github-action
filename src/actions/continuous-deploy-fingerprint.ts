@@ -29,6 +29,7 @@ export function collectContinuousDeployFingerprintInput() {
     platform: platformInput,
     githubToken: getInput('github-token'),
     workingDirectory: getInput('working-directory'),
+    environment: getInput('environment'),
   };
 }
 
@@ -71,6 +72,7 @@ export async function continuousDeployFingerprintAction(
   const updates = await publishEASUpdatesAsync({
     cwd: input.workingDirectory,
     branch: input.branch,
+    environment: input.environment,
   });
 
   if (!isInPullRequest) {
@@ -293,20 +295,22 @@ async function createEASBuildAsync({
 async function publishEASUpdatesAsync({
   cwd,
   branch,
+  environment,
 }: {
   cwd: string;
   branch: string;
+  environment?: string;
 }): Promise<EasUpdate[]> {
   let stdout: string;
   try {
-    const execOutput = await getExecOutput(
-      await which('eas', true),
-      ['update', '--auto', '--branch', branch, '--non-interactive', '--json'],
-      {
-        cwd,
-        silent: !isDebug(),
-      }
-    );
+    const args = ['update', '--auto', '--branch', branch, '--non-interactive', '--json'];
+    if (environment) {
+      args.push('--environment', environment);
+    }
+    const execOutput = await getExecOutput(await which('eas', true), args, {
+      cwd,
+      silent: !isDebug(),
+    });
     stdout = execOutput.stdout;
   } catch (error: unknown) {
     throw new Error(`Could not create a new EAS Update: ${String(error)}`);

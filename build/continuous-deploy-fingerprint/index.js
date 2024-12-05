@@ -44550,6 +44550,7 @@ function collectContinuousDeployFingerprintInput() {
         platform: platformInput,
         githubToken: (0, core_1.getInput)('github-token'),
         workingDirectory: (0, core_1.getInput)('working-directory'),
+        environment: (0, core_1.getInput)('environment'),
     };
 }
 exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
@@ -44584,6 +44585,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
     const updates = await publishEASUpdatesAsync({
         cwd: input.workingDirectory,
         branch: input.branch,
+        environment: input.environment,
     });
     if (!isInPullRequest) {
         (0, core_1.info)(`Skipped comment: action was not run from a pull request`);
@@ -44737,10 +44739,14 @@ async function createEASBuildAsync({ cwd, profile, platform, }) {
     }
     return JSON.parse(stdout)[0];
 }
-async function publishEASUpdatesAsync({ cwd, branch, }) {
+async function publishEASUpdatesAsync({ cwd, branch, environment, }) {
     let stdout;
     try {
-        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
+        const args = ['update', '--auto', '--branch', branch, '--non-interactive', '--json'];
+        if (environment) {
+            args.push('--environment', environment);
+        }
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), args, {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
