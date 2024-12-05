@@ -15,6 +15,9 @@ inputs:
   branch:
     description: The EAS Update branch on which to publish.
     required: true
+  environment:
+    description: The environment to use for server-side defined EAS environment variables during command execution
+    required: false
   platform:
     description: The platform on which to publish. Possible values are 'all' | 'android' | 'ios'
     required: false

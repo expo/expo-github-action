@@ -53,7 +53,7 @@ export async function previewAction(input = previewInput()) {
     return setFailed(`No update found in command output.`);
   }
 
-  const config = await loadProjectConfig(input.workingDirectory);
+  const config = await loadProjectConfig(input.workingDirectory, null);
   if (!config.extra?.eas?.projectId) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
   }
