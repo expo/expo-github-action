@@ -1,4 +1,11 @@
-import { getInput, info, isDebug, setFailed, setOutput } from '@actions/core';
+import {
+  InputOptions,
+  getInput as getActionInput,
+  info,
+  isDebug,
+  setFailed,
+  setOutput,
+} from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
@@ -13,22 +20,35 @@ import { executeAction } from '../worker';
 type BuildRunInfo = { buildInfo: BuildInfo; isNew: boolean; fingerprintHash: string };
 type PlatformArg = 'android' | 'ios' | 'all';
 
+function getInput(name: string, options: { required: true }): string;
+function getInput(name: string): string | null;
+function getInput(name: string, options?: InputOptions): string | null {
+  const value = getActionInput(name, options);
+  if (!value) {
+    if (options?.required) {
+      throw new Error(`Input ${name} is required.`);
+    }
+    return null;
+  }
+  return value;
+}
+
 export function collectContinuousDeployFingerprintInput() {
   function validatePlatformInput(platformInput: string): platformInput is PlatformArg {
     return ['android', 'ios', 'all'].includes(platformInput);
   }
 
-  const platformInput = getInput('platform');
+  const platformInput = getInput('platform', { required: true });
   if (!validatePlatformInput(platformInput)) {
     throw new Error(`Invalid platform: ${platformInput}. Must be one of "all", "ios", "android".`);
   }
 
   return {
-    profile: getInput('profile'),
-    branch: getInput('branch'),
+    profile: getInput('profile', { required: true }),
+    branch: getInput('branch', { required: true }),
     platform: platformInput,
-    githubToken: getInput('github-token'),
-    workingDirectory: getInput('working-directory'),
+    githubToken: getInput('github-token', { required: true }),
+    workingDirectory: getInput('working-directory', { required: true }),
     environment: getInput('environment'),
   };
 }
@@ -40,7 +60,7 @@ export async function continuousDeployFingerprintAction(
 ) {
   const isInPullRequest = hasPullContext();
 
-  const config = await loadProjectConfig(input.workingDirectory);
+  const config = await loadProjectConfig(input.workingDirectory, input.environment);
   const projectId = config.extra?.eas?.projectId;
   if (!projectId) {
     return setFailed(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
@@ -55,6 +75,7 @@ export async function continuousDeployFingerprintAction(
           profile: input.profile,
           workingDirectory: input.workingDirectory,
           isInPullRequest,
+          environment: input.environment,
         })
       : null,
     platformsToRun.has('ios')
@@ -63,6 +84,7 @@ export async function continuousDeployFingerprintAction(
           profile: input.profile,
           workingDirectory: input.workingDirectory,
           isInPullRequest,
+          environment: input.environment,
         })
       : null,
   ]);
@@ -113,17 +135,20 @@ async function buildForPlatformIfNecessaryAsync({
   workingDirectory,
   profile,
   isInPullRequest,
+  environment,
 }: {
   platform: 'ios' | 'android';
   profile: string;
   workingDirectory: string;
   isInPullRequest: boolean;
+  environment: string | null;
 }): Promise<BuildRunInfo> {
   const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
 
   const fingerprintHash = await getFingerprintHashForPlatformAsync({
     cwd: workingDirectory,
     platform,
+    environment,
   });
 
   info(`${humanReadablePlatformName} fingerprint: ${fingerprintHash}`);
@@ -167,20 +192,37 @@ async function buildForPlatformIfNecessaryAsync({
 async function getFingerprintHashForPlatformAsync({
   cwd,
   platform,
+  environment,
 }: {
   cwd: string;
   platform: 'ios' | 'android';
+  environment: string | null;
 }): Promise<string> {
   try {
     const extraArgs = isDebug() ? ['--debug'] : [];
-    const { stdout } = await getExecOutput(
-      'npx',
-      ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs],
-      {
-        cwd,
-        silent: !isDebug(),
-      }
-    );
+
+    const baseArguments = [
+      'expo-updates',
+      'fingerprint:generate',
+      '--platform',
+      platform,
+      ...extraArgs,
+    ];
+
+    let commandLine: string;
+    let args: string[];
+    if (environment) {
+      commandLine = await which('eas', true);
+      args = ['env:exec', environment, ['npx', ...baseArguments].join(' ')];
+    } else {
+      commandLine = 'npx';
+      args = baseArguments;
+    }
+
+    const { stdout } = await getExecOutput(commandLine, args, {
+      cwd,
+      silent: !isDebug(),
+    });
     const { hash } = JSON.parse(stdout);
     if (!hash || typeof hash !== 'string') {
       throw new Error(`Invalid fingerprint output: ${stdout}`);
@@ -299,7 +341,7 @@ async function publishEASUpdatesAsync({
 }: {
   cwd: string;
   branch: string;
-  environment?: string;
+  environment: string | null;
 }): Promise<EasUpdate[]> {
   let stdout: string;
   try {

@@ -42402,15 +42402,27 @@ exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsyn
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.loadProjectConfig = void 0;
 const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
 /**
  * Load the Expo app project config in the given directory.
  * This runs `expo config` command instead of using `@expo/config` directly,
  * to use the app's own version of the config.
  */
-async function loadProjectConfig(cwd) {
+async function loadProjectConfig(cwd, easEnvironment) {
     let stdout = '';
+    const baseArguments = ['expo', 'config', '--json', '--type', 'public'];
+    let commandLine;
+    let args;
+    if (easEnvironment) {
+        commandLine = await (0, io_1.which)('eas', true);
+        args = ['env:exec', easEnvironment, ['npx', ...baseArguments].join(' ')];
+    }
+    else {
+        commandLine = 'npx';
+        args = baseArguments;
+    }
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)('npx', ['expo', 'config', '--json', '--type', 'public'], {
+        ({ stdout } = await (0, exec_1.getExecOutput)(commandLine, args, {
             cwd,
             silent: true,
         }));
@@ -44536,28 +44548,38 @@ const expo_1 = __nccwpck_require__(2489);
 const github_1 = __nccwpck_require__(978);
 const project_1 = __nccwpck_require__(7191);
 const worker_1 = __nccwpck_require__(8912);
+function getInput(name, options) {
+    const value = (0, core_1.getInput)(name, options);
+    if (!value) {
+        if (options?.required) {
+            throw new Error(`Input ${name} is required.`);
+        }
+        return null;
+    }
+    return value;
+}
 function collectContinuousDeployFingerprintInput() {
     function validatePlatformInput(platformInput) {
         return ['android', 'ios', 'all'].includes(platformInput);
     }
-    const platformInput = (0, core_1.getInput)('platform');
+    const platformInput = getInput('platform', { required: true });
     if (!validatePlatformInput(platformInput)) {
         throw new Error(`Invalid platform: ${platformInput}. Must be one of "all", "ios", "android".`);
     }
     return {
-        profile: (0, core_1.getInput)('profile'),
-        branch: (0, core_1.getInput)('branch'),
+        profile: getInput('profile', { required: true }),
+        branch: getInput('branch', { required: true }),
         platform: platformInput,
-        githubToken: (0, core_1.getInput)('github-token'),
-        workingDirectory: (0, core_1.getInput)('working-directory'),
-        environment: (0, core_1.getInput)('environment'),
+        githubToken: getInput('github-token', { required: true }),
+        workingDirectory: getInput('working-directory', { required: true }),
+        environment: getInput('environment'),
     };
 }
 exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
 (0, worker_1.executeAction)(continuousDeployFingerprintAction);
 async function continuousDeployFingerprintAction(input = collectContinuousDeployFingerprintInput()) {
     const isInPullRequest = (0, github_1.hasPullContext)();
-    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory);
+    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory, input.environment);
     const projectId = config.extra?.eas?.projectId;
     if (!projectId) {
         return (0, core_1.setFailed)(`Missing 'extra.eas.projectId' in app.json or app.config.js.`);
@@ -44570,6 +44592,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
                 profile: input.profile,
                 workingDirectory: input.workingDirectory,
                 isInPullRequest,
+                environment: input.environment,
             })
             : null,
         platformsToRun.has('ios')
@@ -44578,6 +44601,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
                 profile: input.profile,
                 workingDirectory: input.workingDirectory,
                 isInPullRequest,
+                environment: input.environment,
             })
             : null,
     ]);
@@ -44618,11 +44642,12 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
     (0, core_1.setOutput)('update-output', updates);
 }
 exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
-async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, profile, isInPullRequest, }) {
+async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, profile, isInPullRequest, environment, }) {
     const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
     const fingerprintHash = await getFingerprintHashForPlatformAsync({
         cwd: workingDirectory,
         platform,
+        environment,
     });
     (0, core_1.info)(`${humanReadablePlatformName} fingerprint: ${fingerprintHash}`);
     (0, core_1.info)(`Looking for ${humanReadablePlatformName} builds with matching runtime version (fingerprint)...`);
@@ -44654,10 +44679,27 @@ async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, pr
         };
     }
 }
-async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
+async function getFingerprintHashForPlatformAsync({ cwd, platform, environment, }) {
     try {
         const extraArgs = (0, core_1.isDebug)() ? ['--debug'] : [];
-        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
+        const baseArguments = [
+            'expo-updates',
+            'fingerprint:generate',
+            '--platform',
+            platform,
+            ...extraArgs,
+        ];
+        let commandLine;
+        let args;
+        if (environment) {
+            commandLine = await (0, io_1.which)('eas', true);
+            args = ['env:exec', environment, ['npx', ...baseArguments].join(' ')];
+        }
+        else {
+            commandLine = 'npx';
+            args = baseArguments;
+        }
+        const { stdout } = await (0, exec_1.getExecOutput)(commandLine, args, {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
