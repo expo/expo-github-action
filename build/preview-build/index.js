@@ -90069,6 +90069,7 @@ exports.installPackage = installPackage;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.loadProjectConfig = void 0;
+const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
 const io_1 = __nccwpck_require__(7436);
 /**
@@ -90093,7 +90094,7 @@ async function loadProjectConfig(cwd, easEnvironment) {
     try {
         ({ stdout } = await (0, exec_1.getExecOutput)(commandLine, args, {
             cwd,
-            silent: true,
+            silent: !(0, core_1.isDebug)(),
         }));
     }
     catch (error) {

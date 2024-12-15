@@ -1,3 +1,4 @@
+import { isDebug } from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
@@ -29,7 +30,7 @@ export async function loadProjectConfig(
   try {
     ({ stdout } = await getExecOutput(commandLine, args, {
       cwd,
-      silent: true,
+      silent: !isDebug(),
     }));
   } catch (error: unknown) {
     throw new Error(`Could not fetch the project info from ${cwd}`, { cause: error });
