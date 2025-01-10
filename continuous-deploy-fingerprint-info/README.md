@@ -1,6 +1,6 @@
 <div align="center">
-  <h1>continuous-deploy-fingerprint</h1>
-  <p>Continuously deploys an Expo project using EAS Build and EAS Update in combination with a fingerprint runtime version</p>
+  <h1>continuous-deploy-fingerprint-info</h1>
+  <p>Get Fingerprint and build info for Continuous Deployment use cases.</p>
 </div>
 
 <p align="center">
@@ -37,12 +37,7 @@
 
 ## Overview
 
-`continuous-deploy-fingerprint` is a GitHub Action that continuously deploys an Expo project using the expo-updates fingerprint runtime version policy. When run, it performs the following tasks in order, once for each platform:
-1. Check current fingerprint of the project.
-2. Check for EAS builds with specified profile matching that fingerprint.
-3. If a in-progress or finished EAS build doesn't exist, start one.
-4. Publish an update on EAS update.
-5. If run on a PR, post a comment indicating what was done.
+`continuous-deploy-fingerprint-info` is a GitHub Action that gets relevant info to use in continuous deployment workflows.
 
 ### Prerequisites
 
@@ -58,10 +53,9 @@ Here is a summary of all the input options you can use.
 | variable              | default        | description                                                                  |
 | --------------------- | -------------- | ---------------------------------------------------------------------------- |
 | **profile**           | (required)     | The EAS Build profile to use                                                 |
-| **branch**            | (required)     | The EAS Update branch on which to publish                                    |
 | **working-directory** | -              | The relative directory of your Expo app                                      |
 | **platform**          | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
-| **github-token**      | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
+| **github-token**      | `github.token` | GitHub token to use when pushing version bump commit ([read more](#github-tokens))      |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.
 
@@ -73,9 +67,8 @@ In case you want to reuse this action for other purpose, this action will set th
 | ------------------------ | ------------------------------ |
 | **ios-fingerprint**      | The iOS fingerprint of the current commit.          |
 | **android-fingerprint**  | The Android fingerprint of the current commit.                 |
-| **android-build-id**  | ID for Android EAS Build if one was started. |
-| **ios-build-id**  | ID for iOS EAS Build if one was started.         |
-| **update-output**     | The output (JSON) from the `eas update` command. |
+| **android-build-id**  | ID for matching Android EAS Build if one exists for fingerprint. |
+| **ios-build-id**  | ID for matching iOS EAS Build if one exists for fingerprint.         |
 
 ## Caveats
 
@@ -90,74 +83,7 @@ You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or
 Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
-### Continuously deploy after tests on main branch and pull requests
-
-This workflow continuously deploys:
-- main branch -> production EAS Build profile and EAS Update branch
-- PR branches -> development EAS Build profile and EAS Update branch
-
-This means that every commit landed to main will go out to users on production. If a new build is created, it will need to be manually submitted to the app stores.
-
-Pull requests also do a build if necessary and display a QR code to scan to preview the latest commit on the PR.
-
-```yml
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize]
-
-env:
-  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v4
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: yarn
-      - name: 📦 Install dependencies
-        run: yarn install
-      - name: 🧪 Run tests
-        run: yarn test
-
-  continuously-deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    concurrency: continuous-deploy-fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
-    permissions:
-      contents: write # Allow checkout and automated version bump write
-      pull-requests: write # Allow comments on PRs
-    steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v4
-
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-
-      - name: 📦 Install dependencies
-        run: yarn install
-
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@main
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Continuously Deploy
-        uses: expo/expo-github-action/continuous-deploy-fingerprint@main
-        with:
-          profile: ${{ github.event_name != 'pull_request' && 'production' || 'development' }}
-          branch: ${{ github.event_name != 'pull_request' && 'production' || 'development' }}
-```
+See documentation for the `continuous-deploy-fingerprint` for how one may use this action in tandem with that one.
 
 <div align="center">
   <br />

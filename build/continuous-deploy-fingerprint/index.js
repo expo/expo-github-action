@@ -42228,6 +42228,103 @@ exports.getBuildLogsUrl = getBuildLogsUrl;
 
 /***/ }),
 
+/***/ 3177:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBuildInfoWithFingerprintAsync = exports.getFingerprintHashForPlatformAsync = exports.getBuildInfoForCurrentFingerprintAsync = void 0;
+const core_1 = __nccwpck_require__(2186);
+const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
+const expo_1 = __nccwpck_require__(2489);
+async function getBuildInfoForCurrentFingerprintAsync({ platform, workingDirectory, profile, isInPullRequest, }) {
+    const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
+    const fingerprintHash = await getFingerprintHashForPlatformAsync({
+        cwd: workingDirectory,
+        platform,
+    });
+    (0, core_1.info)(`${humanReadablePlatformName} fingerprint: ${fingerprintHash}`);
+    (0, core_1.info)(`Looking for ${humanReadablePlatformName} builds with matching runtime version (fingerprint)...`);
+    return {
+        buildInfo: await getBuildInfoWithFingerprintAsync({
+            cwd: workingDirectory,
+            platform,
+            profile,
+            fingerprintHash,
+            excludeExpiredBuilds: isInPullRequest,
+        }),
+        fingerprintHash,
+    };
+}
+exports.getBuildInfoForCurrentFingerprintAsync = getBuildInfoForCurrentFingerprintAsync;
+async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
+    try {
+        const extraArgs = (0, core_1.isDebug)() ? ['--debug'] : [];
+        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
+            cwd,
+            silent: !(0, core_1.isDebug)(),
+        });
+        const { hash } = JSON.parse(stdout);
+        if (!hash || typeof hash !== 'string') {
+            throw new Error(`Invalid fingerprint output: ${stdout}`);
+        }
+        return hash;
+    }
+    catch (error) {
+        throw new Error(`Could not get fingerprint for project: ${String(error)}`);
+    }
+}
+exports.getFingerprintHashForPlatformAsync = getFingerprintHashForPlatformAsync;
+async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, fingerprintHash, excludeExpiredBuilds, }) {
+    let stdout;
+    try {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
+            'build:list',
+            '--platform',
+            platform,
+            '--buildProfile',
+            profile,
+            '--runtimeVersion',
+            fingerprintHash,
+            '--limit',
+            '1',
+            '--json',
+            '--non-interactive',
+        ], {
+            cwd,
+            silent: !(0, core_1.isDebug)(),
+        });
+        stdout = execOutput.stdout;
+    }
+    catch (error) {
+        throw new Error(`Could not list project builds: ${String(error)}`);
+    }
+    const builds = JSON.parse(stdout);
+    if (!builds || !Array.isArray(builds)) {
+        throw new Error(`Could not get EAS builds for project`);
+    }
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const buildsThatAreValid = builds.filter(build => {
+        const isValidStatus = [
+            expo_1.BuildStatus.New,
+            expo_1.BuildStatus.InQueue,
+            expo_1.BuildStatus.InProgress,
+            expo_1.BuildStatus.Finished,
+        ].includes(build.status);
+        // if the build is expired or will expire within the next day,
+        const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) > tomorrow : true;
+        return isValidStatus && isValidExpiry;
+    });
+    return buildsThatAreValid[0] ?? null;
+}
+exports.getBuildInfoWithFingerprintAsync = getBuildInfoWithFingerprintAsync;
+
+
+/***/ }),
+
 /***/ 978:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -42390,6 +42487,29 @@ async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
     }));
 }
 exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsync;
+
+
+/***/ }),
+
+/***/ 6747:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInput = void 0;
+const core_1 = __nccwpck_require__(2186);
+function getInput(name, options) {
+    const value = (0, core_1.getInput)(name, options);
+    if (!value) {
+        if (options?.required) {
+            throw new Error(`Input ${name} is required.`);
+        }
+        return null;
+    }
+    return value;
+}
+exports.getInput = getInput;
 
 
 /***/ }),
@@ -44533,23 +44653,25 @@ const io_1 = __nccwpck_require__(7436);
 const comment_1 = __nccwpck_require__(7810);
 const eas_1 = __nccwpck_require__(3251);
 const expo_1 = __nccwpck_require__(2489);
+const fingerprintUtils_1 = __nccwpck_require__(3177);
 const github_1 = __nccwpck_require__(978);
+const input_1 = __nccwpck_require__(6747);
 const project_1 = __nccwpck_require__(7191);
 const worker_1 = __nccwpck_require__(8912);
 function collectContinuousDeployFingerprintInput() {
     function validatePlatformInput(platformInput) {
         return ['android', 'ios', 'all'].includes(platformInput);
     }
-    const platformInput = (0, core_1.getInput)('platform');
+    const platformInput = (0, input_1.getInput)('platform', { required: true });
     if (!validatePlatformInput(platformInput)) {
         throw new Error(`Invalid platform: ${platformInput}. Must be one of "all", "ios", "android".`);
     }
     return {
-        profile: (0, core_1.getInput)('profile'),
-        branch: (0, core_1.getInput)('branch'),
+        profile: (0, input_1.getInput)('profile', { required: true }),
+        branch: (0, input_1.getInput)('branch', { required: true }),
         platform: platformInput,
-        githubToken: (0, core_1.getInput)('github-token'),
-        workingDirectory: (0, core_1.getInput)('working-directory'),
+        githubToken: (0, input_1.getInput)('github-token', { required: true }),
+        workingDirectory: (0, input_1.getInput)('working-directory', { required: true }),
     };
 }
 exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
@@ -44618,18 +44740,11 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
 exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
 async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, profile, isInPullRequest, }) {
     const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
-    const fingerprintHash = await getFingerprintHashForPlatformAsync({
-        cwd: workingDirectory,
-        platform,
-    });
-    (0, core_1.info)(`${humanReadablePlatformName} fingerprint: ${fingerprintHash}`);
-    (0, core_1.info)(`Looking for ${humanReadablePlatformName} builds with matching runtime version (fingerprint)...`);
-    const existingBuildInfo = await getBuildInfoWithFingerprintAsync({
-        cwd: workingDirectory,
+    const { buildInfo: existingBuildInfo, fingerprintHash } = await (0, fingerprintUtils_1.getBuildInfoForCurrentFingerprintAsync)({
+        workingDirectory,
         platform,
         profile,
-        fingerprintHash,
-        excludeExpiredBuilds: isInPullRequest,
+        isInPullRequest,
     });
     if (existingBuildInfo) {
         (0, core_1.info)(`Existing ${humanReadablePlatformName} build found with matching fingerprint: ${existingBuildInfo.id}`);
@@ -44651,66 +44766,6 @@ async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, pr
             fingerprintHash,
         };
     }
-}
-async function getFingerprintHashForPlatformAsync({ cwd, platform, }) {
-    try {
-        const extraArgs = (0, core_1.isDebug)() ? ['--debug'] : [];
-        const { stdout } = await (0, exec_1.getExecOutput)('npx', ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs], {
-            cwd,
-            silent: !(0, core_1.isDebug)(),
-        });
-        const { hash } = JSON.parse(stdout);
-        if (!hash || typeof hash !== 'string') {
-            throw new Error(`Invalid fingerprint output: ${stdout}`);
-        }
-        return hash;
-    }
-    catch (error) {
-        throw new Error(`Could not get fingerprint for project: ${String(error)}`);
-    }
-}
-async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, fingerprintHash, excludeExpiredBuilds, }) {
-    let stdout;
-    try {
-        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), [
-            'build:list',
-            '--platform',
-            platform,
-            '--buildProfile',
-            profile,
-            '--runtimeVersion',
-            fingerprintHash,
-            '--limit',
-            '1',
-            '--json',
-            '--non-interactive',
-        ], {
-            cwd,
-            silent: !(0, core_1.isDebug)(),
-        });
-        stdout = execOutput.stdout;
-    }
-    catch (error) {
-        throw new Error(`Could not list project builds: ${String(error)}`);
-    }
-    const builds = JSON.parse(stdout);
-    if (!builds || !Array.isArray(builds)) {
-        throw new Error(`Could not get EAS builds for project`);
-    }
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const buildsThatAreValid = builds.filter(build => {
-        const isValidStatus = [
-            expo_1.BuildStatus.New,
-            expo_1.BuildStatus.InQueue,
-            expo_1.BuildStatus.InProgress,
-            expo_1.BuildStatus.Finished,
-        ].includes(build.status);
-        // if the build is expired or will expire within the next day,
-        const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) > tomorrow : true;
-        return isValidStatus && isValidExpiry;
-    });
-    return buildsThatAreValid[0] ?? null;
 }
 async function createEASBuildAsync({ cwd, profile, platform, }) {
     let stdout;

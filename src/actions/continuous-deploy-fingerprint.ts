@@ -1,12 +1,14 @@
-import { getInput, info, isDebug, setFailed, setOutput } from '@actions/core';
+import { info, isDebug, setFailed, setOutput } from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
 
 import { createDetails, getQrTarget, getSchemesInOrderFromConfig } from '../comment';
 import { EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { AppPlatform, BuildInfo, BuildStatus, appPlatformEmojis, getBuildLogsUrl } from '../expo';
+import { AppPlatform, BuildInfo, appPlatformEmojis, getBuildLogsUrl } from '../expo';
+import { getBuildInfoForCurrentFingerprintAsync } from '../fingerprintUtils';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
+import { getInput } from '../input';
 import { loadProjectConfig } from '../project';
 import { executeAction } from '../worker';
 
@@ -18,17 +20,17 @@ export function collectContinuousDeployFingerprintInput() {
     return ['android', 'ios', 'all'].includes(platformInput);
   }
 
-  const platformInput = getInput('platform');
+  const platformInput = getInput('platform', { required: true });
   if (!validatePlatformInput(platformInput)) {
     throw new Error(`Invalid platform: ${platformInput}. Must be one of "all", "ios", "android".`);
   }
 
   return {
-    profile: getInput('profile'),
-    branch: getInput('branch'),
+    profile: getInput('profile', { required: true }),
+    branch: getInput('branch', { required: true }),
     platform: platformInput,
-    githubToken: getInput('github-token'),
-    workingDirectory: getInput('working-directory'),
+    githubToken: getInput('github-token', { required: true }),
+    workingDirectory: getInput('working-directory', { required: true }),
   };
 }
 
@@ -47,6 +49,7 @@ export async function continuousDeployFingerprintAction(
 
   const platformsToRun: Set<PlatformArg> =
     input.platform === 'all' ? new Set(['ios', 'android']) : new Set([input.platform]);
+
   const [androidBuildRunInfo, iosBuildRunInfo] = await Promise.all([
     platformsToRun.has('android')
       ? buildForPlatformIfNecessaryAsync({
@@ -119,24 +122,13 @@ async function buildForPlatformIfNecessaryAsync({
 }): Promise<BuildRunInfo> {
   const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
 
-  const fingerprintHash = await getFingerprintHashForPlatformAsync({
-    cwd: workingDirectory,
-    platform,
-  });
-
-  info(`${humanReadablePlatformName} fingerprint: ${fingerprintHash}`);
-
-  info(
-    `Looking for ${humanReadablePlatformName} builds with matching runtime version (fingerprint)...`
-  );
-
-  const existingBuildInfo = await getBuildInfoWithFingerprintAsync({
-    cwd: workingDirectory,
-    platform,
-    profile,
-    fingerprintHash,
-    excludeExpiredBuilds: isInPullRequest,
-  });
+  const { buildInfo: existingBuildInfo, fingerprintHash } =
+    await getBuildInfoForCurrentFingerprintAsync({
+      workingDirectory,
+      platform,
+      profile,
+      isInPullRequest,
+    });
   if (existingBuildInfo) {
     info(
       `Existing ${humanReadablePlatformName} build found with matching fingerprint: ${existingBuildInfo.id}`
@@ -160,96 +152,6 @@ async function buildForPlatformIfNecessaryAsync({
       fingerprintHash,
     };
   }
-}
-
-async function getFingerprintHashForPlatformAsync({
-  cwd,
-  platform,
-}: {
-  cwd: string;
-  platform: 'ios' | 'android';
-}): Promise<string> {
-  try {
-    const extraArgs = isDebug() ? ['--debug'] : [];
-    const { stdout } = await getExecOutput(
-      'npx',
-      ['expo-updates', 'fingerprint:generate', '--platform', platform, ...extraArgs],
-      {
-        cwd,
-        silent: !isDebug(),
-      }
-    );
-    const { hash } = JSON.parse(stdout);
-    if (!hash || typeof hash !== 'string') {
-      throw new Error(`Invalid fingerprint output: ${stdout}`);
-    }
-    return hash;
-  } catch (error: unknown) {
-    throw new Error(`Could not get fingerprint for project: ${String(error)}`);
-  }
-}
-
-async function getBuildInfoWithFingerprintAsync({
-  cwd,
-  platform,
-  profile,
-  fingerprintHash,
-  excludeExpiredBuilds,
-}: {
-  cwd: string;
-  platform: 'ios' | 'android';
-  profile: string;
-  fingerprintHash: string;
-  excludeExpiredBuilds: boolean;
-}): Promise<BuildInfo | null> {
-  let stdout: string;
-  try {
-    const execOutput = await getExecOutput(
-      await which('eas', true),
-      [
-        'build:list',
-        '--platform',
-        platform,
-        '--buildProfile',
-        profile,
-        '--runtimeVersion',
-        fingerprintHash,
-        '--limit',
-        '1',
-        '--json',
-        '--non-interactive',
-      ],
-      {
-        cwd,
-        silent: !isDebug(),
-      }
-    );
-    stdout = execOutput.stdout;
-  } catch (error: unknown) {
-    throw new Error(`Could not list project builds: ${String(error)}`);
-  }
-
-  const builds = JSON.parse(stdout);
-  if (!builds || !Array.isArray(builds)) {
-    throw new Error(`Could not get EAS builds for project`);
-  }
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const buildsThatAreValid = (builds as BuildInfo[]).filter(build => {
-    const isValidStatus = [
-      BuildStatus.New,
-      BuildStatus.InQueue,
-      BuildStatus.InProgress,
-      BuildStatus.Finished,
-    ].includes(build.status);
-    // if the build is expired or will expire within the next day,
-    const isValidExpiry = excludeExpiredBuilds ? new Date(build.expirationDate) > tomorrow : true;
-    return isValidStatus && isValidExpiry;
-  });
-
-  return buildsThatAreValid[0] ?? null;
 }
 
 async function createEASBuildAsync({

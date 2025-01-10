@@ -1,0 +1,36 @@
+---
+name: Expo GitHub Action - Get Fingerprint Info and Matching Builds for Continuous Deployment use cases
+author: Expo
+description: Get the current fingeprint and any matching builds. Designed to be used in tandem with continuous-deploy-fingerprint for continuous deployment.
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node20
+  main: ../build/continuous-deploy-fingerprint-info/index.js
+inputs:
+  profile:
+    description: The EAS Build profile to use, must have EAS Update channel specified in eas.json
+    required: true
+  platform:
+    description: The platform on which to publish. Possible values are 'all' | 'android' | 'ios'
+    required: false
+    default: all
+  github-token:
+    description: GitHub token to use when commenting on PR
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+
+outputs:
+  android-fingerprint:
+    description: The Android fingerprint of the current commit.
+  ios-fingerprint:
+    description: The iOS fingerprint of the current commit.
+  android-build-id:
+    description: ID for Android EAS Build with matching fingerprint.
+  ios-build-id:
+    description: ID for iOS EAS Build with matching fingerprint.
