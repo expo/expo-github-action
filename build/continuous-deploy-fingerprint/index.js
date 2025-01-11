@@ -42417,7 +42417,7 @@ async function loadProjectConfig(cwd, easEnvironment) {
     if (easEnvironment) {
         commandLine = await (0, io_1.which)('eas', true);
         const commandToExecute = ['npx', ...baseArguments].join(' ').replace(/"/g, '\\"');
-        args = ['env:exec', easEnvironment, `"${commandToExecute}"`];
+        args = ['env:exec', "--non-interactive", easEnvironment, `"${commandToExecute}"`];
     }
     else {
         commandLine = 'npx';
@@ -44696,7 +44696,7 @@ async function getFingerprintHashForPlatformAsync({ cwd, platform, environment, 
         if (environment) {
             commandLine = await (0, io_1.which)('eas', true);
             const commandToExecute = ['npx', ...baseArguments].join(' ').replace(/"/g, '\\"');
-            args = ['env:exec', environment, `"${commandToExecute}"`];
+            args = ['env:exec', "--non-interactive", environment, `"${commandToExecute}"`];
         }
         else {
             commandLine = 'npx';

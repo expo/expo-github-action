@@ -214,7 +214,7 @@ async function getFingerprintHashForPlatformAsync({
     if (environment) {
       commandLine = await which('eas', true);
       const commandToExecute = ['npx', ...baseArguments].join(' ').replace(/"/g, '\\"');
-      args = ['env:exec', environment, `"${commandToExecute}"`];
+      args = ['env:exec', "--non-interactive", environment, `"${commandToExecute}"`];
     } else {
       commandLine = 'npx';
       args = baseArguments;
