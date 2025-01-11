@@ -44584,6 +44584,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
     const updates = await publishEASUpdatesAsync({
         cwd: input.workingDirectory,
         branch: input.branch,
+        platform: input.platform,
     });
     if (!isInPullRequest) {
         (0, core_1.info)(`Skipped comment: action was not run from a pull request`);
@@ -44737,10 +44738,10 @@ async function createEASBuildAsync({ cwd, profile, platform, }) {
     }
     return JSON.parse(stdout)[0];
 }
-async function publishEASUpdatesAsync({ cwd, branch, }) {
+async function publishEASUpdatesAsync({ cwd, branch, platform = 'all', }) {
     let stdout;
     try {
-        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--non-interactive', '--json'], {
+        const execOutput = await (0, exec_1.getExecOutput)(await (0, io_1.which)('eas', true), ['update', '--auto', '--branch', branch, '--platform', platform, '--non-interactive', '--json'], {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
