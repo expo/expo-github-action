@@ -71,6 +71,7 @@ export async function continuousDeployFingerprintAction(
   const updates = await publishEASUpdatesAsync({
     cwd: input.workingDirectory,
     branch: input.branch,
+    platform: input.platform,
   });
 
   if (!isInPullRequest) {
@@ -293,15 +294,17 @@ async function createEASBuildAsync({
 async function publishEASUpdatesAsync({
   cwd,
   branch,
+  platform = 'all',
 }: {
   cwd: string;
   branch: string;
+  platform: PlatformArg;
 }): Promise<EasUpdate[]> {
   let stdout: string;
   try {
     const execOutput = await getExecOutput(
       await which('eas', true),
-      ['update', '--auto', '--branch', branch, '--non-interactive', '--json'],
+      ['update', '--auto', '--branch', branch, '--platform', platform, '--non-interactive', '--json'],
       {
         cwd,
         silent: !isDebug(),
