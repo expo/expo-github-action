@@ -21,7 +21,7 @@ export async function loadProjectConfig(
   if (easEnvironment) {
     commandLine = await which('eas', true);
     const commandToExecute = ['npx', ...baseArguments].join(' ').replace(/"/g, '\\"');
-    args = ['env:exec', "--non-interactive", easEnvironment, `"${commandToExecute}"`];
+    args = ['env:exec', '--non-interactive', easEnvironment, `"${commandToExecute}"`];
   } else {
     commandLine = 'npx';
     args = baseArguments;
