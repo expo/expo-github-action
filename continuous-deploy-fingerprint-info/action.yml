@@ -1,29 +1,23 @@
 ---
-name: Expo GitHub Action - Continuous Deploy Fingerprint
+name: Expo GitHub Action - Get Fingerprint Info and Matching Builds for Continuous Deployment use cases
 author: Expo
-description: Continuously deploy an Expo project using EAS Build and EAS Update with fingerprint.
+description: Get the current fingeprint and any matching builds. Designed to be used in tandem with continuous-deploy-fingerprint for continuous deployment.
 branding:
   icon: smartphone
   color: gray-dark
 runs:
   using: node20
-  main: ../build/continuous-deploy-fingerprint/index.js
+  main: ../build/continuous-deploy-fingerprint-info/index.js
 inputs:
   profile:
     description: The EAS Build profile to use, must have EAS Update channel specified in eas.json
     required: true
-  branch:
-    description: The EAS Update branch on which to publish.
-    required: true
-  environment:
-    description: The environment to use for server-side defined EAS environment variables during command execution
-    required: false
   platform:
     description: The platform on which to publish. Possible values are 'all' | 'android' | 'ios'
     required: false
     default: all
-  auto-submit-builds:
-    description: Automatically submit new builds to their respective app stores using EAS Build `--auto-submit` flag (EAS Submit).
+  environment:
+    description: The environment to use for server-side defined EAS environment variables during command execution
     required: false
   github-token:
     description: GitHub token to use when commenting on PR
@@ -41,11 +35,5 @@ outputs:
     description: The iOS fingerprint of the current commit.
   android-build-id:
     description: ID for Android EAS Build with matching fingerprint.
-  android-did-start-new-build:
-    description: Whether this run of the action started a new Android EAS Build.
   ios-build-id:
     description: ID for iOS EAS Build with matching fingerprint.
-  ios-did-start-new-build:
-    description: Whether this run of the action started a new iOS EAS Build.
-  update-output:
-    description: The output (JSON) from the `eas update` command
