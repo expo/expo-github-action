@@ -40,7 +40,7 @@
 `continuous-deploy-fingerprint` is a GitHub Action that continuously deploys an Expo project using the expo-updates fingerprint runtime version policy. When run, it performs the following tasks in order, once for each platform:
 1. Check current fingerprint of the project.
 2. Check for EAS builds with specified profile matching that fingerprint.
-3. If a in-progress or finished EAS build doesn't exist, start one.
+3. If a in-progress or finished EAS build doesn't exist, start one. Optionally submit any created builds to their respective app stores.
 4. Publish an update on EAS update.
 5. If run on a PR, post a comment indicating what was done.
 
@@ -48,8 +48,9 @@
 
 - Must have expo-updates set up with a `fingerprint` runtime version policy.
 - Must be configured for EAS Update.
+- Should configure [`expo-dev-client`](https://docs.expo.dev/versions/latest/sdk/dev-client/) (recommended).
 - Must have run the builds at least once manually in order to configure credentials. This can be done by running `eas build --profile <profile> --platform <platform>` for each profile and platform you have set up for this action.
-- When using `auto-submit-builds`, must have configured [EAS Submit](https://docs.expo.dev/submit/introduction/) and run submissions manually at least once.
+- When using EAS Build auto submission (`auto-submit-builds`), must have configured [EAS Submit](https://docs.expo.dev/submit/introduction/) and run submissions manually at least once.
 
 ### Configuration options
 
@@ -63,7 +64,7 @@ Here is a summary of all the input options you can use.
 | **environment**         | -              | The environment to use for server-side defined EAS environment variables     |
 | **working-directory**   | -              | The relative directory of your Expo app                                      |
 | **platform**            | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
-| **auto-submit-builds**| -              | Whether to add the `--auto-submit` flag to the issued `eas build` commands.  |
+| **auto-submit-builds**  | -              | Whether to add the `--auto-submit` flag to the issued `eas build` commands.  |
 | **github-token**        | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.
@@ -93,9 +94,11 @@ You can overwrite the token by adding the `GITHUB_TOKEN` environment variable or
 Before diving into the workflow examples, you should know the basics of GitHub Actions.
 You can read more about this in the [GitHub Actions documentation][link-actions].
 
-### Continuous development on pull requests (recommended)
+Below are two examples of how to uses these actions to achieve CI/CD in development and production. While production continuous deployment of apps is possible as demonstrated below, it is far more complex due to the added complication of app store submission. Therefore, continuous CI/CD is only recommended on development branches (PRs).
 
-This example workflow continuously deploys PR branches to the development EAS Build profile and EAS Update branch. It will do a development build if necessary and display a QR code to scan to preview the latest commit on the PR.
+### Continuous integration and development (CI/CD) on pull requests (recommended)
+
+This example workflow continuously deploys PR branches to the development EAS Build profile and EAS Update branch. It will do a development build if necessary and display a QR code to scan to preview the latest commit on the PR. This is most effective when combined with [`expo-dev-client`](https://docs.expo.dev/versions/latest/sdk/dev-client/) as the QR code is designed for that.
 
 ```yml
 name: Continuous Development (PRs)
@@ -159,9 +162,10 @@ jobs:
 
 This example workflow continuously deploys the main branch to the production EAS Build profile and EAS Update branch. It also does automatic version bumping and auto-submission using EAS Submit when applicable. Note that this still will require human intervention on the app store side in order to promote the submitted build to production.
 
-> **Warning**
-> It's unlikely that this is a one-size-fits-all workflow as project-specific pattens will require different strategies depending on your project's CNG, version bumping, and submission preferences. This example is only intended to demonstrate the broad strategy. It should also be noted that while this theoretically should work, it's unlikely that auto-submission on
-every new fingeprint is desired as it could cause too many app store submissions.
+> [!CAUTION]
+> Caveats:
+> - When configured, this will do a submission to the app store every time the fingerprint changes. While it is possible to configure submission just to test flight, this likely will still cause too many submissions if your fingerprint changes often. In this case, continuous main deployment is not recommended; instead, a more traditional branch cut release process should be used.
+> - This demonstrates a simplified example of what is likely needed to do automatic version bumping (prerequisite for continuous deployment on main).
 
 ```yml
 name: Continuous Deployment (main)
@@ -244,8 +248,8 @@ jobs:
           commit_message: "Automated version bump commit"
 
       # Always continuously deploy. When no version bump is done (already have production builds for the fingerprint), this will solely deploy OTA updates.
-      # When a version bump is done, this will kick off new production builds and auto-submit them to the app stores.
-      # Important note: the above version buno commit doesn't trigger a new workflow run due to
+      # When a version bump is done, this will kick off new production builds and auto-submit them to the app stores if configured.
+      # Important note: the above version bump commit doesn't trigger a new workflow run due to
       # https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow
       # so it is safe to always continuously deploy here, it'll use the post-commit fingerprint. If instead it did kick off a new workflow run, we'd skip
       # this step here.
