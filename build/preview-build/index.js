@@ -88827,7 +88827,7 @@ function collectPreviewBuildActionInput() {
 exports.collectPreviewBuildActionInput = collectPreviewBuildActionInput;
 (0, worker_1.executeAction)(previewAction);
 async function previewAction(input = collectPreviewBuildActionInput()) {
-    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory);
+    const config = await (0, project_1.loadProjectConfig)(input.workingDirectory, null);
     if (!config.extra?.eas?.projectId) {
         return (0, core_1.setFailed)('Missing "extra.eas.projectId" in app.json or app.config.js. Please run `eas build:configure` first.');
     }
@@ -90069,18 +90069,32 @@ exports.installPackage = installPackage;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.loadProjectConfig = void 0;
+const core_1 = __nccwpck_require__(2186);
 const exec_1 = __nccwpck_require__(1514);
+const io_1 = __nccwpck_require__(7436);
 /**
  * Load the Expo app project config in the given directory.
  * This runs `expo config` command instead of using `@expo/config` directly,
  * to use the app's own version of the config.
  */
-async function loadProjectConfig(cwd) {
+async function loadProjectConfig(cwd, easEnvironment) {
     let stdout = '';
+    const baseArguments = ['expo', 'config', '--json', '--type', 'public'];
+    let commandLine;
+    let args;
+    if (easEnvironment) {
+        commandLine = await (0, io_1.which)('eas', true);
+        const commandToExecute = ['npx', ...baseArguments].join(' ').replace(/"/g, '\\"');
+        args = ['env:exec', '--non-interactive', easEnvironment, `"${commandToExecute}"`];
+    }
+    else {
+        commandLine = 'npx';
+        args = baseArguments;
+    }
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)('npx', ['expo', 'config', '--json', '--type', 'public'], {
+        ({ stdout } = await (0, exec_1.getExecOutput)(commandLine, args, {
             cwd,
-            silent: true,
+            silent: !(0, core_1.isDebug)(),
         }));
     }
     catch (error) {

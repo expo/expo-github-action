@@ -51,7 +51,7 @@ export function collectPreviewBuildActionInput() {
 executeAction(previewAction);
 
 export async function previewAction(input = collectPreviewBuildActionInput()) {
-  const config = await loadProjectConfig(input.workingDirectory);
+  const config = await loadProjectConfig(input.workingDirectory, null);
   if (!config.extra?.eas?.projectId) {
     return setFailed(
       'Missing "extra.eas.projectId" in app.json or app.config.js. Please run `eas build:configure` first.'
