@@ -42315,7 +42315,7 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
-        builds = JSON.parse(stdout).builds;
+        builds = JSON.parse(stdout);
     }
     catch (error) {
         throw new Error(`Error getting EAS builds: ${String(error)}`, { cause: error });

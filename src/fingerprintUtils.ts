@@ -124,7 +124,7 @@ export async function getBuildInfoWithFingerprintAsync({
         silent: !isDebug(),
       }
     );
-    builds = JSON.parse(stdout).builds;
+    builds = JSON.parse(stdout);
   } catch (error: unknown) {
     throw new Error(`Error getting EAS builds: ${String(error)}`, { cause: error });
   }
