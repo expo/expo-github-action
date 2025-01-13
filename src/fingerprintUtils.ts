@@ -79,7 +79,7 @@ async function getFingerprintHashForPlatformAsync({
       cwd,
       silent: !isDebug(),
     });
-    hash = JSON.parse(stdout);
+    hash = JSON.parse(stdout).hash;
   } catch (error: unknown) {
     throw new Error(`Error calculating fingerprint: ${String(error)}`, { cause: error });
   }

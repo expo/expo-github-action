@@ -28848,7 +28848,7 @@ async function getFingerprintHashForPlatformAsync({ cwd, platform, environment, 
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
-        hash = JSON.parse(stdout);
+        hash = JSON.parse(stdout).hash;
     }
     catch (error) {
         throw new Error(`Error calculating fingerprint: ${String(error)}`, { cause: error });
