@@ -66,6 +66,7 @@ jobs:
     if: ${{ github.event.issue.pull_request }}
     # Allow the bot to comment on pulls
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - name: 🏗 Setup repo
