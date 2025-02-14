@@ -17,7 +17,7 @@ export * from './FingerprintDbManager';
 export interface FingerprintOutput {
   currentFingerprint: Fingerprint.Fingerprint;
   previousFingerprint: Fingerprint.Fingerprint | null;
-  diff: Fingerprint.FingerprintSource[];
+  diff: Fingerprint.FingerprintDiffItem[];
 }
 
 /**

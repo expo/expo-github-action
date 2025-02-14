@@ -1,7 +1,7 @@
 import { getBooleanInput, getInput, group, info, setFailed, setOutput } from '@actions/core';
 import { context } from '@actions/github';
 import type { ExpoConfig } from '@expo/config';
-import type { Fingerprint, FingerprintSource } from '@expo/fingerprint';
+import type { Fingerprint, FingerprintDiffItem } from '@expo/fingerprint';
 import assert from 'assert';
 import { validate as isValidUUID } from 'uuid';
 
@@ -216,7 +216,7 @@ export function getVariables(config: ExpoConfig, builds: BuildInfo[]) {
 
 function createMessageBodyInBuilding(
   builds: BuildInfo[],
-  fingerprintDiff: FingerprintSource[],
+  fingerprintDiff: FingerprintDiffItem[],
   input: ReturnType<typeof collectPreviewBuildActionInput>
 ) {
   const tableRows: string[] = [];
