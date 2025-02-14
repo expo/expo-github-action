@@ -7,7 +7,7 @@ export type FingerprintDbEntity = Camelize<RawFingerprintDbEntity> & {
 };
 
 export class FingerprintDbManager {
-  constructor(private dbPath: string) {}
+  constructor(private readonly dbPath: string) {}
 
   public async initAsync(): Promise<Database> {
     const db = await openDatabaseAsync(this.dbPath);
