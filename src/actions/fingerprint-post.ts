@@ -19,11 +19,11 @@ export async function runAction(input = collectFingerprintActionInput()) {
   try {
     const ref = process.env.GITHUB_REF;
     assert(ref != null, 'GITHUB_REF is not defined');
-    console.log("before delete")
+    info("before delete")
     await deleteCacheAsync(input.githubToken, input.fingerprintDbCacheKey, ref);
   } catch (e) {
     info(`Failed to delete the cache: ${e}`);
   }
-  console.log("before save")
+  info("before save")
   await saveDbToCacheAsync(input.fingerprintDbCacheKey);
 }
