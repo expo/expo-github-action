@@ -136,7 +136,7 @@ export async function getBuildInfoWithFingerprintAsync({
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const buildsThatAreValid = (builds as BuildInfo[]).filter(build => {
+  const buildsThatAreValid = builds.filter(build => {
     const isValidStatus = [
       BuildStatus.New,
       BuildStatus.InQueue,

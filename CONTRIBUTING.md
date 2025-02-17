@@ -7,6 +7,7 @@
    - [node](https://nodejs.org/) (active Node LTS or higher is recommended)
    - [yarn](https://yarnpkg.com/)
 3. Install the Node packages (`yarn install`)
+4. Install Bun (`curl -fsSL https://bun.sh/install | bash`)
 
 ## 🏎️ Running a custom version
 
@@ -45,7 +46,7 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 
 ## 🚀 Releasing a new version
 
-To release a new version for GitHub Actions, we have to create a new release in GitHub. You can run the `Release` workflow to generate a new version, changelog, and GitHub release. 
+To release a new version for GitHub Actions, we have to create a new release in GitHub. You can run the `Release` workflow to generate a new version, changelog, and GitHub release.
 
 That workflow also bumps up the major version tag, like `v7`. In cases of failure, you could run this manually.
 

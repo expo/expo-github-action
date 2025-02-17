@@ -22,6 +22,10 @@ module.exports = {
       },
       rules: {
         '@typescript-eslint/prefer-nullish-coalescing': ['warn', { ignorePrimitives: true }],
+        '@typescript-eslint/no-confusing-void-expression': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/return-await': ['warn', 'error-handling-correctness-only'],
       },
     },
   ],
