@@ -18,12 +18,10 @@ export async function retryAsync<T>(
   retries: number,
   delayAfterErrorMs: number = 5000
 ): Promise<T> {
-  let result: T | undefined = undefined;
   let lastError: Error | undefined;
   for (let i = 0; i < retries; ++i) {
     try {
-      result = await fn();
-      break;
+      return await fn();
     } catch (e) {
       if (e instanceof Error) {
         lastError = e;
@@ -34,10 +32,7 @@ export async function retryAsync<T>(
   if (lastError) {
     throw lastError;
   }
-  if (result === undefined) {
-    throw new Error('Function did not return a value');
-  }
-  return result;
+  throw new Error('retryAsync function did not return a value');
 }
 
 /**

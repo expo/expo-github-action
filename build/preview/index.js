@@ -35593,12 +35593,10 @@ function template(template, replacements) {
  * Retry an async function a number of times with a delay between each attempt.
  */
 async function retryAsync(fn, retries, delayAfterErrorMs = 5000) {
-    let result = undefined;
     let lastError;
     for (let i = 0; i < retries; ++i) {
         try {
-            result = await fn();
-            break;
+            return await fn();
         }
         catch (e) {
             if (e instanceof Error) {
@@ -35610,10 +35608,7 @@ async function retryAsync(fn, retries, delayAfterErrorMs = 5000) {
     if (lastError) {
         throw lastError;
     }
-    if (result === undefined) {
-        throw new Error('Function did not return a value');
-    }
-    return result;
+    throw new Error('retryAsync function did not return a value');
 }
 /**
  * Delay by the given milliseconds.
