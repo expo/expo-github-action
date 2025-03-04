@@ -4,6 +4,7 @@ import assert from 'assert';
 import { deleteCacheAsync } from '../cacher';
 import { collectFingerprintActionInput, saveDbToCacheAsync } from '../fingerprint';
 import { getRepoDefaultBranch, isPushBranchContext } from '../github';
+import { retryAsync } from '../utils';
 import { executeAction } from '../worker';
 
 executeAction(runAction);
@@ -23,5 +24,5 @@ export async function runAction(input = collectFingerprintActionInput()) {
   } catch (e) {
     info(`Failed to delete the cache: ${e}`);
   }
-  await saveDbToCacheAsync(input.fingerprintDbCacheKey);
+  await retryAsync(() => saveDbToCacheAsync(input.fingerprintDbCacheKey), 3);
 }

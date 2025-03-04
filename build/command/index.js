@@ -32755,6 +32755,8 @@ async function getPullRequestFromGitCommitShaAsync(options, gitCommitHash) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.template = template;
+exports.retryAsync = retryAsync;
+exports.delayAsync = delayAsync;
 /**
  * Replace all template variables in a string.
  * This uses the notation of `{varname}`, which can be defined as object.
@@ -32765,6 +32767,38 @@ function template(template, replacements) {
         result = result.replaceAll(`{${name}}`, replacements[name]);
     }
     return result;
+}
+/**
+ * Retry an async function a number of times with a delay between each attempt.
+ */
+async function retryAsync(fn, retries, delayAfterErrorMs = 5000) {
+    let result = undefined;
+    let lastError;
+    for (let i = 0; i < retries; ++i) {
+        try {
+            result = await fn();
+            break;
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                lastError = e;
+                await delayAsync(delayAfterErrorMs);
+            }
+        }
+    }
+    if (lastError) {
+        throw lastError;
+    }
+    if (result === undefined) {
+        throw new Error('Function did not return a value');
+    }
+    return result;
+}
+/**
+ * Delay by the given milliseconds.
+ */
+async function delayAsync(timeMs) {
+    return new Promise(resolve => setTimeout(resolve, timeMs));
 }
 
 
