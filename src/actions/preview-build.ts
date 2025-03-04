@@ -33,7 +33,7 @@ import {
   pullContext,
 } from '../github';
 import { loadProjectConfig } from '../project';
-import { template } from '../utils';
+import { retryAsync, template } from '../utils';
 import { executeAction } from '../worker';
 
 export const MESSAGE_ID = 'projectId:previewBuild:{projectId}';
@@ -337,7 +337,7 @@ async function maybeUpdateFingerprintDbAsync(params: {
   } catch (e) {
     info(`Failed to delete the cache: ${e}`);
   }
-  await saveDbToCacheAsync(params.fingerprintDbCacheKey);
+  await retryAsync(() => saveDbToCacheAsync(params.fingerprintDbCacheKey), 3);
 }
 
 //#region Non pull request context

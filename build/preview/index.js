@@ -35576,6 +35576,8 @@ async function loadProjectConfig(cwd, easEnvironment) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.template = template;
+exports.retryAsync = retryAsync;
+exports.delayAsync = delayAsync;
 /**
  * Replace all template variables in a string.
  * This uses the notation of `{varname}`, which can be defined as object.
@@ -35586,6 +35588,33 @@ function template(template, replacements) {
         result = result.replaceAll(`{${name}}`, replacements[name]);
     }
     return result;
+}
+/**
+ * Retry an async function a number of times with a delay between each attempt.
+ */
+async function retryAsync(fn, retries, delayAfterErrorMs = 5000) {
+    let lastError;
+    for (let i = 0; i < retries; ++i) {
+        try {
+            return await fn();
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                lastError = e;
+                await delayAsync(delayAfterErrorMs);
+            }
+        }
+    }
+    if (lastError) {
+        throw lastError;
+    }
+    throw new Error('retryAsync function did not return a value');
+}
+/**
+ * Delay by the given milliseconds.
+ */
+async function delayAsync(timeMs) {
+    return new Promise(resolve => setTimeout(resolve, timeMs));
 }
 
 

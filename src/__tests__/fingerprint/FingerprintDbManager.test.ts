@@ -1,6 +1,7 @@
 import type { FingerprintSource } from '@expo/fingerprint';
 
 import { FingerprintDbManager } from '../../fingerprint/FingerprintDbManager';
+import { delayAsync } from '../../utils';
 
 describe(FingerprintDbManager, () => {
   let fingerprintDbManager: FingerprintDbManager;
@@ -173,7 +174,3 @@ describe(FingerprintDbManager, () => {
     expect(result?.gitCommitHash).toEqual('gitHash1');
   });
 });
-
-async function delayAsync(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
