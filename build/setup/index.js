@@ -98322,7 +98322,7 @@ function pullContext() {
     if (process.env['EXPO_TEST_GITHUB_PULL']) {
         return { ...github_1.context.repo, number: Number(process.env['EXPO_TEST_GITHUB_PULL']) };
     }
-    (0, assert_1.ok)(github_1.context.eventName === 'pull_request', 'Could not find the pull request context, make sure to run this from a pull_request triggered workflow');
+    (0, assert_1.ok)(github_1.context.eventName === 'pull_request' || github_1.context.eventName === 'issue_comment', 'Could not find the pull request context, make sure to run this from a pull_request or issue_comment triggered workflow');
     return github_1.context.issue;
 }
 function hasPullContext() {
