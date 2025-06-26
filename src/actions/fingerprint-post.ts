@@ -12,7 +12,7 @@ executeAction(runAction);
 export async function runAction(input = collectFingerprintActionInput()) {
   const targetBranch = input.savingDbBranch ?? getRepoDefaultBranch();
   assert(targetBranch);
-  if (!isPushBranchContext(targetBranch)) {
+  if (!isPushBranchContext(targetBranch) || !input.writeFingerprint) {
     return;
   }
   info(`Saving fingerprint database to ${targetBranch} branch.`);

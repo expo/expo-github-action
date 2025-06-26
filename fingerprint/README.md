@@ -85,6 +85,7 @@ Here is a summary of all the input options you can use.
 | **previous-git-commit**            | -                | The Git hash for the base commit                                                            |
 | **current-git-commit**             | -                | The Git hash for the current commit                                                         |
 | **saving-db-branch**               | -                | The branch for saving the fingerprint database. Defaults to the repository's default branch |
+| **write-fingerprint**              | true             | If the evaluated fingerprint should be added to the cached database                         |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on current project fingerprint
 

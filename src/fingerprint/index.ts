@@ -100,6 +100,7 @@ export function collectFingerprintActionInput() {
         ? githubContext.payload.pull_request?.head?.sha
         : githubContext.sha),
     savingDbBranch: getInput('saving-db-branch') || undefined,
+    writeFingerprint: getInput('write-fingerprint') || true,
   };
 }
 

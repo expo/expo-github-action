@@ -18,9 +18,12 @@ export async function runAction(input = collectFingerprintActionInput()) {
     dbManager,
     input
   );
-  await dbManager.upsertFingerprintByGitCommitHashAsync(input.currentGitCommitHash, {
-    fingerprint: currentFingerprint,
-  });
+
+  if (input.writeFingerprint) {
+    await dbManager.upsertFingerprintByGitCommitHashAsync(input.currentGitCommitHash, {
+      fingerprint: currentFingerprint,
+    });
+  }
 
   setOutput('previous-fingerprint', previousFingerprint);
   setOutput('current-fingerprint', currentFingerprint);
