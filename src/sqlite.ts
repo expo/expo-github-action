@@ -20,6 +20,16 @@ export interface Database extends sqlite3Types.Database {
   allAsync: <T>(sql: string, ...params: any[]) => Promise<T[]>;
 }
 
+export type CamelizeString<T extends PropertyKey, C extends string = ''> = T extends string
+  ? string extends T
+    ? string
+    : T extends `${infer F}_${infer R}`
+      ? CamelizeString<Capitalize<R>, `${C}${F}`>
+      : `${C}${T}`
+  : T;
+
+export type Camelize<T> = { [K in keyof T as CamelizeString<K>]: T[K] };
+
 /**
  * Open a database and return a promise that resolves to a database object.
  */
@@ -37,7 +47,19 @@ export function openDatabaseAsync(filename: string): Promise<Database> {
     return {
       ...db,
       closeAsync: promisify(db.close.bind(db)),
-      runAsync: promisify(db.run.bind(db)),
+      runAsync: (sql: string, ...params: any[]) =>
+        // We cannot use `promisify` here because `this` is used in the callback for `lastID` and `changes`
+        // > you must use an old-school function () { ... } style callback rather than a lambda function, otherwise this.lastID and this.changes will be undefined.
+        // https://github.com/TryGhost/node-sqlite3/wiki/API#runsql--param---callback
+        new Promise<sqlite3Types.RunResult>((resolve, reject) => {
+          db.run(sql, ...params, function (this: sqlite3Types.RunResult, err: Error | null) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(this);
+            }
+          });
+        }),
       execAsync: promisify(db.exec.bind(db)),
       prepareAsync: promisify(db.prepare.bind(db)),
       getAsync: promisify(db.get.bind(db)),

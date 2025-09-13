@@ -1,4 +1,7 @@
 import type { FingerprintSource } from '@expo/fingerprint';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 import { FingerprintDbManager } from '../../fingerprint/FingerprintDbManager';
 import { delayAsync } from '../../utils';
@@ -172,5 +175,142 @@ describe(FingerprintDbManager, () => {
 
     const result = await fingerprintDbManager.getLatestEasEntityFromFingerprintAsync('hash1');
     expect(result?.gitCommitHash).toEqual('gitHash1');
+  });
+
+  it('should include githubArtifactId and platform in entity serialization', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash', {
+      easBuildId: 'id1',
+      fingerprint: { sources: [], hash: 'hash1' },
+      platform: 'android',
+    });
+
+    const result = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash');
+    expect(result?.githubArtifactId).toBe(null);
+    expect(result).toHaveProperty('githubArtifactId');
+    expect(result?.platform).toBe('android');
+    expect(result).toHaveProperty('platform');
+  });
+
+  it('getFirstEntityWithGitHubArtifactFromFingerprintHashAsync should return entity with artifact', async () => {
+    const testDbManager = new FingerprintDbManager(':memory:');
+    await testDbManager.initAsync();
+
+    await testDbManager.upsertFingerprintByGitCommitHashAsync('gitHash1', {
+      fingerprint: { sources: [], hash: 'hash1' },
+      githubArtifact: {
+        artifactId: 'artifact-123',
+        artifactUrl: 'https://github.com/example/artifact.zip',
+        artifactDigest: 'sha256:abc123',
+        workflowRunId: '123',
+      },
+    });
+
+    await testDbManager.upsertFingerprintByGitCommitHashAsync('gitHash2', {
+      fingerprint: { sources: [], hash: 'hash1' },
+    });
+
+    const result =
+      await testDbManager.getFirstEntityWithGitHubArtifactFromFingerprintHashAsync('hash1');
+    expect(result?.gitCommitHash).toBe('gitHash1');
+    expect(result?.githubArtifact?.artifactUrl).toBe('https://github.com/example/artifact.zip');
+    expect(result?.githubArtifact?.artifactId).toBe('artifact-123');
+    expect(result?.githubArtifact?.artifactDigest).toBe('sha256:abc123');
+
+    const resultNoArtifact =
+      await testDbManager.getFirstEntityWithGitHubArtifactFromFingerprintHashAsync('nonExistent');
+    expect(resultNoArtifact).toBe(null);
+
+    await testDbManager.closeAsync();
+  });
+
+  it('upsertFingerprintByGitCommitHashAsync should handle githubArtifact parameter', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash1', {
+      easBuildId: 'buildId1',
+      fingerprint: { sources: [], hash: 'hash1' },
+      githubArtifact: {
+        artifactId: 'artifact-update-test',
+        artifactUrl: 'https://github.com/example/artifact1.zip',
+        artifactDigest: 'sha256:original',
+        workflowRunId: '123',
+      },
+    });
+
+    const result1 = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash1');
+    expect(result1?.githubArtifactId).toBeGreaterThan(0);
+
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHash1', {
+      easBuildId: 'buildId1Updated',
+      fingerprint: { sources: [], hash: 'hash1Updated' },
+      githubArtifact: {
+        artifactId: 'artifact-update-test-updated',
+        artifactUrl: 'https://github.com/example/artifact1-updated.zip',
+        artifactDigest: 'sha256:updated',
+        workflowRunId: '123',
+      },
+    });
+
+    const result2 = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHash1');
+    expect(result2?.githubArtifactId).toBeGreaterThan(0);
+    expect(result2?.easBuildId).toBe('buildId1Updated');
+  });
+
+  it('upsertFingerprintByGitCommitHashAsync should handle platform parameter', async () => {
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHashIos', {
+      easBuildId: 'iosBuildId',
+      fingerprint: { sources: [], hash: 'iosHash' },
+      platform: 'ios',
+    });
+
+    await fingerprintDbManager.upsertFingerprintByGitCommitHashAsync('gitHashAndroid', {
+      easBuildId: 'androidBuildId',
+      fingerprint: { sources: [], hash: 'androidHash' },
+      platform: 'android',
+    });
+
+    const iosResult = await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHashIos');
+    expect(iosResult?.platform).toBe('ios');
+
+    const androidResult =
+      await fingerprintDbManager.getEntityFromGitCommitHashAsync('gitHashAndroid');
+    expect(androidResult?.platform).toBe('android');
+  });
+
+  it('database initialization with migration system should work correctly', async () => {
+    const tempDbPath = path.join(os.tmpdir(), `test-migration-${Date.now()}.db`);
+    let migrationDbManager: FingerprintDbManager | null = null;
+
+    try {
+      // Test that a fresh database initializes correctly
+      migrationDbManager = new FingerprintDbManager(tempDbPath);
+      await migrationDbManager.initAsync();
+
+      // Test that we can insert and retrieve data with new schema
+      await migrationDbManager.upsertFingerprintByGitCommitHashAsync('testGitHash', {
+        easBuildId: 'testEasBuildId',
+        fingerprint: { sources: [], hash: 'testFingerprintHash' },
+        platform: 'ios',
+        githubArtifact: {
+          artifactId: 'test-artifact',
+          artifactUrl: 'https://github.com/example/test.zip',
+          artifactDigest: 'sha256:test123',
+          workflowRunId: '123',
+        },
+      });
+
+      const record = await migrationDbManager.getEntityFromGitCommitHashAsync('testGitHash');
+      expect(record).toBeTruthy();
+      expect(record?.githubArtifactId).toBeGreaterThan(0);
+      expect(record?.platform).toBe('ios');
+      expect(record).toHaveProperty('githubArtifactId');
+      expect(record).toHaveProperty('platform');
+
+      await migrationDbManager.closeAsync();
+      migrationDbManager = null;
+    } finally {
+      if (migrationDbManager) {
+        await migrationDbManager.closeAsync();
+      }
+      await fs.promises.unlink(tempDbPath);
+    }
   });
 });

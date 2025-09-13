@@ -1,28 +1,48 @@
 import type { FingerprintSource, Fingerprint as FingerprintType } from '@expo/fingerprint';
 
-import { Database, openDatabaseAsync } from '../sqlite';
+import { Camelize, Database, openDatabaseAsync } from '../sqlite';
+import { DbMigrationCoordinator } from './DbMigration';
+import { GitHubArtifactsDbManager } from './GitHubArtifactsDbManager';
+import { type IDbManager } from './IDbManager';
 
 export type FingerprintDbEntity = Camelize<RawFingerprintDbEntity> & {
   fingerprint: FingerprintType;
 };
 
-export class FingerprintDbManager {
+export type FingerprintDbEntityWithArtifact = FingerprintDbEntity & {
+  githubArtifact?: {
+    id: number;
+    artifactId: string;
+    artifactUrl: string;
+    artifactDigest: string;
+    workflowRunId: string;
+  };
+};
+
+export class FingerprintDbManager implements IDbManager {
   constructor(private readonly dbPath: string) {}
 
-  public async initAsync(): Promise<Database> {
-    const db = await openDatabaseAsync(this.dbPath);
+  public async runInitialTableCreation(db: Database): Promise<void> {
     await db.runAsync(
-      `CREATE TABLE IF NOT EXISTS ${
-        FingerprintDbManager.TABLE_NAME
-      } (${FingerprintDbManager.SCHEMA.join(', ')})`
+      `CREATE TABLE ${FingerprintDbManager.TABLE_NAME} (${FingerprintDbManager.SCHEMA.join(', ')})`
     );
+
     for (const index of FingerprintDbManager.INDEXES) {
       await db.runAsync(index);
     }
     for (const extraStatement of FingerprintDbManager.EXTRA_CREATE_DB_STATEMENTS) {
       await db.runAsync(extraStatement);
     }
-    await db.runAsync(`PRAGMA fingerprint_schema_version = ${FingerprintDbManager.SCHEMA_VERSION}`);
+  }
+
+  public async initAsync(): Promise<Database> {
+    const db = await openDatabaseAsync(this.dbPath);
+
+    const coordinator = new DbMigrationCoordinator();
+    coordinator.registerManager('fingerprint', this);
+    coordinator.registerManager('github-artifacts', new GitHubArtifactsDbManager(db));
+
+    await coordinator.initializeDatabase(db);
     this.db = db;
     return db;
   }
@@ -32,23 +52,42 @@ export class FingerprintDbManager {
     params: {
       easBuildId?: string;
       fingerprint: FingerprintType;
+      githubArtifact?: {
+        artifactId: string;
+        artifactUrl: string;
+        artifactDigest: string;
+        workflowRunId: string;
+      };
+      platform?: string;
     }
   ): Promise<void> {
     if (!this.db) {
       throw new Error('Database not initialized. Call initAsync() first.');
     }
     const easBuildId = params.easBuildId ?? '';
+    const platform = params.platform ?? null;
     const fingerprintString = JSON.stringify(params.fingerprint);
+
+    let githubArtifactId: number | null = null;
+    if (params.githubArtifact) {
+      const artifactsManager = new GitHubArtifactsDbManager(this.db);
+      githubArtifactId = await artifactsManager.upsertArtifactAsync(params.githubArtifact);
+    }
+
     await this.db.runAsync(
-      `INSERT INTO ${FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint) VALUES (?, ?, ?, json(?)) \
-       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?)`,
+      `INSERT INTO ${FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint, github_artifact_id, platform) VALUES (?, ?, ?, json(?), ?, ?) \
+       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?), github_artifact_id = ?, platform = ?`,
       gitCommitHash,
       easBuildId,
       params.fingerprint.hash,
       fingerprintString,
+      githubArtifactId,
+      platform,
       easBuildId,
       params.fingerprint.hash,
-      fingerprintString
+      fingerprintString,
+      githubArtifactId,
+      platform
     );
   }
 
@@ -107,6 +146,46 @@ export class FingerprintDbManager {
     return row ? FingerprintDbManager.serialize(row) : null;
   }
 
+  public async getFirstEntityWithGitHubArtifactFromFingerprintHashAsync(
+    fingerprintHash: string
+  ): Promise<FingerprintDbEntityWithArtifact | null> {
+    if (!this.db) {
+      throw new Error('Database not initialized. Call initAsync() first.');
+    }
+    const row = await this.db.getAsync<
+      RawFingerprintDbEntity & {
+        artifact_id: string;
+        artifact_url: string;
+        artifact_digest: string;
+        artifact_pk_id: number;
+        workflow_run_id: string;
+      }
+    >(
+      `SELECT f.*, a.id as artifact_pk_id, a.artifact_id, a.artifact_url, a.artifact_digest, a.workflow_run_id
+       FROM ${FingerprintDbManager.TABLE_NAME} f
+       JOIN github_artifacts a ON f.github_artifact_id = a.id
+       WHERE f.fingerprint_hash = ? AND f.github_artifact_id IS NOT NULL
+       LIMIT 1`,
+      fingerprintHash
+    );
+
+    if (!row) {
+      return null;
+    }
+
+    const entity = FingerprintDbManager.serialize(row);
+    return {
+      ...entity,
+      githubArtifact: {
+        id: row.artifact_pk_id,
+        artifactId: row.artifact_id,
+        artifactUrl: row.artifact_url,
+        artifactDigest: row.artifact_digest,
+        workflowRunId: row.workflow_run_id,
+      },
+    };
+  }
+
   public async queryEntitiesFromFingerprintHashAsync(
     fingerprintHash: string
   ): Promise<FingerprintDbEntity[]> {
@@ -143,8 +222,6 @@ export class FingerprintDbManager {
 
   //#region private
 
-  private static readonly SCHEMA_VERSION = 0;
-
   private static readonly TABLE_NAME = 'fingerprint';
 
   private static readonly SCHEMA = [
@@ -153,6 +230,8 @@ export class FingerprintDbManager {
     'git_commit_hash TEXT NOT NULL',
     'fingerprint_hash TEXT NOT NULL',
     'fingerprint TEXT NOT NULL',
+    'github_artifact_id INTEGER REFERENCES github_artifacts(id)',
+    'platform TEXT',
     "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
     "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
   ];
@@ -177,6 +256,8 @@ END`,
       gitCommitHash: rawEntity.git_commit_hash,
       fingerprintHash: rawEntity.fingerprint_hash,
       fingerprint: JSON.parse(rawEntity.fingerprint),
+      githubArtifactId: rawEntity.github_artifact_id,
+      platform: rawEntity.platform,
       createdAt: rawEntity.created_at,
       updatedAt: rawEntity.updated_at,
     };
@@ -191,19 +272,8 @@ interface RawFingerprintDbEntity {
   git_commit_hash: string;
   fingerprint_hash: string;
   fingerprint: string;
+  github_artifact_id: number | null;
+  platform: string | null;
   created_at: string;
   updated_at: string;
 }
-
-//#region TypeScript utilities
-// https://stackoverflow.com/a/63715429
-type CamelizeString<T extends PropertyKey, C extends string = ''> = T extends string
-  ? string extends T
-    ? string
-    : T extends `${infer F}_${infer R}`
-      ? CamelizeString<Capitalize<R>, `${C}${F}`>
-      : `${C}${T}`
-  : T;
-
-type Camelize<T> = { [K in keyof T as CamelizeString<K>]: T[K] };
-//#endregion

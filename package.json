@@ -21,12 +21,14 @@
     "clean": "git clean -xdf ./build"
   },
   "dependencies": {
+    "@actions/artifact": "^2.3.2",
     "@actions/cache": "^4.0.2",
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.0",
     "@actions/io": "^1.1.2",
     "@actions/tool-cache": "^2.0.2",
+    "glob": "^11.0.3",
     "semver": "^7.7.1",
     "uuid": "^11.0.5"
   },

@@ -9,6 +9,8 @@ const EXTERNAL_REQUIRES = {
   fingerprint: ['@expo/fingerprint', 'module', 'sqlite3'],
   'fingerprint-post': ['@expo/fingerprint', 'module', 'sqlite3'],
   'preview-build': ['@expo/fingerprint', 'module', 'sqlite3'],
+  'repack-app': ['@expo/fingerprint', 'module', 'sqlite3'],
+  'repack-app-post': ['@expo/fingerprint', 'module', 'sqlite3'],
 };
 
 const actionsDir = path.resolve(__dirname, 'src/actions');
