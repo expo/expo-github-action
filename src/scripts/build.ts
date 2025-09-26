@@ -39,6 +39,7 @@ async function build(input: ReturnType<typeof resolveInput>) {
       minify: true,
       sourcemap: 'none',
       plugins: [],
+      external: ['@expo/fingerprint', 'module', 'sqlite3'],
     });
 
     console.log(
