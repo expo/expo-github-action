@@ -1,14 +1,10 @@
 {
-  "extends": "@tsconfig/node20",
+  "extends": "@tsconfig/recommended/tsconfig.json",
+  "include": ["./src"],
   "compilerOptions": {
-    "strict": true,
-    "noEmit": true,
-    "rootDir": "./src",
-    "module": "CommonJS",
-    "moduleResolution": "node"
-  },
-  "exclude": [
-    "build",
-    "node_modules",
-  ]
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true
+  }
 }

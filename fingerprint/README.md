@@ -1,19 +1,19 @@
 <div align="center">
-  <h1>fingerprint</h1>
+  <h1>expo/actions/fingerprint</h1>
   <p>Checking project fingerprinting for pull requests using <a href="https://www.npmjs.com/package/@expo/fingerprint"><code>@expo/fingerprint</code></a></p>
 </div>
 
 <p align="center">
-  <a href="https://github.com/expo/expo-github-action/releases" title="Latest release">
+  <a href="https://github.com/expo/actions/releases" title="Latest release">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=49505A">
-      <img alt="Latest release" src="https://img.shields.io/github/package-json/v/expo/expo-github-action?style=flat-square&color=0366D6&labelColor=D1D5DA" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/package-json/v/expo/actions?style=flat-square&color=0366D6&labelColor=49505A">
+      <img alt="Latest release" src="https://img.shields.io/github/package-json/v/expo/actions?style=flat-square&color=0366D6&labelColor=D1D5DA" />
     </picture>
   </a>
-  <a href="https://github.com/expo/expo-github-action/actions" title="Workflow status">
+  <a href="https://github.com/expo/actions/actions" title="Workflow status">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=49505A">
-      <img alt="Workflow status" src="https://img.shields.io/github/actions/workflow/status/expo/expo-github-action/test.yml?branch=main&style=flat-square&labelColor=D1D5DA" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/expo/actions/test.yml?branch=main&style=flat-square&labelColor=49505A">
+      <img alt="Workflow status" src="https://img.shields.io/github/actions/workflow/status/expo/actions/test.yml?branch=main&style=flat-square&labelColor=D1D5DA" />
     </picture>
   </a>
 </p>
@@ -27,7 +27,7 @@
   &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
   <a href="#caveats"><b>Caveats</b></a>
   &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-  <a href="https://github.com/expo/expo-github-action/blob/main/CHANGELOG.md"><b>Changelog</b></a>
+  <a href="https://github.com/expo/actions/blob/main/CHANGELOG.md"><b>Changelog</b></a>
 </p>
 
 <br />
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check fingerprint
-        uses: expo/expo-github-action/fingerprint@main
+        uses: expo/actions/fingerprint@main
 ```
 
 ### Configuration options
@@ -142,7 +142,7 @@ jobs:
 
       - name: Check fingerprint
         id: fingerprint
-        uses: expo/expo-github-action/fingerprint@main
+        uses: expo/actions/fingerprint@main
 
       - uses: actions/github-script@v6
         if: ${{ github.event_name == 'pull_request' && steps.fingerprint.outputs.fingerprint-diff == '[]' }}

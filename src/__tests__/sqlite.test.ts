@@ -1,4 +1,6 @@
-import { Database, openDatabaseAsync } from '../sqlite';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+
+import { type Database, openDatabaseAsync } from '../sqlite';
 
 describe(openDatabaseAsync, () => {
   let db: Database;

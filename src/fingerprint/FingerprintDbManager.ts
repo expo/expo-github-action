@@ -2,7 +2,7 @@ import type { FingerprintSource, Fingerprint as FingerprintType } from '@expo/fi
 
 import { Database, openDatabaseAsync } from '../sqlite';
 
-export type FingerprintDbEntity = Camelize<RawFingerprintDbEntity> & {
+export type FingerprintDbEntity = Omit<Camelize<RawFingerprintDbEntity>, 'fingerprint'> & {
   fingerprint: FingerprintType;
 };
 
@@ -60,7 +60,7 @@ export class FingerprintDbManager {
       `SELECT eas_build_id FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`,
       fingerprintHash
     );
-    return rows.map(row => row['eas_build_id']);
+    return rows.map((row) => row['eas_build_id']);
   }
 
   /**
@@ -117,7 +117,7 @@ export class FingerprintDbManager {
       `SELECT * FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`,
       fingerprintHash
     );
-    return rows.map(row => FingerprintDbManager.serialize(row));
+    return rows.map((row) => FingerprintDbManager.serialize(row));
   }
 
   public async getFingerprintSourcesAsync(

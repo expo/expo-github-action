@@ -1,11 +1,11 @@
 import { info } from '@actions/core';
-import assert from 'assert';
+import assert from 'node:assert';
 
-import { deleteCacheAsync } from '../cacher';
+import { executeAction } from '../actions';
+import { deleteCacheAsync } from '../caches';
 import { collectFingerprintActionInput, saveDbToCacheAsync } from '../fingerprint';
 import { getRepoDefaultBranch, isPushBranchContext } from '../github';
 import { retryAsync } from '../utils';
-import { executeAction } from '../worker';
 
 executeAction(runAction);
 

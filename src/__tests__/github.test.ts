@@ -1,52 +1,168 @@
-import * as github from '@actions/github';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import process from 'node:process';
 
-import { resetEnv, setEnv } from './utils';
-import { githubApi, pullContext } from '../github';
-
-jest.mock('@actions/github');
+import { getRepoDefaultBranch, githubApi, isPushBranchContext } from '../github';
 
 describe(githubApi, () => {
-  afterEach(resetEnv);
+  const { GITHUB_TOKEN: _, ...originalEnv } = process.env;
 
-  it('throws when GITHUB_TOKEN and input are undefined', () => {
-    setEnv('GITHUB_TOKEN', '');
-    expect(() => githubApi()).toThrow(`requires 'github-token' or a GITHUB_TOKEN`);
+  beforeEach(() => {
+    process.env = { ...originalEnv };
   });
 
-  it('returns octokit instance with GITHUB_TOKEN', () => {
-    setEnv('GITHUB_TOKEN', 'fakegithubtoken');
-    const fakeGithub = {};
-    jest.mocked(github.getOctokit).mockReturnValue(fakeGithub as any);
-    expect(githubApi()).toBe(fakeGithub);
-    expect(github.getOctokit).toBeCalledWith('fakegithubtoken');
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
-  it('returns octokit instance with input', () => {
-    setEnv('GITHUB_TOKEN', '');
-    const fakeGithub = {};
-    jest.mocked(github.getOctokit).mockReturnValue(fakeGithub as any);
-    expect(githubApi({ token: 'fakegithubtoken' })).toBe(fakeGithub);
-    expect(github.getOctokit).toBeCalledWith('fakegithubtoken');
+  it('creates octokit with GITHUB_TOKEN from environment', () => {
+    process.env['GITHUB_TOKEN'] = 'test-token-env';
+    const mockGetOctokit = mock<typeof import('@actions/github').getOctokit>();
+    mock.module('@actions/github', () => ({
+      getOctokit: mockGetOctokit,
+      context: {},
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = githubApi();
+
+    expect(mockGetOctokit).toHaveBeenCalledWith('test-token-env');
   });
 
-  it('uses GITHUB_TOKEN before input', () => {
-    setEnv('GITHUB_TOKEN', 'fakegithubtoken');
-    const fakeGithub = {};
-    jest.mocked(github.getOctokit).mockReturnValue(fakeGithub as any);
-    expect(githubApi({ token: 'badfakegithubtoken' })).toBe(fakeGithub);
-    expect(github.getOctokit).toBeCalledWith('fakegithubtoken');
+  it('creates octokit with token from options', () => {
+    const mockGetOctokit = mock<typeof import('@actions/github').getOctokit>();
+    mock.module('@actions/github', () => ({
+      getOctokit: mockGetOctokit,
+      context: {},
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = githubApi({ token: 'test-token-options' });
+
+    expect(mockGetOctokit).toHaveBeenCalledWith('test-token-options');
+  });
+
+  it('prefers environment token over options token', () => {
+    process.env['GITHUB_TOKEN'] = 'test-token-env';
+    const mockGetOctokit = mock().mockReturnValue({ rest: {} });
+    mock.module('@actions/github', () => ({
+      getOctokit: mockGetOctokit,
+      context: {},
+    }));
+
+    githubApi({ token: 'test-token-options' });
+
+    expect(mockGetOctokit).toHaveBeenCalledWith('test-token-env');
+  });
+
+  it('throws when no token is available', () => {
+    mock.module('@actions/github', () => ({
+      getOctokit: mock(),
+      context: {},
+    }));
+
+    expect(() => githubApi()).toThrow(
+      `This step requires 'github-token' or a GITHUB_TOKEN environment variable to create comments`
+    );
   });
 });
 
-describe(pullContext, () => {
-  it('throws when github context event is not a pull request', () => {
-    jest.mocked(github.context).eventName = 'push';
-    expect(() => pullContext()).toThrow('Could not find the pull request context');
+describe(getRepoDefaultBranch, () => {
+  it('returns default branch from context payload', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        payload: {
+          repository: {
+            default_branch: 'main',
+          },
+        },
+      },
+      getOctokit: mock(),
+    }));
+
+    const branch = getRepoDefaultBranch();
+
+    expect(branch).toBe('main');
   });
 
-  it('returns pull request context', () => {
-    jest.mocked(github.context).eventName = 'pull_request';
-    jest.mocked(github.context).issue = { owner: 'fakeowner', repo: 'fakerepo', number: 1337 };
-    expect(pullContext()).toMatchObject({ owner: 'fakeowner', repo: 'fakerepo', number: 1337 });
+  it('returns undefined when no repository in payload', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        payload: {},
+      },
+      getOctokit: mock(),
+    }));
+
+    const branch = getRepoDefaultBranch();
+
+    expect(branch).toBeUndefined();
+  });
+
+  it('returns undefined when no payload', () => {
+    mock.module('@actions/github', () => ({
+      context: {},
+      getOctokit: mock(),
+    }));
+
+    const branch = getRepoDefaultBranch();
+
+    expect(branch).toBeUndefined();
+  });
+});
+
+describe(isPushBranchContext, () => {
+  it('returns true for push event to target branch', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        eventName: 'push',
+        ref: 'refs/heads/main',
+      },
+      getOctokit: mock(),
+    }));
+
+    const result = isPushBranchContext('main');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for push event to different branch', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        eventName: 'push',
+        ref: 'refs/heads/develop',
+      },
+      getOctokit: mock(),
+    }));
+
+    const result = isPushBranchContext('main');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for non-push event', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        eventName: 'pull_request',
+        ref: 'refs/heads/main',
+      },
+      getOctokit: mock(),
+    }));
+
+    const result = isPushBranchContext('main');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for push event without refs/heads prefix', () => {
+    mock.module('@actions/github', () => ({
+      context: {
+        eventName: 'push',
+        ref: 'main',
+      },
+      getOctokit: mock(),
+    }));
+
+    const result = isPushBranchContext('main');
+
+    expect(result).toBe(false);
   });
 });

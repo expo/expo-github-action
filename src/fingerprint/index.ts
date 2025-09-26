@@ -2,15 +2,15 @@ import { getBooleanInput, getInput, group, info } from '@actions/core';
 import { context as githubContext } from '@actions/github';
 import { mkdirP } from '@actions/io';
 import type * as Fingerprint from '@expo/fingerprint';
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { FingerprintDbEntity, FingerprintDbManager } from './FingerprintDbManager';
-import { restoreCacheAsync, restoreFromCache, saveCacheAsync, saveToCache } from '../cacher';
-import { installPackage, resolvePackage } from '../packager';
+import { addGlobalNodeSearchPath, installToolFromPackage } from '../actions';
+import { downloadCache, uploadCache } from '../caches';
+import { installPackage, resolvePackageVersion } from '../packages';
 import { installSQLiteAsync } from '../sqlite';
-import { addGlobalNodeSearchPath, findTool, installToolFromPackage } from '../worker';
 
 export * from './FingerprintDbManager';
 
@@ -112,22 +112,18 @@ export async function installFingerprintAsync(
   useCache: boolean = true
 ): Promise<string> {
   const packageName = '@expo/fingerprint';
-  const version = await resolvePackage(packageName, fingerprintVersion);
+  const version = await resolvePackageVersion(packageName, fingerprintVersion);
   const message = useCache
     ? `Installing ${packageName} (${version}) from cache or with ${packager}`
     : `Installing ${packageName} (${version}) with ${packager}`;
 
   return await group(message, async () => {
-    let libRoot = findTool(packageName, version) || null;
-    if (!libRoot && useCache) {
-      libRoot = await restoreFromCache(packageName, version, packager);
-    }
-    if (!libRoot) {
-      libRoot = await installPackage(packageName, version, packager);
-      if (useCache) {
-        await saveToCache(packageName, version, packager);
-      }
-    }
+    const libRoot = await installPackage({
+      name: packageName,
+      version,
+      packageManager: packager,
+      packageCache: useCache,
+    });
 
     installToolFromPackage(libRoot);
     addGlobalNodeSearchPath(path.join(libRoot, 'node_modules'));
@@ -140,7 +136,7 @@ export async function installFingerprintAsync(
  * This will install the tool back into the local tool cache.
  */
 export async function restoreDbFromCacheAsync(cacheKey: string) {
-  return restoreCacheAsync(path.dirname(await getDbPathAsync()), cacheKey);
+  return downloadCache(path.dirname(await getDbPathAsync()), cacheKey);
 }
 
 /**
@@ -149,7 +145,7 @@ export async function restoreDbFromCacheAsync(cacheKey: string) {
  */
 export async function saveDbToCacheAsync(cacheKey: string) {
   info(`Saving fingerprint database to cache: ${cacheKey}`);
-  return saveCacheAsync(path.dirname(await getDbPathAsync()), cacheKey);
+  return uploadCache(path.dirname(await getDbPathAsync()), cacheKey);
 }
 
 /**

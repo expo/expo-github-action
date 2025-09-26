@@ -28,7 +28,7 @@ inputs:
     default: latest
   fingerprint-installation-cache:
     description: If fingerprint should be cached to speed up installation
-    default: true
+    default: "true"
   fingerprint-db-cache-key:
     description: A cache key to use for saving the fingerprint database
     required: false
