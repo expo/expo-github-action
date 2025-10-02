@@ -1,4 +1,4 @@
-import { setOutput } from '@actions/core';
+import { saveState, setOutput } from '@actions/core';
 
 import { executeAction } from '../actions';
 import {
@@ -27,4 +27,7 @@ export async function runAction(input = collectFingerprintActionInput()) {
   setOutput('previous-git-commit', input.previousGitCommitHash);
   setOutput('current-git-commit', input.currentGitCommitHash);
   setOutput('fingerprint-diff', diff);
+
+  // Saving the state for sanity check in the other helper actions like `fingerprint-update-artifact`
+  saveState('fingerprint', currentFingerprint);
 }
