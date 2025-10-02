@@ -27,7 +27,7 @@ async function runAction() {
   await fs.promises.mkdir(outputDirectory, { recursive: true });
 
   const sourceAppPath = await determineSourceAppPathAsync(sourceApp);
-  const outputFile = path.join(outputDirectory, path.basename(sourceApp));
+  const outputFile = path.join(outputDirectory, path.basename(sourceAppPath));
   info(`Repacking app - sourceAppPath[${sourceAppPath}] outputFile[${outputFile}]`);
 
   const repackArgs: string[] = [
