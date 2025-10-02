@@ -1,6 +1,5 @@
-import { getInput, getState, info } from '@actions/core';
+import { getInput, info } from '@actions/core';
 import * as github from '@actions/github';
-import assert from 'node:assert';
 
 import { executeAction } from '../actions';
 import { FingerprintDbManager, createFingerprintDbManagerAsync } from '../fingerprint';
@@ -15,12 +14,6 @@ async function runAction() {
   const artifactDigest = getInput('artifact-digest', { required: true });
   const packager = getInput('packager');
   const fingerprintDbCacheKey = getInput('fingerprint-db-cache-key');
-
-  const fingerprintState = getState('fingerprint');
-  assert(
-    fingerprintState,
-    'No fingerprint state found. Make sure to run the `fingerprint` action first.'
-  );
 
   const dbManager = await createFingerprintDbManagerAsync(packager, fingerprintDbCacheKey);
 
