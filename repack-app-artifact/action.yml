@@ -1,0 +1,155 @@
+---
+name: Expo GitHub Action - Repack App with Artifact Management
+author: Expo
+description: Complete workflow for fingerprint-based artifact query, download, repack, upload, and database update
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: composite
+  steps:
+    - name: Query artifact from fingerprint database
+      id: query-artifact
+      if: ${{ inputs.fingerprint-diff == '[]' }}
+      uses: ./fingerprint-query-artifact
+      with:
+        fingerprint-hash: ${{ fromJSON(inputs.current-fingerprint).hash }}
+        platform: ${{ inputs.platform }}
+        packager: ${{ inputs.packager }}
+        fingerprint-db-cache-key: ${{ inputs.fingerprint-db-cache-key }}
+
+    - name: Download artifact
+      id: download-artifact
+      if: steps.query-artifact.outputs.run-id != ''
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.output-directory }}/previous-build
+        github-token: ${{ inputs.github-token }}
+        run-id: ${{ steps.query-artifact.outputs.run-id }}
+
+    - name: Repack app
+      id: repack
+      if: steps.download-artifact.outputs.download-path != ''
+      uses: ./repack-app
+      with:
+        platform: ${{ inputs.platform }}
+        source-app: ${{ steps.download-artifact.outputs.download-path }}
+        output-path: ${{ inputs.output-directory }}/repacked-build
+        working-directory: ${{ inputs.working-directory }}
+        repack-version: ${{ inputs.repack-version }}
+
+    - name: Build
+      id: build
+      if: ${{ inputs.fingerprint-diff != '[]' || steps.query-artifact.outputs.run-id == '' }}
+      shell: ${{ inputs.build-command-shell }}
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.build-command }}
+
+    - name: Upload artifact
+      id: upload-artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ steps.repack.outputs.output-path }}
+        retention-days: ${{ inputs.retention-days }}
+        compression-level: ${{ inputs.compression-level }}
+
+    - name: Update fingerprint database
+      id: update-fingerprint
+      if: steps.upload-artifact.outputs.artifact-id != ''
+      uses: ./fingerprint-update-artifact
+      with:
+        current-git-commit: ${{ inputs.current-git-commit }}
+        current-fingerprint: ${{ inputs.current-fingerprint }}
+        platform: ${{ inputs.platform }}
+        artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+        artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
+        artifact-digest: ${{ steps.upload-artifact.outputs.artifact-digest }}
+        packager: ${{ inputs.packager }}
+        fingerprint-db-cache-key: ${{ inputs.fingerprint-db-cache-key }}
+
+inputs:
+  platform:
+    description: The platform for the artifact (android | ios)
+    required: true
+  fingerprint-diff:
+    description: The diff between the current and the previous fingerprint
+    required: true
+  current-git-commit:
+    description: The Git hash for the current commit
+    required: true
+  current-fingerprint:
+    description: The fingerprint of the current commit
+    required: true
+  build-command:
+    description: Custom shell command to run when no cached artifact is found
+    required: true
+  build-command-shell:
+    description: The shell to use for the build command
+    required: false
+    default: bash
+  artifact-name:
+    description: The name of the artifact to download/upload
+    required: true
+  github-token:
+    description: GitHub token
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: The relative directory of your Expo app
+    required: false
+    default: ${{ github.workspace }}
+  output-directory:
+    description: Directory path where the downloaded app or repacked app will be saved
+    required: false
+    default: ${{ runner.temp }}
+  repack-version:
+    description: "@expo/repack-app version to install"
+    required: false
+    default: latest
+  #
+  # [BEGIN] Shared inputs with fingerprint
+  #
+  # [END] Shared inputs with fingerprint
+  packager:
+    description: The package manager used to install the fingerprint tools
+    default: yarn
+  fingerprint-db-cache-key:
+    description: A cache key to use for fingerprint database
+    required: false
+    default: fingerprint-db
+  saving-db-branch:
+    description: The branch for saving the fingerprint database
+    required: false
+  #
+  # [BEGIN] Shared inputs with actions/download-artifact and actions/upload-artifact
+  upload-path:
+    description: Path to upload as artifact (e.g., repack output or build output)
+    required: true
+  retention-days:
+    description: Duration after which artifact will expire in days
+    required: false
+  compression-level:
+    description: The level of compression for Zlib (0-9)
+    required: false
+    default: '6'
+  #
+  # [END] Shared inputs with actions/download-artifact and actions/upload-artifact
+
+outputs:
+  artifact-id:
+    description: The uploaded artifact ID
+    value: ${{ steps.upload-artifact.outputs.artifact-id }}
+  artifact-url:
+    description: The uploaded artifact URL
+    value: ${{ steps.upload-artifact.outputs.artifact-url }}
+  artifact-digest:
+    description: The uploaded artifact digest (SHA-256)
+    value: ${{ steps.upload-artifact.outputs.artifact-digest }}
+  repack-executed:
+    description: Whether repack was executed
+    value: ${{ steps.download-artifact.outputs.download-path != '' }}
+  build-executed:
+    description: Whether build-command was executed (true if no artifact found)
+    value: ${{ inputs.fingerprint-diff != '[]' || steps.query-artifact.outputs.run-id == '' }}
