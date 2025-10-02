@@ -1,4 +1,4 @@
-import { getInput, info } from '@actions/core';
+import { getInput } from '@actions/core';
 import * as github from '@actions/github';
 import { type Fingerprint as FingerprintType } from '@expo/fingerprint';
 import assert from 'node:assert';

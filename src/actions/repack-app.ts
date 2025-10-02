@@ -1,6 +1,5 @@
 import { getInput, info, isDebug, setOutput } from '@actions/core';
 import spawnAsync from '@expo/spawn-async';
-import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -28,10 +27,7 @@ async function runAction() {
   await fs.promises.mkdir(outputDirectory, { recursive: true });
 
   const sourceAppPath = await determineSourceAppPathAsync(sourceApp);
-  const outputFile = path.join(
-    outputDirectory,
-    `repacked-${randomUUID()}${path.extname(sourceAppPath)}`
-  );
+  const outputFile = path.join(outputDirectory, path.basename(sourceApp));
   info(`Repacking app - sourceAppPath[${sourceAppPath}] outputFile[${outputFile}]`);
 
   const repackArgs: string[] = [
