@@ -12,6 +12,9 @@ inputs:
   current-git-commit:
     description: The Git hash for the current commit
     required: true
+  current-fingerprint:
+    description: The fingerprint of the current commit
+    required: true
   platform:
     description: The platform for the artifact (android | ios)
     required: true
