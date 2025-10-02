@@ -51,7 +51,7 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ steps.repack.outputs.output-path }}
+        path: ${{ steps.repack.outputs.output-path || inputs.build-output }}
         retention-days: ${{ inputs.retention-days }}
         compression-level: ${{ inputs.compression-level }}
 
@@ -84,6 +84,9 @@ inputs:
     required: true
   build-command:
     description: Custom shell command to run when no cached artifact is found
+    required: true
+  build-output:
+    description: The path to the build output file (e.g., .apk or .ipa)
     required: true
   build-command-shell:
     description: The shell to use for the build command
