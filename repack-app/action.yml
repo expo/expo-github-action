@@ -1,112 +1,33 @@
 ---
 name: Expo GitHub Action - Repack app
 author: Expo
-description: Repack from fingerprint-compatible builds
+description: Repackage app using @expo/repack-app
 branding:
   icon: smartphone
   color: gray-dark
 runs:
   using: node20
-  main: ../build/repack-app/index.js
-  post: ../build/repack-app-post/index.js
-  post-if: success()
+  main: ../build/repack-app.js
 inputs:
   platform:
     description: The platform for which to create a new build. Possible values are 'android' | 'ios'
     required: true
-  repack-version:
-    description: Repack version to install
+  source-app:
+    description: Path to the source app file to repack
+    required: true
+  output-directory:
+    description: Directory path where the repacked app will be saved
     required: false
-    default: latest
-  #
-  # [BEGIN] Shared inputs with fingerprint
-  #
-  packager:
-    description: The package manager used to install the fingerprint tools
-    default: yarn
-  github-token:
-    description: GitHub token
-    required: false
-    default: ${{ github.token }}
+    default: ${{ runner.temp }}
   working-directory:
     description: The relative directory of your Expo app
     required: false
     default: ${{ github.workspace }}
-  fingerprint-version:
-    description: Fingerprint version to install
+  repack-version:
+    description: "@expo/repack-app version to install"
     required: false
     default: latest
-  fingerprint-installation-cache:
-    description: If fingerprint should be cached to speed up installation
-    default: true
-  fingerprint-db-cache-key:
-    description: A cache key to use for saving the fingerprint database
-    required: false
-    default: fingerprint-db
-  previous-git-commit:
-    description: The Git hash for the base commit
-    required: false
-  current-git-commit:
-    description: The Git hash for the current commit
-    required: false
-  saving-db-branch:
-    description: The branch for saving the fingerprint database. Defaults to the repository's default branch
-    required: false
-  #
-  # [END] Shared inputs with fingerprint
-  #
-  # [BEGIN] The inputs are passed to @actions/upload-artifact
-  #
-  artifact-name:
-    description: 'Artifact name'
-    default: 'artifact'
-  upload-path:
-    description: 'A file, directory or wildcard pattern that describes what to upload'
-    required: true
-  retention-days:
-    description: >
-      Duration after which artifact will expire in days. 0 means using default retention.
-
-      Minimum 1 day.
-      Maximum 90 days unless changed from the repository settings page.
-  compression-level:
-    description: >
-      The level of compression for Zlib to be applied to the artifact archive.
-      The value can range from 0 to 9:
-      - 0: No compression
-      - 1: Best speed
-      - 6: Default compression (same as GNU Gzip)
-      - 9: Best compression
-      Higher levels will result in better compression, but will take longer to complete.
-      For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
-    default: '6'
-  #
-  # [END] The inputs are passed to @actions/upload-artifact
-  #
 
 outputs:
-  fingerprint-hit:
-    description: Whether fingerprint-compatible builds were found and repack was executed
-  #
-  # [BEGIN] The outputs are passed to @actions/upload-artifact
-  #
-  # artifact-id:
-  #   description: >
-  #     A unique identifier for the artifact that was just uploaded. Empty if the artifact upload failed.
-
-  #     This ID can be used as input to other APIs to download, delete or get more information about an artifact: https://docs.github.com/en/rest/actions/artifacts
-  # artifact-url:
-  #   description: >
-  #     A download URL for the artifact that was just uploaded. Empty if the artifact upload failed.
-
-  #     This download URL only works for requests Authenticated with GitHub. Anonymous downloads will be prompted to first login.
-  #     If an anonymous download URL is needed than a short time restricted URL can be generated using the download artifact API: https://docs.github.com/en/rest/actions/artifacts#download-an-artifact
-
-  #     This URL will be valid for as long as the artifact exists and the workflow run and repository exists. Once an artifact has expired this URL will no longer work.
-  #     Common uses cases for such a download URL can be adding download links to artifacts in descriptions or comments on pull requests or issues.
-  # artifact-digest:
-  #   description: >
-  #     SHA-256 digest for the artifact that was just uploaded. Empty if the artifact upload failed.
-  #
-  # [END] The outputs are passed to @actions/upload-artifact
-  #
+  output-path:
+    description: The full path to the repacked app file

@@ -1,0 +1,33 @@
+---
+name: Expo GitHub Action - Fingerprint Update Artifact
+author: Expo
+description: Update artifact metadata in fingerprint database
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node20
+  main: ../build/fingerprint-update-artifact.js
+inputs:
+  current-git-commit:
+    description: The Git hash for the current commit
+    required: true
+  platform:
+    description: The platform for the artifact (android | ios)
+    required: true
+  artifact-id:
+    description: The GitHub artifact ID
+    required: true
+  artifact-url:
+    description: The GitHub artifact URL
+    required: true
+  artifact-digest:
+    description: The GitHub artifact digest (SHA-256)
+    required: true
+  packager:
+    description: The package manager used to install the fingerprint tools
+    default: yarn
+  fingerprint-db-cache-key:
+    description: A cache key to use for saving the fingerprint database
+    required: false
+    default: fingerprint-db

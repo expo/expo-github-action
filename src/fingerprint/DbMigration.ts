@@ -78,13 +78,13 @@ export class DbMigrationCoordinator {
   ): Promise<void> {
     switch (toVersion) {
       case 1: {
-        // Migration 0 -> 1: Add github_artifact_id and platform columns to fingerprint table
-        info('Migration 0 -> 1: Adding github_artifacts table and fingerprint.platform column');
-        await GitHubArtifactsDbManager.createTableIfNotExistsAsync(db);
-        await db.runAsync(
-          'ALTER TABLE fingerprint ADD COLUMN github_artifact_id INTEGER REFERENCES github_artifacts(id)'
+        info(
+          'Migration 0 -> 1: Adding github_artifacts table with fingerprint_id and platform column'
         );
+
+        await GitHubArtifactsDbManager.createTableIfNotExistsAsync(db);
         await db.runAsync('ALTER TABLE fingerprint ADD COLUMN platform TEXT');
+
         break;
       }
 

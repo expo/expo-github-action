@@ -1,11 +1,11 @@
 import { setOutput } from '@actions/core';
 
+import { executeAction } from '../actions';
 import {
   collectFingerprintActionInput,
   createFingerprintDbManagerAsync,
   createFingerprintOutputAsync,
 } from '../fingerprint';
-import { executeAction } from '../worker';
 
 executeAction(runAction);
 

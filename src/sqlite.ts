@@ -1,12 +1,11 @@
-import { group } from '@actions/core';
-import assert from 'assert';
-import path from 'path';
+import * as core from '@actions/core';
+import assert from 'node:assert';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import type sqlite3Types from 'sqlite3';
-import { promisify } from 'util';
 
-import { restoreFromCache, saveToCache } from './cacher';
-import { installPackage, resolvePackage } from './packager';
-import { addGlobalNodeSearchPath, findTool } from './worker';
+import { addGlobalNodeSearchPath } from './actions';
+import { installPackage, resolvePackageVersion } from './packages';
 
 /**
  * A database object with async methods.
@@ -36,14 +35,14 @@ export type Camelize<T> = { [K in keyof T as CamelizeString<K>]: T[K] };
 export function openDatabaseAsync(filename: string): Promise<Database> {
   return new Promise<sqlite3Types.Database>((resolve, reject) => {
     const sqlite3 = require('sqlite3') as typeof import('sqlite3');
-    const db = new sqlite3.Database(filename, err => {
+    const db = new sqlite3.Database(filename, (err) => {
       if (err) {
         reject(err);
       } else {
         resolve(db);
       }
     });
-  }).then(db => {
+  }).then((db) => {
     return {
       ...db,
       closeAsync: promisify(db.close.bind(db)),
@@ -74,19 +73,18 @@ export function openDatabaseAsync(filename: string): Promise<Database> {
 export async function installSQLiteAsync(packager: string): Promise<string> {
   const sqliteVersion = require('../package.json').devDependencies.sqlite3;
   assert(sqliteVersion);
+
   const packageName = 'sqlite3';
-  const version = await resolvePackage(packageName, sqliteVersion);
+  const version = await resolvePackageVersion(packageName, sqliteVersion);
   const message = `Installing ${packageName} (${version}) from cache or with ${packager}`;
 
-  return await group(message, async () => {
-    let libRoot = findTool(packageName, version) || null;
-    if (!libRoot) {
-      libRoot = await restoreFromCache(packageName, version, packager);
-    }
-    if (!libRoot) {
-      libRoot = await installPackage(packageName, version, packager);
-      await saveToCache(packageName, version, packager);
-    }
+  return await core.group(message, async () => {
+    const libRoot = await installPackage({
+      name: packageName,
+      version,
+      packageManager: packager,
+      packageCache: true,
+    });
 
     addGlobalNodeSearchPath(path.join(libRoot, 'node_modules'));
     return libRoot;

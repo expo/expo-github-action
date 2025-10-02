@@ -1,0 +1,32 @@
+---
+name: Expo GitHub Action - Fingerprint Query Artifact
+author: Expo
+description: Query artifacts from fingerprint database
+branding:
+  icon: smartphone
+  color: gray-dark
+runs:
+  using: node20
+  main: ../build/fingerprint-query-artifact.js
+inputs:
+  fingerprint-hash:
+    description: The fingerprint hash to query
+    required: true
+  platform:
+    description: The platform for the artifact (android | ios)
+    required: true
+  packager:
+    description: The package manager used to install the fingerprint tools
+    default: yarn
+  fingerprint-db-cache-key:
+    description: A cache key to use for loading the fingerprint database
+    required: false
+    default: fingerprint-db
+
+outputs:
+  artifact-id:
+    description: The GitHub artifact ID if found, empty otherwise
+  artifact-url:
+    description: The GitHub artifact URL if found, empty otherwise
+  run-id:
+    description: The workflow run ID if found, empty otherwise

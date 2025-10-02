@@ -5,18 +5,8 @@ import { DbMigrationCoordinator } from './DbMigration';
 import { GitHubArtifactsDbManager } from './GitHubArtifactsDbManager';
 import { type IDbManager } from './IDbManager';
 
-export type FingerprintDbEntity = Camelize<RawFingerprintDbEntity> & {
+export type FingerprintDbEntity = Omit<Camelize<RawFingerprintDbEntity>, 'fingerprint'> & {
   fingerprint: FingerprintType;
-};
-
-export type FingerprintDbEntityWithArtifact = FingerprintDbEntity & {
-  githubArtifact?: {
-    id: number;
-    artifactId: string;
-    artifactUrl: string;
-    artifactDigest: string;
-    workflowRunId: string;
-  };
 };
 
 export class FingerprintDbManager implements IDbManager {
@@ -52,12 +42,6 @@ export class FingerprintDbManager implements IDbManager {
     params: {
       easBuildId?: string;
       fingerprint: FingerprintType;
-      githubArtifact?: {
-        artifactId: string;
-        artifactUrl: string;
-        artifactDigest: string;
-        workflowRunId: string;
-      };
       platform?: string;
     }
   ): Promise<void> {
@@ -68,25 +52,17 @@ export class FingerprintDbManager implements IDbManager {
     const platform = params.platform ?? null;
     const fingerprintString = JSON.stringify(params.fingerprint);
 
-    let githubArtifactId: number | null = null;
-    if (params.githubArtifact) {
-      const artifactsManager = new GitHubArtifactsDbManager(this.db);
-      githubArtifactId = await artifactsManager.upsertArtifactAsync(params.githubArtifact);
-    }
-
     await this.db.runAsync(
-      `INSERT INTO ${FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint, github_artifact_id, platform) VALUES (?, ?, ?, json(?), ?, ?) \
-       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?), github_artifact_id = ?, platform = ?`,
+      `INSERT INTO ${FingerprintDbManager.TABLE_NAME} (git_commit_hash, eas_build_id, fingerprint_hash, fingerprint, platform) VALUES (?, ?, ?, json(?), ?) \
+       ON CONFLICT(git_commit_hash) DO UPDATE SET eas_build_id = ?, fingerprint_hash = ?, fingerprint = json(?), platform = ?`,
       gitCommitHash,
       easBuildId,
       params.fingerprint.hash,
       fingerprintString,
-      githubArtifactId,
       platform,
       easBuildId,
       params.fingerprint.hash,
       fingerprintString,
-      githubArtifactId,
       platform
     );
   }
@@ -99,7 +75,7 @@ export class FingerprintDbManager implements IDbManager {
       `SELECT eas_build_id FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`,
       fingerprintHash
     );
-    return rows.map(row => row['eas_build_id']);
+    return rows.map((row) => row['eas_build_id']);
   }
 
   /**
@@ -146,46 +122,6 @@ export class FingerprintDbManager implements IDbManager {
     return row ? FingerprintDbManager.serialize(row) : null;
   }
 
-  public async getFirstEntityWithGitHubArtifactFromFingerprintHashAsync(
-    fingerprintHash: string
-  ): Promise<FingerprintDbEntityWithArtifact | null> {
-    if (!this.db) {
-      throw new Error('Database not initialized. Call initAsync() first.');
-    }
-    const row = await this.db.getAsync<
-      RawFingerprintDbEntity & {
-        artifact_id: string;
-        artifact_url: string;
-        artifact_digest: string;
-        artifact_pk_id: number;
-        workflow_run_id: string;
-      }
-    >(
-      `SELECT f.*, a.id as artifact_pk_id, a.artifact_id, a.artifact_url, a.artifact_digest, a.workflow_run_id
-       FROM ${FingerprintDbManager.TABLE_NAME} f
-       JOIN github_artifacts a ON f.github_artifact_id = a.id
-       WHERE f.fingerprint_hash = ? AND f.github_artifact_id IS NOT NULL
-       LIMIT 1`,
-      fingerprintHash
-    );
-
-    if (!row) {
-      return null;
-    }
-
-    const entity = FingerprintDbManager.serialize(row);
-    return {
-      ...entity,
-      githubArtifact: {
-        id: row.artifact_pk_id,
-        artifactId: row.artifact_id,
-        artifactUrl: row.artifact_url,
-        artifactDigest: row.artifact_digest,
-        workflowRunId: row.workflow_run_id,
-      },
-    };
-  }
-
   public async queryEntitiesFromFingerprintHashAsync(
     fingerprintHash: string
   ): Promise<FingerprintDbEntity[]> {
@@ -196,7 +132,7 @@ export class FingerprintDbManager implements IDbManager {
       `SELECT * FROM ${FingerprintDbManager.TABLE_NAME} WHERE fingerprint_hash = ?`,
       fingerprintHash
     );
-    return rows.map(row => FingerprintDbManager.serialize(row));
+    return rows.map((row) => FingerprintDbManager.serialize(row));
   }
 
   public async getFingerprintSourcesAsync(
@@ -216,6 +152,61 @@ export class FingerprintDbManager implements IDbManager {
     return JSON.parse(result);
   }
 
+  public async getFirstGitHubArtifactAsync(
+    fingerprintHash: string,
+    platform: string
+  ): Promise<{
+    id: number;
+    artifactId: string;
+    artifactUrl: string;
+    artifactDigest: string;
+    workflowRunId: string;
+    platform: string;
+  } | null> {
+    if (!this.db) {
+      throw new Error('Database not initialized. Call initAsync() first.');
+    }
+
+    const row = await this.db.getAsync<{
+      id: number;
+      artifact_id: string;
+      artifact_url: string;
+      artifact_digest: string;
+      workflow_run_id: string;
+      platform: string;
+    }>(
+      `SELECT ga.id, ga.artifact_id, ga.artifact_url, ga.artifact_digest, ga.workflow_run_id, ga.platform
+       FROM ${FingerprintDbManager.TABLE_NAME} f
+       JOIN github_artifacts ga ON f.id = ga.fingerprint_id
+       WHERE f.fingerprint_hash = ? AND (ga.platform = ? AND (f.platform = ? OR f.platform IS NULL))
+       ORDER BY f.id ASC, ga.id ASC
+       LIMIT 1`,
+      fingerprintHash,
+      platform,
+      platform
+    );
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: row.id,
+      artifactId: row.artifact_id,
+      artifactUrl: row.artifact_url,
+      artifactDigest: row.artifact_digest,
+      workflowRunId: row.workflow_run_id,
+      platform: row.platform,
+    };
+  }
+
+  public getArtifactsManager(): GitHubArtifactsDbManager {
+    if (!this.db) {
+      throw new Error('Database not initialized. Call initAsync() first.');
+    }
+    return new GitHubArtifactsDbManager(this.db);
+  }
+
   public async closeAsync(): Promise<void> {
     this.db?.closeAsync();
   }
@@ -230,7 +221,6 @@ export class FingerprintDbManager implements IDbManager {
     'git_commit_hash TEXT NOT NULL',
     'fingerprint_hash TEXT NOT NULL',
     'fingerprint TEXT NOT NULL',
-    'github_artifact_id INTEGER REFERENCES github_artifacts(id)',
     'platform TEXT',
     "created_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
     "updated_at TEXT NOT NULL DEFAULT (DATETIME('now', 'utc'))",
@@ -256,7 +246,6 @@ END`,
       gitCommitHash: rawEntity.git_commit_hash,
       fingerprintHash: rawEntity.fingerprint_hash,
       fingerprint: JSON.parse(rawEntity.fingerprint),
-      githubArtifactId: rawEntity.github_artifact_id,
       platform: rawEntity.platform,
       createdAt: rawEntity.created_at,
       updatedAt: rawEntity.updated_at,
@@ -272,7 +261,6 @@ interface RawFingerprintDbEntity {
   git_commit_hash: string;
   fingerprint_hash: string;
   fingerprint: string;
-  github_artifact_id: number | null;
   platform: string | null;
   created_at: string;
   updated_at: string;

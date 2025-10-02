@@ -13,39 +13,23 @@ export class GitHubArtifactsDbManager implements IDbManager {
   }
 
   public async insertArtifactAsync(params: {
+    fingerprintId: number;
+    platform: string;
     artifactId: string;
     artifactUrl: string;
     artifactDigest: string;
     workflowRunId: string;
   }): Promise<number> {
     const result = await this.db.runAsync(
-      `INSERT INTO ${GitHubArtifactsDbManager.TABLE_NAME} (artifact_id, artifact_url, artifact_digest, workflow_run_id) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO ${GitHubArtifactsDbManager.TABLE_NAME} (fingerprint_id, platform, artifact_id, artifact_url, artifact_digest, workflow_run_id) VALUES (?, ?, ?, ?, ?, ?)`,
+      params.fingerprintId,
+      params.platform,
       params.artifactId,
       params.artifactUrl,
       params.artifactDigest,
       params.workflowRunId
     );
     return result.lastID;
-  }
-
-  public async upsertArtifactAsync(params: {
-    artifactId: string;
-    artifactUrl: string;
-    artifactDigest: string;
-    workflowRunId: string;
-  }): Promise<number> {
-    const existing = await this.getArtifactByArtifactIdAsync(params.artifactId);
-    if (existing) {
-      await this.db.runAsync(
-        `UPDATE ${GitHubArtifactsDbManager.TABLE_NAME} SET artifact_url = ?, artifact_digest = ?, workflow_run_id = ? WHERE artifact_id = ?`,
-        params.artifactUrl,
-        params.artifactDigest,
-        params.workflowRunId,
-        params.artifactId
-      );
-      return existing.id;
-    }
-    return this.insertArtifactAsync(params);
   }
 
   public async getArtifactByIdAsync(id: number): Promise<GitHubArtifactDbEntity | null> {
@@ -70,6 +54,23 @@ export class GitHubArtifactsDbManager implements IDbManager {
     await this.db.runAsync(`DELETE FROM ${GitHubArtifactsDbManager.TABLE_NAME} WHERE id = ?`, id);
   }
 
+  public async getArtifactsByFingerprintIdAsync(
+    fingerprintId: number
+  ): Promise<GitHubArtifactDbEntity[]> {
+    const rows = await this.db.allAsync<RawGitHubArtifactDbEntity>(
+      `SELECT * FROM ${GitHubArtifactsDbManager.TABLE_NAME} WHERE fingerprint_id = ?`,
+      fingerprintId
+    );
+    return rows.map((row) => GitHubArtifactsDbManager.serialize(row));
+  }
+
+  public async deleteArtifactsByFingerprintIdAsync(fingerprintId: number): Promise<void> {
+    await this.db.runAsync(
+      `DELETE FROM ${GitHubArtifactsDbManager.TABLE_NAME} WHERE fingerprint_id = ?`,
+      fingerprintId
+    );
+  }
+
   public static async createTableIfNotExistsAsync(db: Database): Promise<void> {
     await db.runAsync(
       `CREATE TABLE IF NOT EXISTS ${GitHubArtifactsDbManager.TABLE_NAME} (${GitHubArtifactsDbManager.SCHEMA.join(', ')})`
@@ -80,6 +81,8 @@ export class GitHubArtifactsDbManager implements IDbManager {
 
   private static readonly SCHEMA = [
     'id INTEGER PRIMARY KEY AUTOINCREMENT',
+    'fingerprint_id INTEGER NOT NULL REFERENCES fingerprint(id) ON DELETE CASCADE',
+    'platform TEXT NOT NULL',
     'artifact_id TEXT NOT NULL',
     'artifact_url TEXT NOT NULL',
     'artifact_digest TEXT NOT NULL',
@@ -89,6 +92,8 @@ export class GitHubArtifactsDbManager implements IDbManager {
   private static serialize(rawEntity: RawGitHubArtifactDbEntity): GitHubArtifactDbEntity {
     return {
       id: rawEntity.id,
+      fingerprintId: rawEntity.fingerprint_id,
+      platform: rawEntity.platform,
       artifactId: rawEntity.artifact_id,
       artifactUrl: rawEntity.artifact_url,
       artifactDigest: rawEntity.artifact_digest,
@@ -99,6 +104,8 @@ export class GitHubArtifactsDbManager implements IDbManager {
 
 interface RawGitHubArtifactDbEntity {
   id: number;
+  fingerprint_id: number;
+  platform: string;
   artifact_id: string;
   artifact_url: string;
   artifact_digest: string;

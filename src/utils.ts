@@ -1,16 +1,4 @@
 /**
- * Replace all template variables in a string.
- * This uses the notation of `{varname}`, which can be defined as object.
- */
-export function template(template: string, replacements: Record<string, string>) {
-  let result = template;
-  for (const name in replacements) {
-    result = result.replaceAll(`{${name}}`, replacements[name]);
-  }
-  return result;
-}
-
-/**
  * Retry an async function a number of times with a delay between each attempt.
  */
 export async function retryAsync<T>(
@@ -39,5 +27,5 @@ export async function retryAsync<T>(
  * Delay by the given milliseconds.
  */
 export async function delayAsync(timeMs: number) {
-  return new Promise(resolve => setTimeout(resolve, timeMs));
+  return new Promise((resolve) => setTimeout(resolve, timeMs));
 }
