@@ -35,7 +35,7 @@ runs:
       with:
         platform: ${{ inputs.platform }}
         source-app: ${{ steps.download-artifact.outputs.download-path }}
-        output-path: ${{ inputs.output-directory }}/repacked-build
+        output-directory: ${{ inputs.output-directory }}/repacked-build
         working-directory: ${{ inputs.working-directory }}
         repack-version: ${{ inputs.repack-version }}
 
