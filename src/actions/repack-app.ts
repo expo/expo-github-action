@@ -39,7 +39,7 @@ async function runAction() {
     '--platform',
     platform,
     '--source-app',
-    sourceApp,
+    sourceAppPath,
     '--output',
     outputFile,
   ];
