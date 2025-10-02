@@ -11,7 +11,7 @@ runs:
     - name: Query artifact from fingerprint database
       id: query-artifact
       if: ${{ inputs.fingerprint-diff == '[]' }}
-      uses: ./fingerprint-query-artifact
+      uses: expo/expo-github-action/fingerprint-query-artifact@kudo/repack-app
       with:
         fingerprint-hash: ${{ fromJSON(inputs.current-fingerprint).hash }}
         platform: ${{ inputs.platform }}
@@ -31,7 +31,7 @@ runs:
     - name: Repack app
       id: repack
       if: steps.download-artifact.outputs.download-path != ''
-      uses: ./repack-app
+      uses: expo/expo-github-action/repack-app@kudo/repack-app
       with:
         platform: ${{ inputs.platform }}
         source-app: ${{ steps.download-artifact.outputs.download-path }}
@@ -58,7 +58,7 @@ runs:
     - name: Update fingerprint database
       id: update-fingerprint
       if: steps.upload-artifact.outputs.artifact-id != ''
-      uses: ./fingerprint-update-artifact
+      uses: expo/expo-github-action/fingerprint-update-artifact@kudo/repack-app
       with:
         current-git-commit: ${{ inputs.current-git-commit }}
         current-fingerprint: ${{ inputs.current-fingerprint }}
