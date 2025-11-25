@@ -18,8 +18,8 @@ export const MESSAGE_ID = 'projectId:{projectId}';
 
 export function previewInput() {
   const qrTarget = getInput('qr-target') || undefined;
-  if (qrTarget && !['expo-go', 'dev-client'].includes(qrTarget)) {
-    throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go" or "dev-build"`);
+  if (qrTarget && !['expo-go', 'dev-build', 'dev-client'].includes(qrTarget)) {
+    throw new Error(`Invalid QR code target: "${qrTarget}", expected "expo-go", "dev-build" or "dev-client".`);
   }
 
   return {
