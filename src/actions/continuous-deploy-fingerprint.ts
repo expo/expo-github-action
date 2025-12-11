@@ -261,6 +261,7 @@ function createSummaryForUpdatesAndBuilds({
   const appSlug = config.slug;
   const qrTarget = getQrTarget(options);
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
+  const appScheme = appSchemes[0] || appSlug;
 
   const { androidBuildRunInfo, iosBuildRunInfo } = buildRunInfos;
 
@@ -274,7 +275,9 @@ function createSummaryForUpdatesAndBuilds({
       ? `[Update Permalink](${getUpdateGroupWebsite({ projectId, updateGroupId: update.group })})`
       : 'n/a';
   const getUpdateQRURL = (update: EasUpdate | undefined) =>
-    update ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
+    update
+      ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appScheme, qrTarget })
+      : null;
   const getBuildDetails = (buildRunInfo: BuildRunInfo) =>
     getBuildLink(buildRunInfo.buildInfo) +
     '<br />' +
