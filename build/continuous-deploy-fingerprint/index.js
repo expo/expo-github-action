@@ -34898,6 +34898,7 @@ exports.authenticate = authenticate;
 exports.projectOwner = projectOwner;
 exports.runCommand = runCommand;
 exports.easBuild = easBuild;
+exports.getEasBuildWaitArgs = getEasBuildWaitArgs;
 exports.createEasBuildFromRawCommandAsync = createEasBuildFromRawCommandAsync;
 exports.cancelEasBuildAsync = cancelEasBuildAsync;
 exports.queryEasBuildInfoAsync = queryEasBuildInfoAsync;
@@ -35012,19 +35013,29 @@ async function easBuild(cmd) {
     }
     return JSON.parse(stdout);
 }
+function getEasBuildWaitArgs(waitForBuild) {
+    return waitForBuild ? [] : ['--no-wait'];
+}
+function hasEasBuildNoWaitFlag(command) {
+    return /(^|\s)--no-wait(?=\s|$)/.test(command);
+}
 /**
  * Create an new EAS build using the user-provided command.
  */
-async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
+async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = [], options) {
     let stdout = '';
+    const waitForBuild = options?.waitForBuild ?? false;
     let cmd = command;
+    if (waitForBuild && hasEasBuildNoWaitFlag(cmd)) {
+        throw new Error('Cannot use wait-for-build when the EAS build command already includes --no-wait.');
+    }
     if (!cmd.includes('--json')) {
         cmd += ' --json';
     }
     if (!cmd.includes('--non-interactive')) {
         cmd += ' --non-interactive';
     }
-    if (!cmd.includes('--no-wait')) {
+    if (!waitForBuild) {
         cmd += ' --no-wait';
     }
     try {
@@ -37541,6 +37552,7 @@ function collectContinuousDeployFingerprintInput() {
         platform: platformInput,
         environment: (0, input_1.getInput)('environment'),
         autoSubmitBuilds: (0, input_1.getInput)('auto-submit-builds') === 'true',
+        waitForBuild: (0, core_1.getBooleanInput)('wait-for-build'),
         githubToken: (0, input_1.getInput)('github-token', { required: true }),
         workingDirectory: (0, input_1.getInput)('working-directory', { required: true }),
     };
@@ -37563,6 +37575,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
                 isInPullRequest,
                 environment: input.environment,
                 autoSubmitBuild: input.autoSubmitBuilds,
+                waitForBuild: input.waitForBuild,
             })
             : null,
         platformsToRun.has('ios')
@@ -37573,6 +37586,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
                 isInPullRequest,
                 environment: input.environment,
                 autoSubmitBuild: input.autoSubmitBuilds,
+                waitForBuild: input.waitForBuild,
             })
             : null,
     ]);
@@ -37613,7 +37627,7 @@ async function continuousDeployFingerprintAction(input = collectContinuousDeploy
     (0, core_1.setOutput)('ios-did-start-new-build', iosBuildRunInfo?.isNew);
     (0, core_1.setOutput)('update-output', updates);
 }
-async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, profile, isInPullRequest, environment, autoSubmitBuild, }) {
+async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, profile, isInPullRequest, environment, autoSubmitBuild, waitForBuild, }) {
     const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
     const { buildInfo: existingBuildInfo, fingerprintHash } = await (0, fingerprintUtils_1.getBuildInfoForCurrentFingerprintAsync)({
         workingDirectory,
@@ -37638,13 +37652,14 @@ async function buildForPlatformIfNecessaryAsync({ platform, workingDirectory, pr
                 platform,
                 profile,
                 autoSubmit: autoSubmitBuild,
+                waitForBuild,
             }),
             isNew: true,
             fingerprintHash,
         };
     }
 }
-async function createEASBuildAsync({ cwd, profile, platform, autoSubmit, }) {
+async function createEASBuildAsync({ cwd, profile, platform, autoSubmit, waitForBuild, }) {
     try {
         const extraDebugArgs = (0, core_1.isDebug)() ? ['--build-logger-level', 'debug'] : [];
         const extraAutoSubmitArgs = autoSubmit ? ['--auto-submit'] : [];
@@ -37656,7 +37671,7 @@ async function createEASBuildAsync({ cwd, profile, platform, autoSubmit, }) {
             platform,
             '--non-interactive',
             '--json',
-            '--no-wait',
+            ...(0, expo_1.getEasBuildWaitArgs)(waitForBuild),
             ...extraDebugArgs,
             ...extraAutoSubmitArgs,
         ], {

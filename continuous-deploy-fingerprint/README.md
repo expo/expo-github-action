@@ -65,6 +65,7 @@ Here is a summary of all the input options you can use.
 | **working-directory**   | -              | The relative directory of your Expo app                                      |
 | **platform**            | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
 | **auto-submit-builds**  | -              | Whether to add the `--auto-submit` flag to the issued `eas build` commands.  |
+| **wait-for-build**      | `false`        | Wait for any newly started EAS Build to complete before the action resolves. |
 | **github-token**        | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.

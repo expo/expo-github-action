@@ -42,6 +42,10 @@ inputs:
     default: fingerprint-db
   eas-build-message:
     description: A short message describing the build
+  wait-for-build:
+    description: Wait for newly started EAS Builds to complete before this action resolves
+    required: false
+    default: false
   previous-git-commit:
     description: The Git hash for the base commit
     required: false

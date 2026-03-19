@@ -97,6 +97,7 @@ Here is a summary of all the input options you can use.
 | **fingerprint-installation-cache** | `true`                                         | If the `@expo/fingerprint` should be cached to speed up installation                           |
 | **fingerprint-db-cache-key**       | `fingerprint-db`                               | A cache key to use for saving the fingerprint database                                         |
 | **eas-build-message**              | Will retrieve from the Git branch HEAD message | A short message describing the build that will pass to `eas build --message`                   |
+| **wait-for-build**                 | `false`                                        | Wait for newly started EAS Builds to complete before the action resolves                       |
 
 ### Available outputs
 

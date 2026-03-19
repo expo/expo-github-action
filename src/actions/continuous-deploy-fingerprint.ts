@@ -1,11 +1,17 @@
-import { info, isDebug, setFailed, setOutput } from '@actions/core';
+import { getBooleanInput, info, isDebug, setFailed, setOutput } from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 import { ExpoConfig } from '@expo/config';
 
 import { createDetails, getQrTarget, getSchemesInOrderFromConfig } from '../comment';
 import { EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { AppPlatform, BuildInfo, appPlatformEmojis, getBuildLogsUrl } from '../expo';
+import {
+  AppPlatform,
+  BuildInfo,
+  appPlatformEmojis,
+  getBuildLogsUrl,
+  getEasBuildWaitArgs,
+} from '../expo';
 import { getBuildInfoForCurrentFingerprintAsync } from '../fingerprintUtils';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { getInput } from '../input';
@@ -31,6 +37,7 @@ export function collectContinuousDeployFingerprintInput() {
     platform: platformInput,
     environment: getInput('environment'),
     autoSubmitBuilds: getInput('auto-submit-builds') === 'true',
+    waitForBuild: getBooleanInput('wait-for-build'),
     githubToken: getInput('github-token', { required: true }),
     workingDirectory: getInput('working-directory', { required: true }),
   };
@@ -61,6 +68,7 @@ export async function continuousDeployFingerprintAction(
           isInPullRequest,
           environment: input.environment,
           autoSubmitBuild: input.autoSubmitBuilds,
+          waitForBuild: input.waitForBuild,
         })
       : null,
     platformsToRun.has('ios')
@@ -71,6 +79,7 @@ export async function continuousDeployFingerprintAction(
           isInPullRequest,
           environment: input.environment,
           autoSubmitBuild: input.autoSubmitBuilds,
+          waitForBuild: input.waitForBuild,
         })
       : null,
   ]);
@@ -124,6 +133,7 @@ async function buildForPlatformIfNecessaryAsync({
   isInPullRequest,
   environment,
   autoSubmitBuild,
+  waitForBuild,
 }: {
   platform: 'ios' | 'android';
   profile: string;
@@ -131,6 +141,7 @@ async function buildForPlatformIfNecessaryAsync({
   isInPullRequest: boolean;
   environment: string | null;
   autoSubmitBuild: boolean;
+  waitForBuild: boolean;
 }): Promise<BuildRunInfo> {
   const humanReadablePlatformName = platform === 'ios' ? 'iOS' : 'Android';
 
@@ -161,6 +172,7 @@ async function buildForPlatformIfNecessaryAsync({
         platform,
         profile,
         autoSubmit: autoSubmitBuild,
+        waitForBuild,
       }),
       isNew: true,
       fingerprintHash,
@@ -173,11 +185,13 @@ async function createEASBuildAsync({
   profile,
   platform,
   autoSubmit,
+  waitForBuild,
 }: {
   cwd: string;
   profile: string;
   platform: 'ios' | 'android';
   autoSubmit: boolean;
+  waitForBuild: boolean;
 }): Promise<BuildInfo> {
   try {
     const extraDebugArgs = isDebug() ? ['--build-logger-level', 'debug'] : [];
@@ -192,7 +206,7 @@ async function createEASBuildAsync({
         platform,
         '--non-interactive',
         '--json',
-        '--no-wait',
+        ...getEasBuildWaitArgs(waitForBuild),
         ...extraDebugArgs,
         ...extraAutoSubmitArgs,
       ],

@@ -25,6 +25,10 @@ inputs:
   auto-submit-builds:
     description: Automatically submit new builds to their respective app stores using EAS Build `--auto-submit` flag (EAS Submit).
     required: false
+  wait-for-build:
+    description: Wait for any newly started EAS Build to complete before this action resolves.
+    required: false
+    default: false
   github-token:
     description: GitHub token to use when commenting on PR
     required: false

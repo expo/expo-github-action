@@ -97991,6 +97991,7 @@ exports.authenticate = authenticate;
 exports.projectOwner = projectOwner;
 exports.runCommand = runCommand;
 exports.easBuild = easBuild;
+exports.getEasBuildWaitArgs = getEasBuildWaitArgs;
 exports.createEasBuildFromRawCommandAsync = createEasBuildFromRawCommandAsync;
 exports.cancelEasBuildAsync = cancelEasBuildAsync;
 exports.queryEasBuildInfoAsync = queryEasBuildInfoAsync;
@@ -98105,19 +98106,29 @@ async function easBuild(cmd) {
     }
     return JSON.parse(stdout);
 }
+function getEasBuildWaitArgs(waitForBuild) {
+    return waitForBuild ? [] : ['--no-wait'];
+}
+function hasEasBuildNoWaitFlag(command) {
+    return /(^|\s)--no-wait(?=\s|$)/.test(command);
+}
 /**
  * Create an new EAS build using the user-provided command.
  */
-async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
+async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = [], options) {
     let stdout = '';
+    const waitForBuild = options?.waitForBuild ?? false;
     let cmd = command;
+    if (waitForBuild && hasEasBuildNoWaitFlag(cmd)) {
+        throw new Error('Cannot use wait-for-build when the EAS build command already includes --no-wait.');
+    }
     if (!cmd.includes('--json')) {
         cmd += ' --json';
     }
     if (!cmd.includes('--non-interactive')) {
         cmd += ' --non-interactive';
     }
-    if (!cmd.includes('--no-wait')) {
+    if (!waitForBuild) {
         cmd += ' --no-wait';
     }
     try {

@@ -45,6 +45,7 @@ export function collectPreviewBuildActionInput() {
     shouldComment: !getInput('comment') || getBooleanInput('comment'),
     commentId: getInput('comment-id') || MESSAGE_ID,
     easBuildMessage: getInput('eas-build-message'),
+    waitForBuild: getBooleanInput('wait-for-build'),
   };
 }
 
@@ -102,7 +103,9 @@ export async function previewAction(input = collectPreviewBuildActionInput()) {
     (await getGitCommandMessageAsync({ token: input.githubToken }, input.currentGitCommitHash));
   const args = ['--message', buildMessage];
   const builds = await group(`Run eas ${command}"`, () =>
-    createEasBuildFromRawCommandAsync(input.workingDirectory, command, args)
+    createEasBuildFromRawCommandAsync(input.workingDirectory, command, args, {
+      waitForBuild: input.waitForBuild,
+    })
   );
 
   await maybeUpdateFingerprintDbAsync({
@@ -248,7 +251,9 @@ function createMessageBodyInBuilding(
   return [
     createCommentForEasMetadata(builds),
     '',
-    `Fingerprint is changed, new EAS Build(s) are now in pipeline.`,
+    input.waitForBuild
+      ? `Fingerprint is changed, new EAS Build(s) completed successfully.`
+      : `Fingerprint is changed, new EAS Build(s) are now in pipeline.`,
     '',
     `Build with commit ${input.currentGitCommitHash}`,
     '',

@@ -157,24 +157,39 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
   return JSON.parse(stdout);
 }
 
+export function getEasBuildWaitArgs(waitForBuild: boolean): string[] {
+  return waitForBuild ? [] : ['--no-wait'];
+}
+
+function hasEasBuildNoWaitFlag(command: string): boolean {
+  return /(^|\s)--no-wait(?=\s|$)/.test(command);
+}
+
 /**
  * Create an new EAS build using the user-provided command.
  */
 export async function createEasBuildFromRawCommandAsync(
   cwd: string,
   command: string,
-  extraArgs: string[] = []
+  extraArgs: string[] = [],
+  options?: { waitForBuild?: boolean }
 ): Promise<BuildInfo[]> {
   let stdout = '';
+  const waitForBuild = options?.waitForBuild ?? false;
 
   let cmd = command;
+  if (waitForBuild && hasEasBuildNoWaitFlag(cmd)) {
+    throw new Error(
+      'Cannot use wait-for-build when the EAS build command already includes --no-wait.'
+    );
+  }
   if (!cmd.includes('--json')) {
     cmd += ' --json';
   }
   if (!cmd.includes('--non-interactive')) {
     cmd += ' --non-interactive';
   }
-  if (!cmd.includes('--no-wait')) {
+  if (!waitForBuild) {
     cmd += ' --no-wait';
   }
 

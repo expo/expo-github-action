@@ -2,7 +2,14 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, parseCommand, projectDeepLink, projectLink, projectQR } from '../expo';
+import {
+  authenticate,
+  createEasBuildFromRawCommandAsync,
+  parseCommand,
+  projectDeepLink,
+  projectLink,
+  projectQR,
+} from '../expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -48,6 +55,53 @@ describe(authenticate, () => {
     expect(exec.exec).toBeCalledWith('eas', ['whoami'], {
       env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
     });
+  });
+});
+
+describe(createEasBuildFromRawCommandAsync, () => {
+  const buildJson = '[{"id":"build-id","platform":"IOS"}]';
+
+  beforeEach(() => {
+    jest.mocked(io.which).mockResolvedValue('eas');
+    jest.mocked(exec.getExecOutput).mockResolvedValue({
+      stdout: buildJson,
+      stderr: '',
+      exitCode: 0,
+    });
+  });
+
+  it('adds --no-wait by default', async () => {
+    await createEasBuildFromRawCommandAsync('/tmp/project', 'build --platform ios');
+
+    expect(exec.getExecOutput).toHaveBeenCalledWith(
+      'eas build --platform ios --json --non-interactive --no-wait',
+      [],
+      { cwd: '/tmp/project' }
+    );
+  });
+
+  it('omits --no-wait when waitForBuild is enabled', async () => {
+    await createEasBuildFromRawCommandAsync('/tmp/project', 'build --platform ios', [], {
+      waitForBuild: true,
+    });
+
+    expect(exec.getExecOutput).toHaveBeenCalledWith(
+      'eas build --platform ios --json --non-interactive',
+      [],
+      { cwd: '/tmp/project' }
+    );
+  });
+
+  it('rejects conflicting --no-wait when waitForBuild is enabled', async () => {
+    await expect(
+      createEasBuildFromRawCommandAsync('/tmp/project', 'build --platform ios --no-wait', [], {
+        waitForBuild: true,
+      })
+    ).rejects.toThrow(
+      'Cannot use wait-for-build when the EAS build command already includes --no-wait.'
+    );
+
+    expect(exec.getExecOutput).not.toHaveBeenCalled();
   });
 });
 
