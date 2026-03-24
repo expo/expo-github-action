@@ -48,7 +48,7 @@ To use this action, add the following code to your workflow:
 ```yaml
 on:
   push:
-    # REQUIRED: push main(default) branch is necessary for this action to update its fingerprint database
+    # REQUIRED: push events are necessary for this action to update its fingerprint database
     branches: [main]
   pull_request:
     types: [opened, synchronize]
@@ -56,7 +56,7 @@ on:
 jobs:
   <JOB_NAME>:
     runs-on: <RUNNER>
-    # REQUIRED: limit concurrency when pushing main(default) branch to prevent conflict for this action to update its fingerprint database
+    # REQUIRED: limit concurrency when pushing a save branch to prevent conflicts while updating the fingerprint database
     concurrency: fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
     permissions:
       # REQUIRED: Allow comments of PRs
@@ -84,7 +84,7 @@ Here is a summary of all the input options you can use.
 | **fingerprint-db-cache-key**       | `fingerprint-db` | A cache key to use for saving the fingerprint database                                      |
 | **previous-git-commit**            | -                | The Git hash for the base commit                                                            |
 | **current-git-commit**             | -                | The Git hash for the current commit                                                         |
-| **saving-db-branch**               | -                | The branch for saving the fingerprint database. Defaults to the repository's default branch |
+| **saving-db-branch**               | -                | The branch for saving the fingerprint database. Defaults to the current branch on push events, otherwise the repository's default branch |
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on current project fingerprint
 
@@ -109,7 +109,7 @@ name: PR Labeler
 
 on:
   push:
-    # REQUIRED: push main(default) branch is necessary for this action to update its fingerprint database
+    # REQUIRED: push events are necessary for this action to update its fingerprint database
     branches: [main]
   pull_request:
     types: [opened, synchronize]
@@ -117,7 +117,7 @@ on:
 jobs:
   fingerprint:
     runs-on: ubuntu-latest
-    # REQUIRED: limit concurrency when pushing main(default) branch to prevent conflict for this action to update its fingerprint database
+    # REQUIRED: limit concurrency when pushing a save branch to prevent conflicts while updating the fingerprint database
     concurrency: fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
     permissions:
       # REQUIRED: Allow comments of PRs
@@ -194,6 +194,12 @@ jobs:
 This workflow listens for pull request events and generates a fingerprint for each pull request. Based on the `fingerprint-diff` output, the example then use GitHub API to add/remove labels based on fingerprint compatible state.
 
 ## Caveats
+
+### Stacked pull requests
+
+Fingerprint comparisons restore their base commit from the fingerprint database cache. By default, push events now save that database under the pushed branch name, which allows a pull request targeting `feature-a` to restore entries created from pushes to `feature-a`.
+
+If you use stacked pull requests, make sure the workflow also runs on pushes for any branch that may act as a pull request base. In simple workflows that only open pull requests against `main`, pushing `main` is sufficient. If needed, you can still override the save branch explicitly with `saving-db-branch`.
 
 ### GitHub tokens
 

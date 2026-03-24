@@ -1,7 +1,12 @@
 import * as github from '@actions/github';
 
 import { resetEnv, setEnv } from './utils';
-import { githubApi, pullContext } from '../github';
+import {
+  githubApi,
+  isPushBranchContext,
+  pullContext,
+  resolveFingerprintDbSavingBranch,
+} from '../github';
 
 jest.mock('@actions/github');
 
@@ -48,5 +53,40 @@ describe(pullContext, () => {
     jest.mocked(github.context).eventName = 'pull_request';
     jest.mocked(github.context).issue = { owner: 'fakeowner', repo: 'fakerepo', number: 1337 };
     expect(pullContext()).toMatchObject({ owner: 'fakeowner', repo: 'fakerepo', number: 1337 });
+  });
+});
+
+describe(resolveFingerprintDbSavingBranch, () => {
+  afterEach(() => {
+    jest.mocked(github.context).eventName = undefined as any;
+    jest.mocked(github.context).ref = undefined as any;
+    jest.mocked(github.context).payload = {};
+  });
+
+  it('prefers explicit saving-db-branch input', () => {
+    jest.mocked(github.context).eventName = 'push';
+    jest.mocked(github.context).ref = 'refs/heads/current-branch';
+    expect(resolveFingerprintDbSavingBranch('configured-branch')).toBe('configured-branch');
+  });
+
+  it('defaults to the current push branch', () => {
+    jest.mocked(github.context).eventName = 'push';
+    jest.mocked(github.context).ref = 'refs/heads/feature-a';
+    expect(resolveFingerprintDbSavingBranch()).toBe('feature-a');
+  });
+
+  it('falls back to the repository default branch outside push events', () => {
+    jest.mocked(github.context).eventName = 'pull_request';
+    jest.mocked(github.context).payload = { repository: { default_branch: 'main' } } as any;
+    expect(resolveFingerprintDbSavingBranch()).toBe('main');
+  });
+});
+
+describe(isPushBranchContext, () => {
+  it('matches the current push branch ref', () => {
+    jest.mocked(github.context).eventName = 'push';
+    jest.mocked(github.context).ref = 'refs/heads/feature-a';
+    expect(isPushBranchContext('feature-a')).toBe(true);
+    expect(isPushBranchContext('main')).toBe(false);
   });
 });

@@ -97877,7 +97877,7 @@ const utils_1 = __nccwpck_require__(1798);
 const worker_1 = __nccwpck_require__(5101);
 (0, worker_1.executeAction)(runAction);
 async function runAction(input = (0, fingerprint_1.collectFingerprintActionInput)()) {
-    const targetBranch = input.savingDbBranch ?? (0, github_1.getRepoDefaultBranch)();
+    const targetBranch = (0, github_1.resolveFingerprintDbSavingBranch)(input.savingDbBranch);
     (0, assert_1.default)(targetBranch);
     if (!(0, github_1.isPushBranchContext)(targetBranch)) {
         return;
@@ -98317,6 +98317,7 @@ exports.createReaction = createReaction;
 exports.issueComment = issueComment;
 exports.getGitCommandMessageAsync = getGitCommandMessageAsync;
 exports.getRepoDefaultBranch = getRepoDefaultBranch;
+exports.resolveFingerprintDbSavingBranch = resolveFingerprintDbSavingBranch;
 exports.isPushBranchContext = isPushBranchContext;
 exports.getPullRequestFromGitCommitShaAsync = getPullRequestFromGitCommitShaAsync;
 const github_1 = __nccwpck_require__(3228);
@@ -98438,6 +98439,21 @@ async function getGitCommandMessageAsync(options, gitCommitHash) {
  */
 function getRepoDefaultBranch() {
     return github_1.context.payload?.repository?.default_branch;
+}
+/**
+ * Resolve the branch that should own the fingerprint database cache.
+ *
+ * Explicit inputs always win. Otherwise, push events default to the current
+ * branch so stacked pull requests can restore caches from their base branch.
+ */
+function resolveFingerprintDbSavingBranch(savingDbBranch) {
+    if (savingDbBranch) {
+        return savingDbBranch;
+    }
+    if (github_1.context.eventName === 'push' && github_1.context.ref.startsWith('refs/heads/')) {
+        return github_1.context.ref.replace('refs/heads/', '');
+    }
+    return getRepoDefaultBranch();
 }
 /**
  * True if the current event is a push to the target branch.

@@ -48,7 +48,7 @@ To use this action, add the following code to your workflow:
 ```yaml
 on:
   push:
-    # REQUIRED: push main(default) branch is necessary for this action to update its fingerprint database
+    # REQUIRED: push events are necessary for this action to update its fingerprint database
     branches: [main]
   pull_request:
     types: [opened, synchronize]
@@ -56,7 +56,7 @@ on:
 jobs:
   <JOB_NAME>:
     runs-on: <RUNNER>
-    # REQUIRED: limit concurrency when pushing main(default) branch to prevent conflict for this action to update its fingerprint database
+    # REQUIRED: limit concurrency when pushing a save branch to prevent conflicts while updating the fingerprint database
     concurrency: fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
     permissions:
       # REQUIRED: Allow comments of PRs
@@ -96,6 +96,7 @@ Here is a summary of all the input options you can use.
 | **fingerprint-version**            | `latest`                                       | `@expo/fingerprint` version to install                                                         |
 | **fingerprint-installation-cache** | `true`                                         | If the `@expo/fingerprint` should be cached to speed up installation                           |
 | **fingerprint-db-cache-key**       | `fingerprint-db`                               | A cache key to use for saving the fingerprint database                                         |
+| **saving-db-branch**               | -                                              | The branch for saving the fingerprint database. Defaults to the current branch on push events, otherwise the repository's default branch |
 | **eas-build-message**              | Will retrieve from the Git branch HEAD message | A short message describing the build that will pass to `eas build --message`                   |
 
 ### Available outputs
@@ -124,7 +125,7 @@ name: Build preview for pull requests
 
 on:
   push:
-    # REQUIRED: push main(default) branch is necessary for this action to update its fingerprint database
+    # REQUIRED: push events are necessary for this action to update its fingerprint database
     branches: [main]
   pull_request:
     types: [opened, synchronize]
@@ -132,7 +133,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # REQUIRED: limit concurrency when pushing main(default) branch to prevent conflict for this action to update its fingerprint database
+    # REQUIRED: limit concurrency when pushing a save branch to prevent conflicts while updating the fingerprint database
     concurrency: fingerprint-${{ github.event_name != 'pull_request' && 'main' || github.run_id }}
     permissions:
       # REQUIRED: Allow comments of PRs
@@ -164,6 +165,12 @@ jobs:
 This workflow listens for pull request events and generates a fingerprint for each pull request. It then uses this action to create an EAS Build for the pull request, and deploys the build using another action.
 
 ## Caveats
+
+### Stacked pull requests
+
+`preview-build` restores its base commit from the fingerprint database cache before deciding whether it can reuse an existing build. By default, push events now save that database under the pushed branch name, which allows a pull request targeting `feature-a` to restore entries created from pushes to `feature-a`.
+
+If you use stacked pull requests, make sure the workflow also runs on pushes for any branch that may act as a pull request base. In simple workflows that only open pull requests against `main`, pushing `main` is sufficient. If needed, you can still override the save branch explicitly with `saving-db-branch`.
 
 ### Preventing duplicate comments
 

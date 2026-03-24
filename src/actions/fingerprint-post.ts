@@ -3,14 +3,14 @@ import assert from 'assert';
 
 import { deleteCacheAsync } from '../cacher';
 import { collectFingerprintActionInput, saveDbToCacheAsync } from '../fingerprint';
-import { getRepoDefaultBranch, isPushBranchContext } from '../github';
+import { isPushBranchContext, resolveFingerprintDbSavingBranch } from '../github';
 import { retryAsync } from '../utils';
 import { executeAction } from '../worker';
 
 executeAction(runAction);
 
 export async function runAction(input = collectFingerprintActionInput()) {
-  const targetBranch = input.savingDbBranch ?? getRepoDefaultBranch();
+  const targetBranch = resolveFingerprintDbSavingBranch(input.savingDbBranch);
   assert(targetBranch);
   if (!isPushBranchContext(targetBranch)) {
     return;

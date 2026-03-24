@@ -27,10 +27,10 @@ import {
   fetchIssueComment,
   getGitCommandMessageAsync,
   getPullRequestFromGitCommitShaAsync,
-  getRepoDefaultBranch,
   hasPullContext,
   isPushBranchContext,
   pullContext,
+  resolveFingerprintDbSavingBranch,
 } from '../github';
 import { loadProjectConfig } from '../project';
 import { retryAsync, template } from '../utils';
@@ -318,7 +318,7 @@ async function maybeUpdateFingerprintDbAsync(params: {
     fingerprint: Fingerprint;
   }[];
 }) {
-  const targetBranch = params.savingDbBranch ?? getRepoDefaultBranch();
+  const targetBranch = resolveFingerprintDbSavingBranch(params.savingDbBranch);
   assert(targetBranch);
   if (!isPushBranchContext(targetBranch)) {
     return;
@@ -347,7 +347,7 @@ async function handleNonPullRequest(
   input: ReturnType<typeof collectPreviewBuildActionInput>
 ) {
   info('Non pull request context, skipping comment.');
-  const targetBranch = input.savingDbBranch ?? getRepoDefaultBranch();
+  const targetBranch = resolveFingerprintDbSavingBranch(input.savingDbBranch);
   assert(targetBranch);
   if (!isPushBranchContext(targetBranch)) {
     return;

@@ -168,6 +168,24 @@ export function getRepoDefaultBranch(): string | undefined {
 }
 
 /**
+ * Resolve the branch that should own the fingerprint database cache.
+ *
+ * Explicit inputs always win. Otherwise, push events default to the current
+ * branch so stacked pull requests can restore caches from their base branch.
+ */
+export function resolveFingerprintDbSavingBranch(
+  savingDbBranch?: string
+): string | undefined {
+  if (savingDbBranch) {
+    return savingDbBranch;
+  }
+  if (context.eventName === 'push' && context.ref.startsWith('refs/heads/')) {
+    return context.ref.replace('refs/heads/', '');
+  }
+  return getRepoDefaultBranch();
+}
+
+/**
  * True if the current event is a push to the target branch.
  *
  * @param targetBranch The branch to compare against.

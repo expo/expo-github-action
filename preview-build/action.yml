@@ -49,7 +49,7 @@ inputs:
     description: The Git hash for the current commit
     required: false
   saving-db-branch:
-    description: The branch for saving the fingerprint database. Defaults to the repository's default branch
+    description: The branch for saving the fingerprint database. Defaults to the current branch on push events, otherwise the repository's default branch
     required: false
 
 outputs:
