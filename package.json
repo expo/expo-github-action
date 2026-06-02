@@ -45,7 +45,7 @@
     "@vercel/ncc": "^0.38.3",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "eslint": "^8.57.1",
-    "eslint-config-universe": "^14.0.0",
+    "eslint-config-universe": "^15.2.0",
     "getenv": "^1.0.0",
     "jest": "^29.3.1",
     "jest-snapshot-prettier": "npm:prettier@^2.8.8",
