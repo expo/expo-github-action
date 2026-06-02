@@ -32444,12 +32444,12 @@ async function queryEasBuildInfoAsync(cwd, buildId) {
     return null;
 }
 /**
- * Try to resolve the project info, by running 'expo config --type prebuild'.
+ * Try to resolve the project info using the app's own Expo CLI.
  */
 async function projectInfo(dir) {
     let stdout = '';
     try {
-        ({ stdout } = await (0, exec_1.getExecOutput)(await (0, io_1.which)('expo', true), ['config', '--json', '--type', 'prebuild'], {
+        ({ stdout } = await (0, exec_1.getExecOutput)('npx', ['expo', 'config', '--json', '--type', 'prebuild'], {
             cwd: dir,
             silent: true,
         }));

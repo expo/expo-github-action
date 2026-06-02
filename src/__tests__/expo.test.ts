@@ -2,7 +2,14 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
-import { authenticate, parseCommand, projectDeepLink, projectLink, projectQR } from '../expo';
+import {
+  authenticate,
+  parseCommand,
+  projectDeepLink,
+  projectInfo,
+  projectLink,
+  projectQR,
+} from '../expo';
 
 jest.mock('@actions/core');
 jest.mock('@actions/exec');
@@ -48,6 +55,28 @@ describe(authenticate, () => {
     expect(exec.exec).toBeCalledWith('eas', ['whoami'], {
       env: expect.objectContaining({ EXPO_TOKEN: 'faketoken' }),
     });
+  });
+});
+
+describe(projectInfo, () => {
+  it('resolves project info using the project Expo CLI', async () => {
+    jest.mocked(exec.getExecOutput).mockResolvedValue({
+      exitCode: 0,
+      stdout: JSON.stringify({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }),
+      stderr: '',
+    });
+
+    await expect(projectInfo('fake/path')).resolves.toStrictEqual({
+      name: 'fakename',
+      slug: 'fakeslug',
+      owner: 'fakeowner',
+    });
+    expect(exec.getExecOutput).toBeCalledWith(
+      'npx',
+      ['expo', 'config', '--json', '--type', 'prebuild'],
+      { cwd: 'fake/path', silent: true }
+    );
+    expect(io.which).not.toBeCalledWith('expo', true);
   });
 });
 

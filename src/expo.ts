@@ -224,20 +224,16 @@ export async function queryEasBuildInfoAsync(
 }
 
 /**
- * Try to resolve the project info, by running 'expo config --type prebuild'.
+ * Try to resolve the project info using the app's own Expo CLI.
  */
 export async function projectInfo(dir: string): Promise<ProjectInfo> {
   let stdout = '';
 
   try {
-    ({ stdout } = await getExecOutput(
-      await which('expo', true),
-      ['config', '--json', '--type', 'prebuild'],
-      {
-        cwd: dir,
-        silent: true,
-      }
-    ));
+    ({ stdout } = await getExecOutput('npx', ['expo', 'config', '--json', '--type', 'prebuild'], {
+      cwd: dir,
+      silent: true,
+    }));
   } catch (error: unknown) {
     throw new Error(`Could not fetch the project info from ${dir}`, { cause: error });
   }
