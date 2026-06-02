@@ -1,3 +1,31 @@
+## [9.0.0](https://github.com/expo/expo-github-action/compare/8.2.1...9.0.0) (2026-06-02)
+
+### ⚠ BREAKING CHANGES
+
+* update tooling and actions to Node 24 (#354)
+
+### New features
+
+* **continuous-deploy-fingerprint:** Add optional environment input for EAS updates ([#325](https://github.com/expo/expo-github-action/issues/325)) ([8134c7a](https://github.com/expo/expo-github-action/commit/8134c7a005e20406f4bdf78ecc1679c373b32a3f))
+* **continuous-deploy-fingerprint:** added platform arg to eas update command ([#319](https://github.com/expo/expo-github-action/issues/319)) ([332258e](https://github.com/expo/expo-github-action/commit/332258e32f36861feca287bc8f7021383da59d20))
+
+### Bug fixes
+
+* **continuous-deploy-fingerprint:** correct expiration date logic for build validation ([#307](https://github.com/expo/expo-github-action/issues/307)) ([4b7860b](https://github.com/expo/expo-github-action/commit/4b7860b64d4f0519c52f9c9d51c20f6b73490552))
+* fingerprint hash parsing ([#326](https://github.com/expo/expo-github-action/issues/326)) ([10bd583](https://github.com/expo/expo-github-action/commit/10bd583de69c62e4a2f5203e3844314e6ea56d51))
+* one more merge confict fix ([#327](https://github.com/expo/expo-github-action/issues/327)) ([24136f8](https://github.com/expo/expo-github-action/commit/24136f8a82a7ce49225511185be02a7a9e30bb51))
+
+### Other chores
+
+* commit built files from [#319](https://github.com/expo/expo-github-action/issues/319) ([#323](https://github.com/expo/expo-github-action/issues/323)) ([a88f4a0](https://github.com/expo/expo-github-action/commit/a88f4a07b2b56b12af23d729bf18b2a9bab21eba))
+* update readme to better clarify production continuous deployment caveats ([#328](https://github.com/expo/expo-github-action/issues/328)) ([d933805](https://github.com/expo/expo-github-action/commit/d933805e9c7e860b0c7324ea5b8dcca94d415f8e))
+* update tooling and actions to Node 24 ([#354](https://github.com/expo/expo-github-action/issues/354)) ([94ad6f3](https://github.com/expo/expo-github-action/commit/94ad6f36fbc63d652f26fa4edbfc6acacf4f574f))
+
+### Documentation changes
+
+* missing action inputs added to readme ([#275](https://github.com/expo/expo-github-action/issues/275)) ([047ecf1](https://github.com/expo/expo-github-action/commit/047ecf1b39d35e205633972e83470dc3d9be3471))
+* **preview:** fix typo in readme ([f6f3acf](https://github.com/expo/expo-github-action/commit/f6f3acfa2728044b4e7e2592fe99c12796336e61))
+
 ## [8.2.1](https://github.com/expo/expo-github-action/compare/8.2.0...8.2.1) (2024-01-15)
 
 
