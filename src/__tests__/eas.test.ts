@@ -12,7 +12,7 @@ describe(getUpdateGroupQr, () => {
     ).toBe('https://qr.expo.dev/eas-update?projectId=projectId&groupId=updateGroupId');
   });
 
-  it('returns url for dev-build', () => {
+  it('returns url for dev-build with appSlug fallback', () => {
     expect(
       getUpdateGroupQr({
         qrTarget: 'dev-build',
@@ -25,7 +25,21 @@ describe(getUpdateGroupQr, () => {
     );
   });
 
-  it('returns url for dev-build, with `_` in appSlug', () => {
+  it('returns url for dev-build with projectScheme', () => {
+    expect(
+      getUpdateGroupQr({
+        qrTarget: 'dev-build',
+        projectId: 'projectId',
+        updateGroupId: 'updateGroupId',
+        appSlug: 'appslug',
+        projectScheme: 'myscheme',
+      })
+    ).toBe(
+      'https://qr.expo.dev/eas-update?appScheme=myscheme&projectId=projectId&groupId=updateGroupId'
+    );
+  });
+
+  it('returns url for dev-build, with `_` in appSlug fallback', () => {
     expect(
       getUpdateGroupQr({
         qrTarget: 'dev-build',
@@ -35,6 +49,20 @@ describe(getUpdateGroupQr, () => {
       })
     ).toBe(
       'https://qr.expo.dev/eas-update?appScheme=helloworld&projectId=projectId&groupId=updateGroupId'
+    );
+  });
+
+  it('returns url for dev-build, with `_` in projectScheme', () => {
+    expect(
+      getUpdateGroupQr({
+        qrTarget: 'dev-build',
+        projectId: 'projectId',
+        updateGroupId: 'updateGroupId',
+        appSlug: 'hello_world',
+        projectScheme: 'my_custom_scheme',
+      })
+    ).toBe(
+      'https://qr.expo.dev/eas-update?appScheme=mycustomscheme&projectId=projectId&groupId=updateGroupId'
     );
   });
 });

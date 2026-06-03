@@ -121,6 +121,7 @@ export function getVariables(
   const ios = updates.find(update => update.platform === 'ios');
 
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
+  const projectScheme = appSchemes[0] || ''; // This is the longest scheme from one or more custom app schemes
   const appSlug = config.slug;
   const qrTarget = getQrTarget(options);
 
@@ -129,13 +130,13 @@ export function getVariables(
     projectId,
     projectName: config.name,
     projectSlug: appSlug,
-    projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
+    projectScheme,
     projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
+    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug, projectScheme, qrTarget }),
     link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
@@ -150,7 +151,7 @@ export function getVariables(
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
     androidQR: android
-      ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug, qrTarget })
+      ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug, projectScheme, qrTarget })
       : '',
     androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
@@ -160,7 +161,7 @@ export function getVariables(
     iosManifestPermalink: ios?.manifestPermalink || '',
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
+    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, projectScheme, qrTarget }) : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
 }
