@@ -35,7 +35,7 @@ module.exports = {
         commitGroupsSort: (a, z) => sortMap[a.title] - sortMap[z.title],
       },
     }],
-    // `main` only accepts changes through PRs, so the release workflow runs a dry run and opens a release PR with this output.
+    // The release workflow runs a dry run and uses this output to make the release branch.
     // Must stay after the notes generator, so `nextRelease.notes` is filled in.
     {
       generateNotes(pluginConfig, { nextRelease }) {

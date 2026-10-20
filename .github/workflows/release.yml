@@ -104,9 +104,32 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
+
+      - name: 🕵️ Validate release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          fail() {
+            echo "::error::$1. Revert this commit and run the release workflow again."
+            exit 1
+          }
+
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.base.ref == "main" and .merged_at != null)][0]')
+          [ -n "$pr" ] && [ "$pr" != "null" ] || fail "No merged PR found for this commit"
+          [ "$(jq -r .head.ref <<< "$pr")" = "release/$version" ] || fail "The PR is not from release/$version"
+
+          commits=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$(jq -r .number <<< "$pr")/commits")
+          [ "$(jq length <<< "$commits")" -eq 1 ] || fail "The release PR must have exactly one commit"
+
+          # Other merges since the release branch was created would ship without changelog entries
+          release_base=$(jq -r '.[0].parents[0].sha' <<< "$commits")
+          merge_parent=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA" --jq '.parents[0].sha')
+          [ "$release_base" = "$merge_parent" ] || fail "main changed after the release branch was created"
 
       - name: 📋 Create release
         env:
