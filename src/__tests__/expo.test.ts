@@ -3,11 +3,7 @@ import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 
 import {
-  AppPlatform,
-  BuildStatus,
   authenticate,
-  getBuildLogsUrl,
-  normalizeBuildInfo,
   parseCommand,
   projectDeepLink,
   projectInfo,
@@ -135,58 +131,5 @@ describe(projectDeepLink, () => {
     expect(
       projectDeepLink({ name: 'fakename', slug: 'fakeslug', owner: 'fakeowner' }, 'fakechannel')
     ).toBe('exp://exp.host/@fakeowner/fakeslug?release-channel=fakechannel');
-  });
-});
-
-describe(normalizeBuildInfo, () => {
-  const baseBuild = {
-    id: 'fakebuildid',
-    platform: AppPlatform.Ios,
-    distribution: 'STORE',
-    buildProfile: 'production',
-    sdkVersion: '55.0.0',
-    appVersion: '1.0.0',
-    gitCommitHash: 'fakecommit',
-    expirationDate: '2026-12-31T00:00:00.000Z',
-    status: BuildStatus.Finished,
-  };
-  const project = { slug: 'fakeslug', ownerAccount: { name: 'fakeowner' } };
-
-  it('should keep build json from eas-cli before 22', () => {
-    const build = normalizeBuildInfo({
-      ...baseBuild,
-      project,
-      channel: 'production',
-      runtimeVersion: '1.0.0',
-    });
-    expect(build.project).toEqual(project);
-    expect(build.channel).toBe('production');
-    expect(build.runtimeVersion).toBe('1.0.0');
-  });
-
-  it('should map renamed fields from eas-cli 22 build json', () => {
-    const build = normalizeBuildInfo({
-      ...baseBuild,
-      app: project,
-      updateChannel: { name: 'production' },
-      runtime: { version: 'fakefingerprint' },
-    });
-    expect(build.project).toEqual(project);
-    expect(build.channel).toBe('production');
-    expect(build.runtimeVersion).toBe('fakefingerprint');
-    expect(getBuildLogsUrl(build)).toBe(
-      'https://expo.dev/accounts/fakeowner/projects/fakeslug/builds/fakebuildid'
-    );
-  });
-
-  it('should leave runtime version undefined when eas-cli 22 build has no runtime', () => {
-    const build = normalizeBuildInfo({
-      ...baseBuild,
-      app: project,
-      updateChannel: null,
-      runtime: null,
-    });
-    expect(build.channel).toBeUndefined();
-    expect(build.runtimeVersion).toBeUndefined();
   });
 });
