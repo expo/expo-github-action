@@ -46,15 +46,19 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 
 ## 🚀 Releasing a new version
 
-To release a new version for GitHub Actions, we have to create a new release in GitHub. You can run the `Release` workflow to generate a new version, changelog, and GitHub release.
+To release a new version for GitHub Actions, we have to create a new release in GitHub through a release PR.
 
-That workflow also bumps up the major version tag, like `v7`. In cases of failure, you could run this manually.
+1. Run the `Release` workflow on `main` and type `release`. It pushes a `release/x.y.z` branch that bumps `package.json` and `CHANGELOG.md`.
+2. Open the PR from the link in the workflow summary, then review and merge it. Keep the `chore: create new release x.y.z` title, because the workflow uses it to find release merges. Merge it before any other PR. If `main` changed in between, the release fails, and you need to revert the release PR and start again.
+3. After the merge, the workflow creates the `x.y.z` tag and GitHub release, and moves the major version tag, like `v7`.
+
+In cases of failure, you could move the major version tag manually.
 
 ```bash
 $ git checkout main
 $ git fetch --tags && git pull
 $ git tag --force v{major}
-$ git push --force --tags
+$ git push --force origin v{major}
 ```
 
 When the release is fully tagged and ready, we still need to submit it to the marketplace. You can do that by editing the published version on [GitHub's release page](https://github.com/expo/expo-github-action/releases). Just saving it again notifies the marketplace of the new version.
