@@ -35,11 +35,14 @@ jobs:
   publish:
     if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
     runs-on: ubuntu-latest
+    # semantic-release pushes the release commit and tag, and labels and comments on released issues and PRs
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
 
       - name: 🏗 Setup runner
         uses: ./.github/actions/setup
@@ -50,7 +53,7 @@ jobs:
       - name: 📋 Release code
         run: bun semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           GIT_AUTHOR_NAME: Expo CI
           GIT_AUTHOR_EMAIL: support+ci@expo.dev
           GIT_COMMITTER_NAME: Expo CI
@@ -59,11 +62,11 @@ jobs:
   tags:
     needs: publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
 
       - name: 🏗 Setup runner
         uses: ./.github/actions/setup
