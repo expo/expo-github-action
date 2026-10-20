@@ -1,3 +1,14 @@
+## [9.0.1](https://github.com/expo/expo-github-action/compare/9.0.0...9.0.1) (2026-10-20)
+
+### Bug fixes
+
+* support eas-cli 22 build json fields ([#360](https://github.com/expo/expo-github-action/issues/360)) ([6cb8005](https://github.com/expo/expo-github-action/commit/6cb800515acdea84989f9918e6448774815d8a78))
+
+### Other chores
+
+* release through a PR because main is protected ([#363](https://github.com/expo/expo-github-action/issues/363)) ([a018023](https://github.com/expo/expo-github-action/commit/a01802364dfe057a6f67a5cb1892b6f529e2d624))
+* release with the built-in GitHub token ([#362](https://github.com/expo/expo-github-action/issues/362)) ([c33d336](https://github.com/expo/expo-github-action/commit/c33d336e43640e810176b257b3919c7d408afc7e))
+
 ## [9.0.0](https://github.com/expo/expo-github-action/compare/8.2.1...9.0.0) (2026-06-02)
 
 ### ⚠ BREAKING CHANGES
