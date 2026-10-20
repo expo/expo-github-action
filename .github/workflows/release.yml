@@ -13,10 +13,15 @@ concurrency:
   group: release
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
   dryrun:
     if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
     runs-on: ubuntu-latest
+    permissions:
+      # semantic-release checks push access even in dry-run mode
+      contents: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
@@ -25,7 +30,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: 📋 Dry-running release
         run: bun semantic-release --dry-run
@@ -37,7 +42,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
@@ -49,7 +53,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: 📦 Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: 📋 Resolve next release
         run: bun semantic-release --dry-run
@@ -57,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_OUTPUT_DIR: ${{ runner.temp }}/release
 
-      - name: 📝 Open release PR
+      - name: 📝 Push release branch
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_DIR: ${{ runner.temp }}/release
@@ -79,13 +83,20 @@ jobs:
           git config user.email "support+ci@expo.dev"
           git switch --create "$branch"
           git commit --message "$title" -- package.json CHANGELOG.md
-          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+          # Lets git read GH_TOKEN through gh, so the token stays out of the command line
+          gh auth setup-git
+          git push --force origin "$branch"
 
-          if gh pr view "$branch" --json state --jq .state | grep -q OPEN; then
-            gh pr edit "$branch" --body-file "$RELEASE_DIR/notes.md"
-          else
-            gh pr create --base main --head "$branch" --title "$title" --body-file "$RELEASE_DIR/notes.md"
-          fi
+          # A person opens the PR, so Actions doesn't need permission to create or approve PRs, and CI runs on it
+          url="https://github.com/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1&title=$(jq -rn --arg t "$title" '$t|@uri')"
+          echo "::notice::Open the release PR: $url"
+          {
+            echo "## Release $version"
+            echo
+            echo "[Open the release PR]($url)"
+            echo
+            cat "$RELEASE_DIR/notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     # Runs when a release PR from `release-pr` is merged

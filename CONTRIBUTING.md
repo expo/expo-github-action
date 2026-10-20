@@ -48,8 +48,8 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 
 To release a new version for GitHub Actions, we have to create a new release in GitHub. Releases go through a PR because `main` is protected.
 
-1. Run the `Release` workflow on `main` and type `release`. It opens a `chore: create new release x.y.z` PR that bumps `package.json` and `CHANGELOG.md`.
-2. Review and merge that PR. Keep its title, because the workflow uses it to find release merges.
+1. Run the `Release` workflow on `main` and type `release`. It pushes a `release/x.y.z` branch that bumps `package.json` and `CHANGELOG.md`.
+2. Open the PR from the link in the workflow summary, then review and merge it. Keep the `chore: create new release x.y.z` title, because the workflow uses it to find release merges.
 3. After the merge, the workflow creates the `x.y.z` tag and GitHub release, and moves the major version tag, like `v7`.
 
 In cases of failure, you could move the major version tag manually.
