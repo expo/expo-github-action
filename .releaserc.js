@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const rules = [
   { type: 'feat', release: 'minor', title: 'New features' },
   { type: 'feature', release: 'minor', title: 'New features' },
@@ -32,13 +35,18 @@ module.exports = {
         commitGroupsSort: (a, z) => sortMap[a.title] - sortMap[z.title],
       },
     }],
-    '@semantic-release/changelog',
-    ['@semantic-release/npm', { npmPublish: false }],
-    ["@semantic-release/exec", { publishCmd: 'yarn build' }],
-    ['@semantic-release/git', {
-      message: 'chore: create new release ${nextRelease.version}\n\n${nextRelease.notes}',
-      assets: ['package.json', 'CHANGELOG.md', 'build/*'],
-    }],
-    '@semantic-release/github',
+    // `main` only accepts changes through PRs, so the release workflow runs a dry run and opens a release PR with this output.
+    // Must stay after the notes generator, so `nextRelease.notes` is filled in.
+    {
+      generateNotes(pluginConfig, { nextRelease }) {
+        const outputDir = process.env.RELEASE_OUTPUT_DIR;
+        if (outputDir) {
+          fs.mkdirSync(outputDir, { recursive: true });
+          fs.writeFileSync(path.join(outputDir, 'version'), nextRelease.version);
+          fs.writeFileSync(path.join(outputDir, 'notes.md'), nextRelease.notes.trim() + '\n');
+        }
+        return '';
+      },
+    },
   ],
 };

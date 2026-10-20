@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: 'type "release" to create the release (main branch only)'
+        description: 'type "release" to open a release PR (main branch only)'
         required: false
 
 concurrency:
@@ -32,19 +32,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  publish:
+  release-pr:
     if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
     runs-on: ubuntu-latest
-    # semantic-release pushes the release commit and tag, and labels and comments on released issues and PRs
     permissions:
       contents: write
-      issues: write
       pull-requests: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
         with:
-          # Keep the token out of .git/config, semantic-release adds it to the push URL itself
+          # Keep the token out of .git/config while installing packages
           persist-credentials: false
 
       - name: 🏗 Setup runner
@@ -53,17 +51,45 @@ jobs:
       - name: 📦 Install dependencies
         run: bun install
 
-      - name: 📋 Release code
-        run: bun semantic-release
+      - name: 📋 Resolve next release
+        run: bun semantic-release --dry-run
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          GIT_AUTHOR_NAME: Expo CI
-          GIT_AUTHOR_EMAIL: support+ci@expo.dev
-          GIT_COMMITTER_NAME: Expo CI
-          GIT_COMMITTER_EMAIL: support+ci@expo.dev
+          RELEASE_OUTPUT_DIR: ${{ runner.temp }}/release
 
-  tags:
-    needs: publish
+      - name: 📝 Open release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_DIR: ${{ runner.temp }}/release
+        run: |
+          if [ ! -f "$RELEASE_DIR/version" ]; then
+            echo "No changes to release"
+            exit 0
+          fi
+
+          version=$(cat "$RELEASE_DIR/version")
+          branch="release/$version"
+          title="chore: create new release $version"
+
+          npm pkg set version="$version"
+          { cat "$RELEASE_DIR/notes.md"; echo; cat CHANGELOG.md; } > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+
+          git config user.name "Expo CI"
+          git config user.email "support+ci@expo.dev"
+          git switch --create "$branch"
+          git commit --message "$title" -- package.json CHANGELOG.md
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+
+          if gh pr view "$branch" --json state --jq .state | grep -q OPEN; then
+            gh pr edit "$branch" --body-file "$RELEASE_DIR/notes.md"
+          else
+            gh pr create --base main --head "$branch" --title "$title" --body-file "$RELEASE_DIR/notes.md"
+          fi
+
+  publish:
+    # Runs when a release PR from `release-pr` is merged
+    if: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore: create new release ') }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -71,22 +97,27 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 👷 Force repo to latest
-        run: git fetch --all && git pull
-
-      - name: 🕵️ Resolve major version
-        id: version
-        run: echo "major=$(node -p "require('./package.json').version.split('.')[0]")" >> "$GITHUB_OUTPUT"
-
-      - name: 👷 Configure git
-        run: |
-          git config user.name "Expo CI"
-          git config user.email "support+ci@expo.dev"
-
-      - name: 🧹 Clean repo
-        run: git clean . -xdf && git reset --hard HEAD && git pull && git fetch --tags
-
-      - name: 📋 Update tags
-        run: git tag --force "v$MAJOR" && git push --force origin "v$MAJOR"
+      - name: 📋 Create release
         env:
-          MAJOR: ${{ steps.version.outputs.major }}
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version \"$version\" in package.json"
+            exit 1
+          fi
+          # Squash merges add " (#123)" to the title
+          subject="${COMMIT_MESSAGE%%$'\n'*}"
+          if [[ "$subject" != "chore: create new release $version" && "$subject" != "chore: create new release $version (#"* ]]; then
+            echo "::error::Commit message does not match version $version in package.json"
+            exit 1
+          fi
+
+          # The newest section of CHANGELOG.md holds the notes for this release
+          awk '/^## \[/ { n++ } n == 1' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          gh release create "$version" --target "$GITHUB_SHA" --title "$version" --notes-file "$RUNNER_TEMP/notes.md"
+
+          major="v${version%%.*}"
+          git tag --force "$major" "$GITHUB_SHA"
+          git push --force origin "$major"
