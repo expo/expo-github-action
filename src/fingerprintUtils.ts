@@ -2,7 +2,7 @@ import { info, isDebug } from '@actions/core';
 import { getExecOutput } from '@actions/exec';
 import { which } from '@actions/io';
 
-import { BuildInfo, BuildStatus } from './expo';
+import { BuildInfo, BuildStatus, normalizeBuildInfo } from './expo';
 
 export async function getBuildInfoForCurrentFingerprintAsync({
   platform,
@@ -124,7 +124,8 @@ export async function getBuildInfoWithFingerprintAsync({
         silent: !isDebug(),
       }
     );
-    builds = JSON.parse(stdout);
+    const parsed = JSON.parse(stdout);
+    builds = Array.isArray(parsed) ? parsed.map(normalizeBuildInfo) : parsed;
   } catch (error: unknown) {
     throw new Error(`Error getting EAS builds: ${String(error)}`, { cause: error });
   }

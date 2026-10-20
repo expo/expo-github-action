@@ -56,6 +56,29 @@ export type BuildInfo = {
   status: BuildStatus;
 };
 
+type EasCliBuildJson = Omit<BuildInfo, 'project' | 'channel' | 'runtimeVersion'> & {
+  project?: BuildInfo['project'];
+  app?: BuildInfo['project'];
+  channel?: string;
+  updateChannel?: { name: string } | null;
+  runtimeVersion?: string;
+  runtime?: { version: string } | null;
+};
+
+/**
+ * Convert the build JSON from any eas-cli version to `BuildInfo`.
+ * eas-cli 22 moved `project`, `channel`, and `runtimeVersion` to `app`, `updateChannel`, and `runtime`.
+ */
+export function normalizeBuildInfo(build: EasCliBuildJson): BuildInfo {
+  const { app, updateChannel, runtime, ...rest } = build;
+  return {
+    ...rest,
+    project: (build.project ?? app)!,
+    channel: (build.channel ?? updateChannel?.name)!,
+    runtimeVersion: build.runtimeVersion ?? runtime?.version,
+  };
+}
+
 export const appPlatformDisplayNames: Record<AppPlatform, string> = {
   [AppPlatform.Android]: 'Android',
   [AppPlatform.Ios]: 'iOS',
@@ -154,7 +177,7 @@ export async function easBuild(cmd: Command): Promise<BuildInfo[]> {
     throw new Error(`Could not run command eas build`, { cause: error });
   }
 
-  return JSON.parse(stdout);
+  return (JSON.parse(stdout) as EasCliBuildJson[]).map(normalizeBuildInfo);
 }
 
 /**
@@ -186,7 +209,7 @@ export async function createEasBuildFromRawCommandAsync(
     throw new Error(`Could not run command eas build`, { cause: error });
   }
 
-  return JSON.parse(stdout);
+  return (JSON.parse(stdout) as EasCliBuildJson[]).map(normalizeBuildInfo);
 }
 
 /**
@@ -216,7 +239,7 @@ export async function queryEasBuildInfoAsync(
         silent: true,
       }
     );
-    return JSON.parse(stdout);
+    return normalizeBuildInfo(JSON.parse(stdout));
   } catch (error: unknown) {
     info(`Failed to query eas build ${buildId}: ${String(error)}`);
   }

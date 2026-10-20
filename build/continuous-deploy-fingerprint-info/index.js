@@ -27932,6 +27932,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.appPlatformEmojis = exports.appPlatformDisplayNames = exports.BuildStatus = exports.AppPlatform = void 0;
+exports.normalizeBuildInfo = normalizeBuildInfo;
 exports.parseCommand = parseCommand;
 exports.authenticate = authenticate;
 exports.projectOwner = projectOwner;
@@ -27967,6 +27968,19 @@ var BuildStatus;
     BuildStatus["Finished"] = "FINISHED";
     BuildStatus["Canceled"] = "CANCELED";
 })(BuildStatus || (exports.BuildStatus = BuildStatus = {}));
+/**
+ * Convert the build JSON from any eas-cli version to `BuildInfo`.
+ * eas-cli 22 moved `project`, `channel`, and `runtimeVersion` to `app`, `updateChannel`, and `runtime`.
+ */
+function normalizeBuildInfo(build) {
+    const { app, updateChannel, runtime, ...rest } = build;
+    return {
+        ...rest,
+        project: (build.project ?? app),
+        channel: (build.channel ?? updateChannel?.name),
+        runtimeVersion: build.runtimeVersion ?? runtime?.version,
+    };
+}
 exports.appPlatformDisplayNames = {
     [AppPlatform.Android]: 'Android',
     [AppPlatform.Ios]: 'iOS',
@@ -28049,7 +28063,7 @@ async function easBuild(cmd) {
     catch (error) {
         throw new Error(`Could not run command eas build`, { cause: error });
     }
-    return JSON.parse(stdout);
+    return JSON.parse(stdout).map(normalizeBuildInfo);
 }
 /**
  * Create an new EAS build using the user-provided command.
@@ -28074,7 +28088,7 @@ async function createEasBuildFromRawCommandAsync(cwd, command, extraArgs = []) {
     catch (error) {
         throw new Error(`Could not run command eas build`, { cause: error });
     }
-    return JSON.parse(stdout);
+    return JSON.parse(stdout).map(normalizeBuildInfo);
 }
 /**
  * Cancel an EAS build.
@@ -28096,7 +28110,7 @@ async function queryEasBuildInfoAsync(cwd, buildId) {
             cwd,
             silent: true,
         });
-        return JSON.parse(stdout);
+        return normalizeBuildInfo(JSON.parse(stdout));
     }
     catch (error) {
         (0, core_1.info)(`Failed to query eas build ${buildId}: ${String(error)}`);
@@ -28274,7 +28288,8 @@ async function getBuildInfoWithFingerprintAsync({ cwd, platform, profile, finger
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
-        builds = JSON.parse(stdout);
+        const parsed = JSON.parse(stdout);
+        builds = Array.isArray(parsed) ? parsed.map(expo_1.normalizeBuildInfo) : parsed;
     }
     catch (error) {
         throw new Error(`Error getting EAS builds: ${String(error)}`, { cause: error });
