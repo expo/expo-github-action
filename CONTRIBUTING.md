@@ -36,6 +36,8 @@ fix: improve logging for errors
 refactor: update loading icon
 ```
 
+PRs are squash merged, so the PR title becomes the commit message. The `pr-title` workflow checks that the PR title uses this format.
+
 ## 🔎 Before Submitting a PR
 
 To get your PR merged as fast as possible, please make sure you have done the following:
@@ -47,6 +49,8 @@ To get your PR merged as fast as possible, please make sure you have done the fo
 ## 🚀 Releasing a new version
 
 To release a new version for GitHub Actions, we have to create a new release in GitHub. You can run the `Release` workflow to generate a new version, changelog, and GitHub release.
+
+The `bump` input defaults to `auto`, which picks the version from the commit messages. Pick `patch` or `minor` to override it. Breaking changes need a `!` commit, like `feat!: drop Node 20`, to get a major release.
 
 That workflow also bumps up the major version tag, like `v7`. In cases of failure, you could run this manually.
 

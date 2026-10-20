@@ -8,6 +8,11 @@ on:
       release:
         description: 'type "release" to create the release (main branch only)'
         required: false
+      bump:
+        description: 'version bump type, "auto" uses the commit messages'
+        type: choice
+        options: [auto, patch, minor]
+        default: auto
 
 concurrency:
   group: release
@@ -31,6 +36,7 @@ jobs:
         run: bun semantic-release --dry-run
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_BUMP: ${{ github.event.inputs.bump }}
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
@@ -51,6 +57,7 @@ jobs:
         run: bun semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.EXPOBOT_GITHUB_TOKEN }}
+          RELEASE_BUMP: ${{ github.event.inputs.bump }}
           GIT_AUTHOR_NAME: Expo CI
           GIT_AUTHOR_EMAIL: support+ci@expo.dev
           GIT_COMMITTER_NAME: Expo CI

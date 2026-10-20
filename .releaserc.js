@@ -10,11 +10,12 @@ const rules = [
 // Simple mapping to order the commit groups
 const sortMap = Object.fromEntries(rules.map((rule, index) => [rule.title, index]));
 
-module.exports = {
-  branches: ['main'],
-  tagFormat: '${version}',
-  plugins: [
-    ['@semantic-release/commit-analyzer', {
+// Set by the release workflow to force a patch or minor release, ignoring the commit types
+const forcedBump = ['patch', 'minor'].includes(process.env.RELEASE_BUMP) ? process.env.RELEASE_BUMP : null;
+
+const commitAnalyzer = forcedBump
+  ? { analyzeCommits: () => forcedBump }
+  : ['@semantic-release/commit-analyzer', {
       preset: 'conventionalcommits',
       releaseRules: [
 				{ breaking: true, release: 'major' },
@@ -22,7 +23,13 @@ module.exports = {
 			].concat(
 				rules.map(({ type, release, breaking }) => ({ type, release, breaking }))
 			),
-    }],
+    }];
+
+module.exports = {
+  branches: ['main'],
+  tagFormat: '${version}',
+  plugins: [
+    commitAnalyzer,
     ['@semantic-release/release-notes-generator', {
       preset: 'conventionalcommits',
       presetConfig: {
