@@ -119,8 +119,16 @@ jobs:
             exit 1
           }
 
-          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.base.ref == "main" and .merged_at != null)][0]')
-          [ -n "$pr" ] && [ "$pr" != "null" ] || fail "No merged PR found for this commit"
+          # GitHub may take a moment to link a new commit to its PR
+          for attempt in 1 2 3 4 5; do
+            pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.base.ref == "main" and .merged_at != null)][0]')
+            [ -n "$pr" ] && [ "$pr" != "null" ] && break
+            sleep 10
+          done
+          if [ -z "$pr" ] || [ "$pr" = "null" ]; then
+            echo "::error::No merged PR found for this commit yet. Re-run this job."
+            exit 1
+          fi
           [ "$(jq -r .head.ref <<< "$pr")" = "release/$version" ] || fail "The PR is not from release/$version"
 
           commits=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$(jq -r .number <<< "$pr")/commits")
@@ -150,7 +158,10 @@ jobs:
 
           # The newest section of CHANGELOG.md holds the notes for this release
           awk '/^## \[/ { n++ } n == 1' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
-          gh release create "$version" --target "$GITHUB_SHA" --title "$version" --notes-file "$RUNNER_TEMP/notes.md"
+          # Skip when a re-run finds the release already made, so the major tag can still move
+          if ! gh release view "$version" > /dev/null 2>&1; then
+            gh release create "$version" --target "$GITHUB_SHA" --title "$version" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
 
           major="v${version%%.*}"
           git tag --force "$major" "$GITHUB_SHA"
