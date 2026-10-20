@@ -36,7 +36,7 @@ fix: improve logging for errors
 refactor: update loading icon
 ```
 
-PRs are squash merged, so the PR title becomes the commit message. The `pr-title` workflow checks that the PR title uses this format.
+PRs are squash merged, so the PR title becomes the commit message. The `review` workflow checks that the PR title uses this format.
 
 ## 🔎 Before Submitting a PR
 
