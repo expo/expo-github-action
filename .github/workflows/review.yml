@@ -18,21 +18,29 @@ jobs:
       pull-requests: read
     steps:
       - name: 🕵️ Validate PR title
-        uses: amannn/action-semantic-pull-request@v6
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          # Keep in sync with the release rules in .releaserc.js
-          types: |
-            feat
-            feature
-            fix
-            refactor
-            chore
-            docs
-          requireScope: false
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Keep the types in sync with the release rules in .releaserc.js
+          pattern='^(feat|feature|fix|refactor|chore|docs)(\([^)]+\))?!?: .+'
+
+          # Fetch the PR again so a re-run uses the current title
+          pr=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json title,commits)
+          title=$(jq -r .title <<< "$pr")
+          if ! grep -Eq "$pattern" <<< "$title"; then
+            echo "::error::PR title \"$title\" must use Conventional Commits, see CONTRIBUTING.md"
+            exit 1
+          fi
+
           # Squash merges of single-commit PRs use the commit message instead of the PR title
-          validateSingleCommit: true
+          if [ "$(jq '.commits | length' <<< "$pr")" -eq 1 ]; then
+            message=$(jq -r '.commits[0].messageHeadline' <<< "$pr")
+            if ! grep -Eq "$pattern" <<< "$message"; then
+              echo "::error::The only commit \"$message\" must use Conventional Commits, see CONTRIBUTING.md"
+              exit 1
+            fi
+          fi
 
   build:
     runs-on: ubuntu-latest
