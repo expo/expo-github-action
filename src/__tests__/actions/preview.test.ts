@@ -9,6 +9,10 @@ const fakeOptions = {
   qrTarget: 'dev-client',
 } as unknown as ReturnType<typeof previewInput>;
 
+const fakeExpoGoOptions = {
+  qrTarget: 'expo-go',
+} as unknown as ReturnType<typeof previewInput>;
+
 const fakeExpoConfig = {
   slug: 'fake-project',
   extra: {
@@ -45,6 +49,74 @@ const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({
   ...update,
   group: `fake-group-${update.id}`,
 }));
+
+describe(getVariables, () => {
+  describe('QR code scheme selection', () => {
+    it('uses custom scheme for dev-build QR code when scheme is defined', () => {
+      const configWithScheme = {
+        ...fakeExpoConfig,
+        scheme: ['myappdev', 'myapp'],
+      } as unknown as ExpoConfig;
+
+      const variables = getVariables(configWithScheme, fakeUpdatesSingle, fakeOptions);
+
+      // Should use the first (longest) scheme, not the slug
+      expect(variables.qr).toContain('appScheme=myappdev');
+      expect(variables.qr).not.toContain('appScheme=fake-project');
+      expect(variables.androidQR).toContain('appScheme=myappdev');
+      expect(variables.iosQR).toContain('appScheme=myappdev');
+    });
+
+    it('falls back to slug for dev-build QR code when no scheme is defined', () => {
+      const configWithoutScheme = {
+        ...fakeExpoConfig,
+        scheme: undefined,
+      } as unknown as ExpoConfig;
+
+      const variables = getVariables(configWithoutScheme, fakeUpdatesSingle, fakeOptions);
+
+      // Should fallback to slug when no scheme is defined
+      expect(variables.qr).toContain('appScheme=fake-project');
+      expect(variables.androidQR).toContain('appScheme=fake-project');
+      expect(variables.iosQR).toContain('appScheme=fake-project');
+    });
+
+    it('falls back to slug for dev-build QR code when scheme array is empty', () => {
+      const configWithEmptyScheme = {
+        ...fakeExpoConfig,
+        scheme: [],
+      } as unknown as ExpoConfig;
+
+      const variables = getVariables(configWithEmptyScheme, fakeUpdatesSingle, fakeOptions);
+
+      // Should fallback to slug when scheme array is empty
+      expect(variables.qr).toContain('appScheme=fake-project');
+    });
+
+    it('does not include appScheme in QR code for expo-go target', () => {
+      const configWithScheme = {
+        ...fakeExpoConfig,
+        scheme: ['myappdev'],
+      } as unknown as ExpoConfig;
+
+      const variables = getVariables(configWithScheme, fakeUpdatesSingle, fakeExpoGoOptions);
+
+      // expo-go target should not have appScheme parameter
+      expect(variables.qr).not.toContain('appScheme=');
+    });
+
+    it('uses single string scheme for dev-build QR code', () => {
+      const configWithStringScheme = {
+        ...fakeExpoConfig,
+        scheme: 'singlescheme',
+      } as unknown as ExpoConfig;
+
+      const variables = getVariables(configWithStringScheme, fakeUpdatesSingle, fakeOptions);
+
+      expect(variables.qr).toContain('appScheme=singlescheme');
+    });
+  });
+});
 
 describe(createSummary, () => {
   describe('single update group', () => {
@@ -84,7 +156,7 @@ describe(createSummary, () => {
         - Runtime Version → **exposdk:47.0.0**
         - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
-        <a href="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
+        <a href="https://qr.expo.dev/eas-update?appScheme=expogithubaction&projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?appScheme=expogithubaction&projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
         > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);

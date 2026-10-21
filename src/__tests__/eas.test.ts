@@ -7,7 +7,7 @@ describe(getUpdateGroupQr, () => {
         qrTarget: 'expo-go',
         projectId: 'projectId',
         updateGroupId: 'updateGroupId',
-        appSlug: 'appslug',
+        appScheme: 'appslug',
       })
     ).toBe('https://qr.expo.dev/eas-update?projectId=projectId&groupId=updateGroupId');
   });
@@ -18,20 +18,20 @@ describe(getUpdateGroupQr, () => {
         qrTarget: 'dev-build',
         projectId: 'projectId',
         updateGroupId: 'updateGroupId',
-        appSlug: 'appslug',
+        appScheme: 'appscheme',
       })
     ).toBe(
-      'https://qr.expo.dev/eas-update?appScheme=appslug&projectId=projectId&groupId=updateGroupId'
+      'https://qr.expo.dev/eas-update?appScheme=appscheme&projectId=projectId&groupId=updateGroupId'
     );
   });
 
-  it('returns url for dev-build, with `_` in appSlug', () => {
+  it('returns url for dev-build, with `_` in appScheme', () => {
     expect(
       getUpdateGroupQr({
         qrTarget: 'dev-build',
         projectId: 'projectId',
         updateGroupId: 'updateGroupId',
-        appSlug: 'hello_world',
+        appScheme: 'hello_world',
       })
     ).toBe(
       'https://qr.expo.dev/eas-update?appScheme=helloworld&projectId=projectId&groupId=updateGroupId'

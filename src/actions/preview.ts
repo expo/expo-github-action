@@ -122,6 +122,7 @@ export function getVariables(
 
   const appSchemes = getSchemesInOrderFromConfig(config) || [];
   const appSlug = config.slug;
+  const appScheme = appSchemes[0] || appSlug;
   const qrTarget = getQrTarget(options);
 
   return {
@@ -135,7 +136,7 @@ export function getVariables(
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,
     runtimeVersion: updates[0].runtimeVersion,
-    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
+    qr: getUpdateGroupQr({ projectId, updateGroupId: updates[0].group, appScheme, qrTarget }),
     link: getUpdateGroupWebsite({ projectId, updateGroupId: updates[0].group }),
     // These are safe to access regardless of the update groups
     branchName: updates[0].branch,
@@ -150,7 +151,7 @@ export function getVariables(
     androidMessage: android?.message || '',
     androidRuntimeVersion: android?.runtimeVersion || '',
     androidQR: android
-      ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appSlug, qrTarget })
+      ? getUpdateGroupQr({ projectId, updateGroupId: android.group, appScheme, qrTarget })
       : '',
     androidLink: android ? getUpdateGroupWebsite({ projectId, updateGroupId: android.group }) : '',
     // iOS update
@@ -160,7 +161,9 @@ export function getVariables(
     iosManifestPermalink: ios?.manifestPermalink || '',
     iosMessage: ios?.message || '',
     iosRuntimeVersion: ios?.runtimeVersion || '',
-    iosQR: ios ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
+    iosQR: ios
+      ? getUpdateGroupQr({ projectId, updateGroupId: ios.group, appScheme, qrTarget })
+      : '',
     iosLink: ios ? getUpdateGroupWebsite({ projectId, updateGroupId: ios.group }) : '',
   };
 }
