@@ -4,6 +4,7 @@ import { createSummary, getVariables, previewInput } from '../../actions/preview
 import { EasUpdate } from '../../eas';
 
 jest.mock('../../expo');
+jest.mock('../../worker');
 
 const fakeOptions = {
   qrTarget: 'dev-client',
@@ -46,6 +47,25 @@ const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({
   group: `fake-group-${update.id}`,
 }));
 
+describe(getVariables, () => {
+  it.each([
+    { scheme: 'myapp-dev', expectedScheme: 'myapp-dev' },
+    { scheme: ['app', 'myapp-dev'], expectedScheme: 'myapp-dev' },
+  ])('uses configured scheme $scheme for each update group', ({ scheme, expectedScheme }) => {
+    const vars = getVariables({ ...fakeExpoConfig, scheme }, fakeUpdatesMultiple, fakeOptions);
+    for (const [value, group] of [
+      [vars.qr, 'fake-group-fake-android-id'],
+      [vars.androidQR, 'fake-group-fake-android-id'],
+      [vars.iosQR, 'fake-group-fake-ios-id'],
+    ]) {
+      const qr = new URL(value);
+      expect(qr.origin + qr.pathname).toBe('https://qr.expo.dev/development-client');
+      expect(qr.searchParams.get('appScheme')).toBe(expectedScheme);
+      expect(qr.searchParams.get('url')).toBe(`https://u.expo.dev/fake-project-id/group/${group}`);
+    }
+  });
+});
+
 describe(createSummary, () => {
   describe('single update group', () => {
     it('returns expected message for both platforms', () => {
@@ -84,7 +104,7 @@ describe(createSummary, () => {
         - Runtime Version → **exposdk:47.0.0**
         - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
-        <a href="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
+        <a href="https://qr.expo.dev/development-client?appScheme=expogithubaction&url=https%3A%2F%2Fu.expo.dev%2Ffake-project-id%2Fgroup%2Ffake-group-id"><img src="https://qr.expo.dev/development-client?appScheme=expogithubaction&url=https%3A%2F%2Fu.expo.dev%2Ffake-project-id%2Fgroup%2Ffake-group-id" width="250px" height="250px" /></a>
 
         > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);

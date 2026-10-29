@@ -34859,6 +34859,7 @@ function getVariables(config, updates, options) {
     const ios = updates.find(update => update.platform === 'ios');
     const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
     const appSlug = config.slug;
+    const appScheme = appSchemes[0];
     const qrTarget = (0, comment_1.getQrTarget)(options);
     return {
         // EAS / Expo specific
@@ -34871,7 +34872,13 @@ function getVariables(config, updates, options) {
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
+        qr: (0, eas_1.getUpdateGroupQr)({
+            projectId,
+            updateGroupId: updates[0].group,
+            appSlug,
+            appScheme,
+            qrTarget,
+        }),
         link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
@@ -34886,7 +34893,7 @@ function getVariables(config, updates, options) {
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
         androidQR: android
-            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget })
+            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, appScheme, qrTarget })
             : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
@@ -34896,7 +34903,9 @@ function getVariables(config, updates, options) {
         iosManifestPermalink: ios?.manifestPermalink || '',
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
+        iosQR: ios
+            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, appScheme, qrTarget })
+            : '',
         iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
     };
 }
@@ -35071,7 +35080,16 @@ async function createUpdate(cwd, command) {
 /**
  * Create a QR code link for an EAS Update.
  */
-function getUpdateGroupQr({ projectId, updateGroupId, appSlug, qrTarget, }) {
+function getUpdateGroupQr({ projectId, updateGroupId, appSlug, appScheme, qrTarget, }) {
+    if (qrTarget === 'dev-build' && appScheme) {
+        // /eas-update treats appScheme as a slug and prefixes it with exp+.
+        // /development-client uses the native scheme verbatim instead.
+        const url = new url_1.URL('https://qr.expo.dev/development-client');
+        const host = process.env.EXPO_STAGING ? 'staging-u.expo.dev' : 'u.expo.dev';
+        url.searchParams.append('appScheme', appScheme);
+        url.searchParams.append('url', `https://${host}/${projectId}/group/${updateGroupId}`);
+        return url.toString();
+    }
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
     if (qrTarget === 'dev-build') {
         // While the parameter is called `appScheme`, it's actually the app's slug
