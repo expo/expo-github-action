@@ -18,6 +18,9 @@ inputs:
   environment:
     description: The environment to use for server-side defined EAS environment variables during command execution
     required: false
+  app-scheme:
+    description: Override the app scheme shown in the comment and used for development-build QR codes. Defaults to the generated exp+<slug> scheme for QR codes. Does not affect Expo Go QR codes.
+    required: false
   platform:
     description: The platform on which to publish. Possible values are 'all' | 'android' | 'ios'
     required: false

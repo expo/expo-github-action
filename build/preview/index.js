@@ -34780,6 +34780,7 @@ function previewInput() {
     }
     return {
         command: (0, core_1.getInput)('command'),
+        appScheme: (0, core_1.getInput)('app-scheme') || undefined,
         shouldComment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
@@ -34857,17 +34858,17 @@ function getVariables(config, updates, options) {
     const projectId = config.extra?.eas?.projectId;
     const android = updates.find(update => update.platform === 'android');
     const ios = updates.find(update => update.platform === 'ios');
-    const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
+    const appScheme = options.appScheme;
+    const appSchemes = appScheme ? [appScheme] : (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
     const appSlug = config.slug;
-    const appScheme = appSchemes[0];
     const qrTarget = (0, comment_1.getQrTarget)(options);
     return {
         // EAS / Expo specific
         projectId,
         projectName: config.name,
         projectSlug: appSlug,
-        projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
-        projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
+        projectScheme: appSchemes[0] || '', // The override, or the longest configured app scheme
+        projectSchemes: JSON.stringify(appSchemes), // The override, or configured app schemes in priority order as JSON
         // Shared update properties
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,

@@ -6,16 +6,23 @@ import { EasUpdate } from '../../eas';
 jest.mock('../../expo');
 jest.mock('../../worker');
 
-const fakeOptions = {
+const fakeOptions: ReturnType<typeof previewInput> = {
+  command: 'eas update',
+  appScheme: undefined,
+  shouldComment: true,
+  commentId: 'preview-test',
+  workingDirectory: '.',
+  githubToken: 'test-token',
   qrTarget: 'dev-client',
-} as unknown as ReturnType<typeof previewInput>;
+};
 
-const fakeExpoConfig = {
+const fakeExpoConfig: ExpoConfig = {
+  name: 'Fake project',
   slug: 'fake-project',
   extra: {
     eas: { projectId: 'fake-project-id' },
   },
-} as unknown as ExpoConfig;
+};
 
 const fakeUpdatesSingle: EasUpdate[] = [
   {
@@ -47,12 +54,45 @@ const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({
   group: `fake-group-${update.id}`,
 }));
 
+describe(previewInput, () => {
+  it('reads the native scheme override from the action input', () => {
+    const previous = process.env['INPUT_APP-SCHEME'];
+    process.env['INPUT_APP-SCHEME'] = 'myapp-dev';
+    try {
+      expect(previewInput().appScheme).toBe('myapp-dev');
+    } finally {
+      if (previous === undefined) {
+        delete process.env['INPUT_APP-SCHEME'];
+      } else {
+        process.env['INPUT_APP-SCHEME'] = previous;
+      }
+    }
+  });
+});
+
 describe(getVariables, () => {
-  it.each([
-    { scheme: 'myapp-dev', expectedScheme: 'myapp-dev' },
-    { scheme: ['app', 'myapp-dev'], expectedScheme: 'myapp-dev' },
-  ])('uses configured scheme $scheme for each update group', ({ scheme, expectedScheme }) => {
-    const vars = getVariables({ ...fakeExpoConfig, scheme }, fakeUpdatesMultiple, fakeOptions);
+  it('keeps the generated scheme when config contains a variant-specific scheme', () => {
+    const vars = getVariables(
+      { ...fakeExpoConfig, scheme: 'myapp-production' },
+      fakeUpdatesMultiple,
+      fakeOptions
+    );
+    for (const value of [vars.qr, vars.androidQR, vars.iosQR]) {
+      const qr = new URL(value);
+      expect(qr.origin + qr.pathname).toBe('https://qr.expo.dev/eas-update');
+      expect(qr.searchParams.get('appScheme')).toBe('fake-project');
+    }
+  });
+
+  it('uses an explicit native scheme for every update group and the comment', () => {
+    const options = { ...fakeOptions, appScheme: 'myapp-dev' };
+    const vars = getVariables(
+      { ...fakeExpoConfig, scheme: ['myapp-production', 'com.example.third-party-long'] },
+      fakeUpdatesMultiple,
+      options
+    );
+    expect(vars.projectScheme).toBe('myapp-dev');
+    expect(JSON.parse(vars.projectSchemes)).toEqual(['myapp-dev']);
     for (const [value, group] of [
       [vars.qr, 'fake-group-fake-android-id'],
       [vars.androidQR, 'fake-group-fake-android-id'],
@@ -60,7 +100,7 @@ describe(getVariables, () => {
     ]) {
       const qr = new URL(value);
       expect(qr.origin + qr.pathname).toBe('https://qr.expo.dev/development-client');
-      expect(qr.searchParams.get('appScheme')).toBe(expectedScheme);
+      expect(qr.searchParams.get('appScheme')).toBe('myapp-dev');
       expect(qr.searchParams.get('url')).toBe(`https://u.expo.dev/fake-project-id/group/${group}`);
     }
   });
@@ -104,7 +144,7 @@ describe(createSummary, () => {
         - Runtime Version → **exposdk:47.0.0**
         - **[More info](https://expo.dev/projects/fake-project-id/updates/fake-group-id)**
 
-        <a href="https://qr.expo.dev/development-client?appScheme=expogithubaction&url=https%3A%2F%2Fu.expo.dev%2Ffake-project-id%2Fgroup%2Ffake-group-id"><img src="https://qr.expo.dev/development-client?appScheme=expogithubaction&url=https%3A%2F%2Fu.expo.dev%2Ffake-project-id%2Fgroup%2Ffake-group-id" width="250px" height="250px" /></a>
+        <a href="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id"><img src="https://qr.expo.dev/eas-update?appScheme=fake-project&projectId=fake-project-id&groupId=fake-group-id" width="250px" height="250px" /></a>
 
         > Learn more about [𝝠 Expo Github Action](https://github.com/expo/expo-github-action/tree/main/preview#example-workflows)"
       `);

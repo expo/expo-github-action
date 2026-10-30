@@ -29,10 +29,8 @@ inputs:
     description: GitHub token to use when commenting on PR
     required: false
     default: ${{ github.token }}
-  # Below are deprecated and won't be supported anymore
   app-scheme:
-    deprecated: true
-    description: The (custom) app scheme to use when creating the preview QR code
+    description: Override the app scheme shown in the comment and used for development-build QR codes. Defaults to the generated exp+<slug> scheme for QR codes. Does not affect Expo Go QR codes.
     required: false
 outputs:
   projectId:
@@ -42,7 +40,7 @@ outputs:
   projectSlug:
     description: The slug of your project
   projectScheme:
-    description: The (custom) app scheme
+    description: The app-scheme override, or the longest configured app scheme
 
   commentId:
     description: The unique comment ID to prevent duplicate comments

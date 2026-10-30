@@ -24,6 +24,7 @@ export function previewInput() {
 
   return {
     command: getInput('command'),
+    appScheme: getInput('app-scheme') || undefined,
     shouldComment: !getInput('comment') || getBooleanInput('comment'),
     commentId: getInput('comment-id') || MESSAGE_ID,
     workingDirectory: getInput('working-directory'),
@@ -120,9 +121,9 @@ export function getVariables(
   const android = updates.find(update => update.platform === 'android');
   const ios = updates.find(update => update.platform === 'ios');
 
-  const appSchemes = getSchemesInOrderFromConfig(config) || [];
+  const appScheme = options.appScheme;
+  const appSchemes = appScheme ? [appScheme] : getSchemesInOrderFromConfig(config) || [];
   const appSlug = config.slug;
-  const appScheme = appSchemes[0];
   const qrTarget = getQrTarget(options);
 
   return {
@@ -130,8 +131,8 @@ export function getVariables(
     projectId,
     projectName: config.name,
     projectSlug: appSlug,
-    projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
-    projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
+    projectScheme: appSchemes[0] || '', // The override, or the longest configured app scheme
+    projectSchemes: JSON.stringify(appSchemes), // The override, or configured app schemes in priority order as JSON
     // Shared update properties
     // Note, only use these properties when the update groups are identical
     groupId: updates[0].group,

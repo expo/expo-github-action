@@ -65,7 +65,10 @@ Here is a summary of all the input options you can use.
 | **working-directory**   | -              | The relative directory of your Expo app                                      |
 | **platform**            | `all`          | The platform to deploy on (available options are `ios`, `android` and `all`) |
 | **auto-submit-builds**  | -              | Whether to add the `--auto-submit` flag to the issued `eas build` commands.  |
+| **app-scheme**         | -              | Override the native scheme shown in the comment and used for development-build QR codes. Omit it to use `exp+<slug>` for QR codes. Does not affect Expo Go QR codes. |
 | **github-token**        | `github.token` | GitHub token to use when commenting on PR ([read more](#github-tokens))      |
+
+For development clients that do not register the generated `exp+<slug>` scheme (for example, bare projects or clients built with `addGeneratedScheme: false`), set `app-scheme` to the exact scheme registered by that client. This value is independent of the config evaluated on the runner, so it can target a development variant even when `eas update --environment ...` uses different environment variables.
 
 And the action will generate these [outputs](#available-outputs) for other actions to do something based on what this action did.
 

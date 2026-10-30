@@ -37564,6 +37564,7 @@ function collectContinuousDeployFingerprintInput() {
         branch: (0, input_1.getInput)('branch', { required: true }),
         platform: platformInput,
         environment: (0, input_1.getInput)('environment'),
+        appScheme: (0, input_1.getInput)('app-scheme') || undefined,
         autoSubmitBuilds: (0, input_1.getInput)('auto-submit-builds') === 'true',
         githubToken: (0, input_1.getInput)('github-token', { required: true }),
         workingDirectory: (0, input_1.getInput)('working-directory', { required: true }),
@@ -37723,8 +37724,8 @@ async function publishEASUpdatesAsync({ cwd, branch, environment, platform, }) {
 function createSummaryForUpdatesAndBuilds({ config, projectId, updates, buildRunInfos, options, }) {
     const appSlug = config.slug;
     const qrTarget = (0, comment_1.getQrTarget)(options);
-    const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
-    const appScheme = appSchemes[0];
+    const appScheme = options.appScheme;
+    const appSchemes = appScheme ? [appScheme] : (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
     const { androidBuildRunInfo, iosBuildRunInfo } = buildRunInfos;
     const androidUpdate = updates.find(update => update.platform === 'android');
     const iosUpdate = updates.find(update => update.platform === 'ios');

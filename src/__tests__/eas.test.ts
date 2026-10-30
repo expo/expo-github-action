@@ -48,6 +48,7 @@ describe(getUpdateGroupQr, () => {
         projectId: 'projectId',
         updateGroupId: 'updateGroupId',
         appSlug: 'appslug',
+        appScheme: undefined,
       })
     ).toBe(
       'https://qr.expo.dev/eas-update?appScheme=appslug&projectId=projectId&groupId=updateGroupId'
@@ -61,6 +62,7 @@ describe(getUpdateGroupQr, () => {
         projectId: 'projectId',
         updateGroupId: 'updateGroupId',
         appSlug: 'hello_world',
+        appScheme: undefined,
       })
     ).toBe(
       'https://qr.expo.dev/eas-update?appScheme=helloworld&projectId=projectId&groupId=updateGroupId'

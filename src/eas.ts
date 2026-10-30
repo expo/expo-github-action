@@ -80,7 +80,7 @@ export function getUpdateGroupQr({
   projectId: string;
   updateGroupId: string;
   appSlug: string;
-  appScheme?: string;
+  appScheme: string | undefined;
   qrTarget: 'expo-go' | 'dev-build';
 }): string {
   if (qrTarget === 'dev-build' && appScheme) {

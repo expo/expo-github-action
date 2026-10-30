@@ -49,7 +49,10 @@ Here is a summary of all the input options you can use.
 | **comment**           | `true`                      | If the action should summarize the EAS Update information as comment on a pull request                                                                                           |
 | **comment-id**        | _[see code][code-defaults]_ | Unique id template to prevent duplicate comments ([read more](#preventing-duplicate-comments))                                                                                   |
 | **qr-target**         | _inferred from project_     | Either `dev-build` or `expo-go`, affects how the EAS Update is opened through the QR code. <br /> Defaults to `dev-build` when `expo-dev-client` is detected within the project. |
+| **app-scheme**        | -                           | Override the native scheme shown in the comment and used for development-build QR codes. Omit it to use `exp+<slug>` for QR codes. Does not affect Expo Go QR codes. |
 | **github-token**      | `github.token`              | GitHub token to use when commenting on PR ([read more](#github-tokens))                                                                                                          |
+
+For development clients that do not register the generated `exp+<slug>` scheme (for example, bare projects or clients built with `addGeneratedScheme: false`), set `app-scheme` to the exact scheme registered by that client. This value is independent of the config evaluated on the runner, so it can target a development variant even when `eas update --environment ...` uses different environment variables.
 
 ## Available outputs
 
@@ -61,8 +64,8 @@ These variables are strings; some may be empty because of your project configura
 | **projectId**      | The resolved EAS project ID                                                                                                                      |
 | **projectName**    | The name of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#name))                                                   |
 | **projectSlug**    | The slug of your project ([read more](https://docs.expo.dev/versions/latest/config/app/#slug))                                                   |
-| **projectScheme**  | The longest (custom) app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))                                          |
-| **projectSchemes** | All (custom) app schemes in order of longest to shortest, as JSON string ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme)) |
+| **projectScheme**  | The `app-scheme` override, or longest configured app scheme ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme))                                          |
+| **projectSchemes** | The `app-scheme` override, or configured app schemes in order of longest to shortest, as a JSON string ([read more](https://docs.expo.dev/versions/latest/config/app/#scheme)) |
 | **commentId**      | The unique comment ID to prevent duplicate comments ([read more](#preventing-duplicate-comments))                                                |
 | **comment**        | The comment with information about the updates                                                                                                   |
 
