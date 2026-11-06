@@ -30,6 +30,7 @@ export function collectContinuousDeployFingerprintInput() {
     branch: getInput('branch', { required: true }),
     platform: platformInput,
     environment: getInput('environment'),
+    appScheme: getInput('app-scheme') || undefined,
     autoSubmitBuilds: getInput('auto-submit-builds') === 'true',
     githubToken: getInput('github-token', { required: true }),
     workingDirectory: getInput('working-directory', { required: true }),
@@ -256,11 +257,16 @@ function createSummaryForUpdatesAndBuilds({
   projectId: string;
   updates: EasUpdate[];
   buildRunInfos: { androidBuildRunInfo?: BuildRunInfo; iosBuildRunInfo?: BuildRunInfo };
-  options: { qrTarget?: 'expo-go' | 'dev-build' | 'dev-client'; workingDirectory: string };
+  options: {
+    qrTarget?: 'expo-go' | 'dev-build' | 'dev-client';
+    workingDirectory: string;
+    appScheme: string | undefined;
+  };
 }) {
   const appSlug = config.slug;
   const qrTarget = getQrTarget(options);
-  const appSchemes = getSchemesInOrderFromConfig(config) || [];
+  const appScheme = options.appScheme;
+  const appSchemes = appScheme ? [appScheme] : getSchemesInOrderFromConfig(config) || [];
 
   const { androidBuildRunInfo, iosBuildRunInfo } = buildRunInfos;
 
@@ -274,7 +280,9 @@ function createSummaryForUpdatesAndBuilds({
       ? `[Update Permalink](${getUpdateGroupWebsite({ projectId, updateGroupId: update.group })})`
       : 'n/a';
   const getUpdateQRURL = (update: EasUpdate | undefined) =>
-    update ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appSlug, qrTarget }) : null;
+    update
+      ? getUpdateGroupQr({ projectId, updateGroupId: update.group, appSlug, appScheme, qrTarget })
+      : null;
   const getBuildDetails = (buildRunInfo: BuildRunInfo) =>
     getBuildLink(buildRunInfo.buildInfo) +
     '<br />' +

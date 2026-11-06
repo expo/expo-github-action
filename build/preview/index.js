@@ -34780,6 +34780,7 @@ function previewInput() {
     }
     return {
         command: (0, core_1.getInput)('command'),
+        appScheme: (0, core_1.getInput)('app-scheme') || undefined,
         shouldComment: !(0, core_1.getInput)('comment') || (0, core_1.getBooleanInput)('comment'),
         commentId: (0, core_1.getInput)('comment-id') || exports.MESSAGE_ID,
         workingDirectory: (0, core_1.getInput)('working-directory'),
@@ -34857,7 +34858,8 @@ function getVariables(config, updates, options) {
     const projectId = config.extra?.eas?.projectId;
     const android = updates.find(update => update.platform === 'android');
     const ios = updates.find(update => update.platform === 'ios');
-    const appSchemes = (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
+    const appScheme = options.appScheme;
+    const appSchemes = appScheme ? [appScheme] : (0, comment_1.getSchemesInOrderFromConfig)(config) || [];
     const appSlug = config.slug;
     const qrTarget = (0, comment_1.getQrTarget)(options);
     return {
@@ -34865,13 +34867,19 @@ function getVariables(config, updates, options) {
         projectId,
         projectName: config.name,
         projectSlug: appSlug,
-        projectScheme: appSchemes[0] || '', // This is the longest scheme from one or more custom app schemes
-        projectSchemes: JSON.stringify(appSchemes), // These are all custom app schemes, in order from longest to shortest as JSON
+        projectScheme: appSchemes[0] || '', // The override, or the longest configured app scheme
+        projectSchemes: JSON.stringify(appSchemes), // The override, or configured app schemes in priority order as JSON
         // Shared update properties
         // Note, only use these properties when the update groups are identical
         groupId: updates[0].group,
         runtimeVersion: updates[0].runtimeVersion,
-        qr: (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: updates[0].group, appSlug, qrTarget }),
+        qr: (0, eas_1.getUpdateGroupQr)({
+            projectId,
+            updateGroupId: updates[0].group,
+            appSlug,
+            appScheme,
+            qrTarget,
+        }),
         link: (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: updates[0].group }),
         // These are safe to access regardless of the update groups
         branchName: updates[0].branch,
@@ -34886,7 +34894,7 @@ function getVariables(config, updates, options) {
         androidMessage: android?.message || '',
         androidRuntimeVersion: android?.runtimeVersion || '',
         androidQR: android
-            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, qrTarget })
+            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: android.group, appSlug, appScheme, qrTarget })
             : '',
         androidLink: android ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: android.group }) : '',
         // iOS update
@@ -34896,7 +34904,9 @@ function getVariables(config, updates, options) {
         iosManifestPermalink: ios?.manifestPermalink || '',
         iosMessage: ios?.message || '',
         iosRuntimeVersion: ios?.runtimeVersion || '',
-        iosQR: ios ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, qrTarget }) : '',
+        iosQR: ios
+            ? (0, eas_1.getUpdateGroupQr)({ projectId, updateGroupId: ios.group, appSlug, appScheme, qrTarget })
+            : '',
         iosLink: ios ? (0, eas_1.getUpdateGroupWebsite)({ projectId, updateGroupId: ios.group }) : '',
     };
 }
@@ -35071,7 +35081,16 @@ async function createUpdate(cwd, command) {
 /**
  * Create a QR code link for an EAS Update.
  */
-function getUpdateGroupQr({ projectId, updateGroupId, appSlug, qrTarget, }) {
+function getUpdateGroupQr({ projectId, updateGroupId, appSlug, appScheme, qrTarget, }) {
+    if (qrTarget === 'dev-build' && appScheme) {
+        // /eas-update treats appScheme as a slug and prefixes it with exp+.
+        // /development-client uses the native scheme verbatim instead.
+        const url = new url_1.URL('https://qr.expo.dev/development-client');
+        const host = process.env.EXPO_STAGING ? 'staging-u.expo.dev' : 'u.expo.dev';
+        url.searchParams.append('appScheme', appScheme);
+        url.searchParams.append('url', `https://${host}/${projectId}/group/${updateGroupId}`);
+        return url.toString();
+    }
     const url = new url_1.URL('https://qr.expo.dev/eas-update');
     if (qrTarget === 'dev-build') {
         // While the parameter is called `appScheme`, it's actually the app's slug

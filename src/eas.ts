@@ -74,13 +74,25 @@ export function getUpdateGroupQr({
   projectId,
   updateGroupId,
   appSlug,
+  appScheme,
   qrTarget,
 }: {
   projectId: string;
   updateGroupId: string;
   appSlug: string;
+  appScheme: string | undefined;
   qrTarget: 'expo-go' | 'dev-build';
 }): string {
+  if (qrTarget === 'dev-build' && appScheme) {
+    // /eas-update treats appScheme as a slug and prefixes it with exp+.
+    // /development-client uses the native scheme verbatim instead.
+    const url = new URL('https://qr.expo.dev/development-client');
+    const host = process.env.EXPO_STAGING ? 'staging-u.expo.dev' : 'u.expo.dev';
+    url.searchParams.append('appScheme', appScheme);
+    url.searchParams.append('url', `https://${host}/${projectId}/group/${updateGroupId}`);
+    return url.toString();
+  }
+
   const url = new URL('https://qr.expo.dev/eas-update');
 
   if (qrTarget === 'dev-build') {

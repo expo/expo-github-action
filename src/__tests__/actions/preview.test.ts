@@ -4,17 +4,25 @@ import { createSummary, getVariables, previewInput } from '../../actions/preview
 import { EasUpdate } from '../../eas';
 
 jest.mock('../../expo');
+jest.mock('../../worker');
 
-const fakeOptions = {
+const fakeOptions: ReturnType<typeof previewInput> = {
+  command: 'eas update',
+  appScheme: undefined,
+  shouldComment: true,
+  commentId: 'preview-test',
+  workingDirectory: '.',
+  githubToken: 'test-token',
   qrTarget: 'dev-client',
-} as unknown as ReturnType<typeof previewInput>;
+};
 
-const fakeExpoConfig = {
+const fakeExpoConfig: ExpoConfig = {
+  name: 'Fake project',
   slug: 'fake-project',
   extra: {
     eas: { projectId: 'fake-project-id' },
   },
-} as unknown as ExpoConfig;
+};
 
 const fakeUpdatesSingle: EasUpdate[] = [
   {
@@ -45,6 +53,58 @@ const fakeUpdatesMultiple = fakeUpdatesSingle.map(update => ({
   ...update,
   group: `fake-group-${update.id}`,
 }));
+
+describe(previewInput, () => {
+  it('reads the native scheme override from the action input', () => {
+    const previous = process.env['INPUT_APP-SCHEME'];
+    process.env['INPUT_APP-SCHEME'] = 'myapp-dev';
+    try {
+      expect(previewInput().appScheme).toBe('myapp-dev');
+    } finally {
+      if (previous === undefined) {
+        delete process.env['INPUT_APP-SCHEME'];
+      } else {
+        process.env['INPUT_APP-SCHEME'] = previous;
+      }
+    }
+  });
+});
+
+describe(getVariables, () => {
+  it('keeps the generated scheme when config contains a variant-specific scheme', () => {
+    const vars = getVariables(
+      { ...fakeExpoConfig, scheme: 'myapp-production' },
+      fakeUpdatesMultiple,
+      fakeOptions
+    );
+    for (const value of [vars.qr, vars.androidQR, vars.iosQR]) {
+      const qr = new URL(value);
+      expect(qr.origin + qr.pathname).toBe('https://qr.expo.dev/eas-update');
+      expect(qr.searchParams.get('appScheme')).toBe('fake-project');
+    }
+  });
+
+  it('uses an explicit native scheme for every update group and the comment', () => {
+    const options = { ...fakeOptions, appScheme: 'myapp-dev' };
+    const vars = getVariables(
+      { ...fakeExpoConfig, scheme: ['myapp-production', 'com.example.third-party-long'] },
+      fakeUpdatesMultiple,
+      options
+    );
+    expect(vars.projectScheme).toBe('myapp-dev');
+    expect(JSON.parse(vars.projectSchemes)).toEqual(['myapp-dev']);
+    for (const [value, group] of [
+      [vars.qr, 'fake-group-fake-android-id'],
+      [vars.androidQR, 'fake-group-fake-android-id'],
+      [vars.iosQR, 'fake-group-fake-ios-id'],
+    ]) {
+      const qr = new URL(value);
+      expect(qr.origin + qr.pathname).toBe('https://qr.expo.dev/development-client');
+      expect(qr.searchParams.get('appScheme')).toBe('myapp-dev');
+      expect(qr.searchParams.get('url')).toBe(`https://u.expo.dev/fake-project-id/group/${group}`);
+    }
+  });
+});
 
 describe(createSummary, () => {
   describe('single update group', () => {
