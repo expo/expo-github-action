@@ -1,3 +1,9 @@
+## [9.0.2](https://github.com/expo/expo-github-action/compare/9.0.1...9.0.2) (2026-11-06)
+
+### Bug fixes
+
+* **preview:** Honor native scheme overrides in development build QR codes ([#365](https://github.com/expo/expo-github-action/issues/365)) ([f2443cd](https://github.com/expo/expo-github-action/commit/f2443cd44215902958beadca9aa808395ff56eba))
+
 ## [9.0.1](https://github.com/expo/expo-github-action/compare/9.0.0...9.0.1) (2026-10-20)
 
 ### Bug fixes
