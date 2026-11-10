@@ -37540,6 +37540,7 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.collectContinuousDeployFingerprintInput = collectContinuousDeployFingerprintInput;
 exports.continuousDeployFingerprintAction = continuousDeployFingerprintAction;
+exports.createEASBuildAsync = createEASBuildAsync;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const io_1 = __nccwpck_require__(4994);
@@ -37688,7 +37689,7 @@ async function createEASBuildAsync({ cwd, profile, platform, autoSubmit, }) {
             cwd,
             silent: !(0, core_1.isDebug)(),
         });
-        return JSON.parse(stdout)[0];
+        return (0, expo_1.normalizeBuildInfo)(JSON.parse(stdout)[0]);
     }
     catch (error) {
         throw new Error(`Error running eas build command: ${String(error)}`, { cause: error });

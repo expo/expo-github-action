@@ -5,7 +5,13 @@ import { ExpoConfig } from '@expo/config';
 
 import { createDetails, getQrTarget, getSchemesInOrderFromConfig } from '../comment';
 import { EasUpdate, getUpdateGroupQr, getUpdateGroupWebsite } from '../eas';
-import { AppPlatform, BuildInfo, appPlatformEmojis, getBuildLogsUrl } from '../expo';
+import {
+  AppPlatform,
+  BuildInfo,
+  appPlatformEmojis,
+  getBuildLogsUrl,
+  normalizeBuildInfo,
+} from '../expo';
 import { getBuildInfoForCurrentFingerprintAsync } from '../fingerprintUtils';
 import { createIssueComment, hasPullContext, pullContext } from '../github';
 import { getInput } from '../input';
@@ -169,7 +175,7 @@ async function buildForPlatformIfNecessaryAsync({
   }
 }
 
-async function createEASBuildAsync({
+export async function createEASBuildAsync({
   cwd,
   profile,
   platform,
@@ -202,7 +208,7 @@ async function createEASBuildAsync({
         silent: !isDebug(),
       }
     );
-    return JSON.parse(stdout)[0];
+    return normalizeBuildInfo(JSON.parse(stdout)[0]);
   } catch (error: unknown) {
     throw new Error(`Error running eas build command: ${String(error)}`, { cause: error });
   }
